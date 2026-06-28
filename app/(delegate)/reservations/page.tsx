@@ -1,0 +1,117 @@
+'use client'
+
+import { useState } from 'react'
+import { Navbar } from "@/components/layout/navbar"
+import { Footer } from "@/components/layout/footer"
+import { PageTransition } from "@/components/layout/page-transition"
+import { SectionBlur } from "@/components/shared/section-blur"
+import { PassTierCard } from "@/components/shared/pass-tier-card"
+import { RegistrationFormUI } from "@/components/sections/registration-form-ui"
+import { PassTierDetails } from "@/types"
+
+const passTiers: PassTierDetails[] = [
+  {
+    id: 'vip',
+    name: 'VIP Delegate Pass',
+    badge: 'Executive Delegate',
+    price: 250000,
+    currency: 'NGN',
+    availability: 'available',
+    privileges: [
+      'Admission to all keynote speeches, panel debates, and workshops',
+      'Exclusive access to the aircraft static display ramp',
+      'Daily networking gourmet lunch buffet & premium coffee lounges',
+      'Official NBAC delegate gift package and conference materials',
+      'Access to digital networking app & private matchmaking portal'
+    ]
+  },
+  {
+    id: 'exhibitor',
+    name: 'Exhibitor Pass',
+    badge: 'Corporate Exhibitor',
+    price: 750000,
+    currency: 'NGN',
+    availability: 'limited',
+    privileges: [
+      'Premium 3m x 3m designated exhibition space in main hall',
+      'Two (2) full delegate access passes for company representatives',
+      'Corporate profile listing in the official conference program',
+      'Double-sided profile display on digital exhibition pillars',
+      'Priority access to corporate press release desk & media lounge'
+    ]
+  },
+  {
+    id: 'jet_display',
+    name: 'Jet Display Pass',
+    badge: 'Aircraft Operator',
+    price: 1800000,
+    currency: 'NGN',
+    availability: 'available',
+    privileges: [
+      'Reserved ramp parking slot for one (1) display aircraft',
+      'Four (4) VIP All-Access delegate passes for company executives',
+      'Complimentary corporate chalet / hosting lounge privilege',
+      'Full-page feature advertisement in the official event digest',
+      'Fast-track VIP diplomatic clearance & customs coordination'
+    ]
+  }
+]
+
+export default function ReservationsPage() {
+  const [selectedTier, setSelectedTier] = useState<PassTierDetails | null>(null)
+
+  const handleSelectTier = (tier: PassTierDetails) => {
+    setSelectedTier(tier)
+  }
+
+  return (
+    <PageTransition>
+      <Navbar />
+      
+      <main className="flex flex-col min-h-screen bg-nbac-canvas text-nbac-text pt-24 md:pt-28 pb-12 md:pb-16">
+        
+        {/* Top Hero Header Section */}
+        <section className="max-w-7xl mx-auto px-6 md:px-12 w-full pt-6 pb-10">
+          <div className="flex flex-col space-y-3">
+            <span className="font-sans text-xs uppercase tracking-widest font-semibold text-nbac-emerald-light">
+              ANNUAL CONFERENCE & EXHIBITION
+            </span>
+            <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-nbac-text tracking-tight max-w-4xl">
+              Secure Your Delegate Pass
+            </h1>
+            <p className="font-sans text-sm md:text-base font-light text-nbac-body max-w-3xl leading-relaxed">
+              Select your access package to secure your presence among business aviation leaders, operators, regulators, and high-net-worth investors at {"West Africa's"} premier aviation summit.
+            </p>
+          </div>
+        </section>
+
+        {/* Form and Selection Split Grid */}
+        <SectionBlur>
+          <section className="max-w-7xl mx-auto px-6 md:px-12 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+            
+            {/* Left side: Package Cards Stack/Grid */}
+            <div className="lg:col-span-6 xl:col-span-7 flex flex-col gap-6 md:grid md:grid-cols-3 lg:flex lg:flex-col lg:gap-6">
+              {passTiers.map((tier) => (
+                <PassTierCard
+                  key={tier.id}
+                  tier={tier}
+                  isSelected={selectedTier?.id === tier.id}
+                  onSelect={() => handleSelectTier(tier)}
+                />
+              ))}
+            </div>
+
+            {/* Right side: Credentials Form Box */}
+            <div className="lg:col-span-6 xl:col-span-5 h-full">
+              <RegistrationFormUI selectedTier={selectedTier} />
+            </div>
+
+          </section>
+        </SectionBlur>
+
+      </main>
+
+      <Footer />
+    </PageTransition>
+  )
+}

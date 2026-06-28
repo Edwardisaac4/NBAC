@@ -68,3 +68,14 @@ export interface EventDetails {
   status: 'featured' | 'upcoming' | 'completed';
   sessions: EventSession[];
 }
+
+export interface PassTierDetails {
+  id: PassTier;
+  name: string;
+  price: number;
+  currency: 'NGN';
+  privileges: string[];
+  availability: 'available' | 'limited' | 'sold_out';
+  badge?: string;
+}
+

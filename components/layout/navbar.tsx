@@ -76,7 +76,7 @@ export function Navbar() {
   const activeLink = useMemo(() => {
     if (pathname === '/about') return 'About'
     if (pathname === '/contact') return 'Contact'
-    if (pathname === '/events') return 'Program'
+    if (pathname === '/events') return 'Events'
     return 'Home'
   }, [pathname])
 
@@ -144,9 +144,9 @@ export function Navbar() {
   const navLinks = [
     { label: 'Home', href: '/' },
     { label: 'About', href: '/about' },
-    { label: 'Program', href: '/events' },
-    { label: 'Speakers', href: '/#speakers' },
-    { label: 'Exhibitors', href: '/#exhibitors' },
+    { label: 'Events', href: '/events' },
+    { label: 'Speakers', href: '/speakers' },
+    { label: 'Exhibitors', href: '/exhibitors' },
     { label: 'Contact', href: '/contact' },
   ]
 
@@ -223,7 +223,7 @@ export function Navbar() {
           <ThemeToggle />
 
           <Link 
-            href="/#register"
+            href="/reservations"
             className="hidden md:inline-block bg-linear-to-r from-nbac-emerald to-[#059669] hover:from-[#059669] hover:to-[#047857] text-white font-sans font-bold px-6 py-2 rounded-full text-xs uppercase tracking-wider transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_4px_15px_rgba(16,185,129,0.3)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_6px_20px_rgba(16,185,129,0.5)] active:scale-95"
           >
             REGISTER
@@ -302,7 +302,7 @@ export function Navbar() {
               </div>
               <div className="flex flex-col gap-4">
                 <Link 
-                  href="/#register"
+                  href="/reservations"
                   onClick={toggleMobileMenu}
                   className="w-full text-center bg-nbac-emerald hover:bg-nbac-emerald-dark text-white font-sans font-bold py-3 rounded-full text-sm uppercase tracking-widest transition-colors shadow-lg shadow-nbac-emerald/20"
                 >

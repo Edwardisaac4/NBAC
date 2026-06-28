@@ -18,6 +18,11 @@ const cormorant = Cormorant_Garamond({
 export const metadata: Metadata = {
   title: "NBAC | Nigerian Business Aviation Conference",
   description: "West Africa's premier business aviation conference combining elite panels, private aircraft displays, and high-level networking.",
+  icons: {
+    icon: "/images/logo-mark.jpg",
+    shortcut: "/images/logo-mark.jpg",
+    apple: "/images/logo-mark.jpg",
+  },
 };
 
 export default function RootLayout({

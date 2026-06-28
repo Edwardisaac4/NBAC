@@ -124,7 +124,10 @@ export function StateSection() {
                 }`}
                 whileHover={{
                   y: -6,
-                  borderColor: 'rgba(16, 185, 129, 0.5)',
+                  borderTopColor: 'rgba(16, 185, 129, 0.5)',
+                  borderRightColor: 'rgba(16, 185, 129, 0.5)',
+                  borderBottomColor: 'rgba(16, 185, 129, 0.5)',
+                  borderLeftColor: 'rgba(16, 185, 129, 0.8)',
                   boxShadow: '0 12px 40px rgba(16, 185, 129, 0.1)',
                 }}
                 transition={{ duration: 0.25, ease: 'easeOut' }}

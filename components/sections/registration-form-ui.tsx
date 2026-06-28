@@ -1,0 +1,352 @@
+'use client'
+
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Mail, Shield, User, Landmark, Phone, Plus, Minus, CreditCard, Lock, Sparkles, CheckCircle2 } from 'lucide-react'
+import { PassTierDetails } from '@/types'
+import { cn } from '@/lib/utils'
+
+interface RegistrationFormUIProps {
+  selectedTier: PassTierDetails | null
+}
+
+export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
+  const [delegateCount, setDelegateCount] = useState(1)
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    company: '',
+    phone: '',
+    specialRequirements: ''
+  })
+  
+  // UI states for interactive feedback (simulating payment)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [paymentSuccess, setPaymentSuccess] = useState(false)
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [id]: value
+    }))
+  }
+
+  const handleIncrement = () => {
+    if (delegateCount < 10) setDelegateCount(prev => prev + 1)
+  }
+
+  const handleDecrement = () => {
+    if (delegateCount > 1) setDelegateCount(prev => prev - 1)
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    
+    // Simulate premium payment transition and success
+    setTimeout(() => {
+      setIsSubmitting(false)
+      setPaymentSuccess(true)
+    }, 2500)
+  }
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN',
+      maximumFractionDigits: 0
+    }).format(price)
+  }
+
+  return (
+    <div className="space-y-6 relative">
+      <div className="flex flex-col space-y-2 mb-2">
+        <span className="font-sans text-xs uppercase tracking-widest font-semibold text-nbac-emerald-light">
+          Secure Registration
+        </span>
+        <h2 className="font-display text-2xl md:text-3xl font-bold text-nbac-text tracking-tight">
+          Delegate Registration Desk
+        </h2>
+      </div>
+
+      <div className="relative min-h-[550px]">
+        <AnimatePresence mode="wait">
+          {/* STATE 1: Locked overlay if no tier is selected */}
+          {!selectedTier && (
+            <motion.div
+              key="locked-state"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.3 }}
+              className="absolute inset-0 bg-nbac-panel/40 border border-nbac-border rounded-xl p-8 backdrop-blur-md flex flex-col items-center justify-center text-center space-y-6 z-20 min-h-[550px]"
+            >
+              <div className="p-5 bg-nbac-panel/80 rounded-full border border-nbac-border/80 shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
+                <Shield size={36} className="text-nbac-muted" />
+              </div>
+              <div className="max-w-md space-y-2">
+                <h3 className="font-sans text-lg font-bold text-nbac-text uppercase tracking-wide">
+                  Select a Pass Package
+                </h3>
+                <p className="font-sans text-sm text-nbac-body font-light leading-relaxed">
+                  Please review the conference pass options on the left and select your package to activate the secure delegate credentials form.
+                </p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* STATE 2: Success Confirmation Page */}
+          {selectedTier && paymentSuccess && (
+            <motion.div
+              key="success-state"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+              className="bg-nbac-panel/80 border border-nbac-border rounded-xl p-8 backdrop-blur-xl flex flex-col items-center justify-center text-center space-y-6 z-30 min-h-[550px] shadow-2xl relative overflow-hidden"
+            >
+              {/* Luxury gold/emerald glow particles */}
+              <div className="absolute -top-24 -left-24 w-48 h-48 bg-nbac-emerald/[0.08] blur-[80px] rounded-full pointer-events-none" />
+              <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-nbac-emerald/[0.05] blur-[80px] rounded-full pointer-events-none" />
+
+              <motion.div 
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 15 }}
+                className="p-4 bg-nbac-emerald/10 border border-nbac-emerald/30 rounded-full shadow-[0_0_30px_rgba(16,185,129,0.2)]"
+              >
+                <CheckCircle2 size={48} className="text-nbac-emerald" />
+              </motion.div>
+
+              <div className="max-w-md space-y-3">
+                <span className="font-sans text-xs uppercase tracking-widest font-semibold text-nbac-emerald-light">
+                  Transaction Authenticated
+                </span>
+                <h3 className="font-display text-2xl md:text-3xl font-bold text-nbac-text tracking-tight">
+                  Welcome to NBAC
+                </h3>
+                <p className="font-sans text-sm text-nbac-body font-light leading-relaxed">
+                  Thank you, <span className="font-semibold text-nbac-text">{formData.fullName || 'Delegate'}</span>. Your delegate seat reservation for the <span className="font-semibold text-nbac-text">{selectedTier.name}</span> package has been securely requested. 
+                </p>
+                <p className="font-sans text-xs text-nbac-muted font-light leading-relaxed">
+                  In a production environment, this would verify your payment of <span className="font-semibold text-nbac-text">{formatPrice(selectedTier.price * delegateCount)}</span> via Paystack, save your record in Supabase, and dispatch your access passes via Resend.
+                </p>
+              </div>
+
+              <div className="bg-nbac-canvas/80 border border-nbac-border rounded-lg p-5 w-full max-w-sm text-left space-y-3.5 shadow-inner">
+                <div className="flex justify-between items-center text-xs border-b border-nbac-border/60 pb-2">
+                  <span className="text-nbac-muted uppercase tracking-wider">Package</span>
+                  <span className="font-bold text-nbac-text uppercase">{selectedTier.name}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs border-b border-nbac-border/60 pb-2">
+                  <span className="text-nbac-muted uppercase tracking-wider">Delegate Count</span>
+                  <span className="font-bold text-nbac-text">{delegateCount} Pass(es)</span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-nbac-muted uppercase tracking-wider font-semibold">Total Amount</span>
+                  <span className="font-bold text-nbac-emerald text-sm">{formatPrice(selectedTier.price * delegateCount)}</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setPaymentSuccess(false)
+                  setFormData({ fullName: '', email: '', company: '', phone: '', specialRequirements: '' })
+                  setDelegateCount(1)
+                }}
+                className="border border-nbac-border text-nbac-body hover:text-nbac-text hover:bg-nbac-canvas font-sans font-medium px-8 py-3 rounded-full text-xs uppercase tracking-wider transition-colors"
+              >
+                Book Another Pass
+              </button>
+            </motion.div>
+          )}
+
+          {/* STATE 3: Active Form Panel */}
+          {selectedTier && !paymentSuccess && (
+            <motion.div
+              key="active-form"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="bg-nbac-panel/70 border border-nbac-border rounded-xl p-6 md:p-8 backdrop-blur-xl shadow-2xl relative overflow-hidden group"
+            >
+              {/* Subtle accent glow inside card */}
+              <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-nbac-emerald/[0.03] blur-[80px] rounded-full pointer-events-none" />
+
+              <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+                {/* Active Package Banner */}
+                <div className="bg-nbac-canvas/80 border border-nbac-border rounded-lg p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <span className="font-sans text-[10px] uppercase tracking-widest font-semibold text-nbac-emerald-light">Selected Tier</span>
+                    <h4 className="font-sans text-sm font-bold text-nbac-text uppercase tracking-wide mt-0.5">{selectedTier.name}</h4>
+                  </div>
+                  <div className="text-left sm:text-right">
+                    <span className="font-sans text-[10px] uppercase tracking-widest text-nbac-muted">Price Per Seat</span>
+                    <p className="font-sans text-sm font-bold text-nbac-text mt-0.5">{formatPrice(selectedTier.price)}</p>
+                  </div>
+                </div>
+
+                {/* Delegate Credentials */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  {/* Full Name */}
+                  <div className="space-y-2">
+                    <label htmlFor="fullName" className="font-sans text-[10px] uppercase tracking-widest font-semibold text-nbac-muted flex items-center gap-1.5">
+                      <User size={12} className="text-nbac-emerald" />
+                      Full Name <span className="text-nbac-emerald">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="fullName"
+                      required
+                      value={formData.fullName}
+                      onChange={handleInputChange}
+                      placeholder="e.g. Aliko Dangote"
+                      className="w-full bg-nbac-canvas/80 border border-nbac-border rounded-lg px-4 py-3 text-nbac-text placeholder:text-nbac-muted/65 font-sans text-sm focus:outline-none focus:border-nbac-emerald focus:ring-1 focus:ring-nbac-emerald/30 transition-all duration-300"
+                    />
+                  </div>
+
+                  {/* Corporate Email */}
+                  <div className="space-y-2">
+                    <label htmlFor="email" className="font-sans text-[10px] uppercase tracking-widest font-semibold text-nbac-muted flex items-center gap-1.5">
+                      <Mail size={12} className="text-nbac-emerald" />
+                      Corporate Email <span className="text-nbac-emerald">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      required
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="executive@company.com"
+                      className="w-full bg-nbac-canvas/80 border border-nbac-border rounded-lg px-4 py-3 text-nbac-text placeholder:text-nbac-muted/65 font-sans text-sm focus:outline-none focus:border-nbac-emerald focus:ring-1 focus:ring-nbac-emerald/30 transition-all duration-300"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  {/* Company */}
+                  <div className="space-y-2">
+                    <label htmlFor="company" className="font-sans text-[10px] uppercase tracking-widest font-semibold text-nbac-muted flex items-center gap-1.5">
+                      <Landmark size={12} className="text-nbac-emerald" />
+                      Company / Operator <span className="text-nbac-emerald">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="company"
+                      required
+                      value={formData.company}
+                      onChange={handleInputChange}
+                      placeholder="e.g. Dangote Group"
+                      className="w-full bg-nbac-canvas/80 border border-nbac-border rounded-lg px-4 py-3 text-nbac-text placeholder:text-nbac-muted/65 font-sans text-sm focus:outline-none focus:border-nbac-emerald focus:ring-1 focus:ring-nbac-emerald/30 transition-all duration-300"
+                    />
+                  </div>
+
+                  {/* Contact Number */}
+                  <div className="space-y-2">
+                    <label htmlFor="phone" className="font-sans text-[10px] uppercase tracking-widest font-semibold text-nbac-muted flex items-center gap-1.5">
+                      <Phone size={12} className="text-nbac-emerald" />
+                      Contact Number <span className="text-nbac-emerald">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      required
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="+234 803 123 4567"
+                      className="w-full bg-nbac-canvas/80 border border-nbac-border rounded-lg px-4 py-3 text-nbac-text placeholder:text-nbac-muted/65 font-sans text-sm focus:outline-none focus:border-nbac-emerald focus:ring-1 focus:ring-nbac-emerald/30 transition-all duration-300"
+                    />
+                  </div>
+                </div>
+
+                {/* Delegate Quantity Counter */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border border-nbac-border bg-nbac-canvas/40 rounded-lg gap-4">
+                  <div className="space-y-0.5">
+                    <h5 className="font-sans text-xs font-bold text-nbac-text uppercase tracking-wider">Delegate Attendance</h5>
+                    <p className="font-sans text-xs text-nbac-muted">Specify the number of delegates registering together</p>
+                  </div>
+                  <div className="flex items-center gap-4 bg-nbac-canvas border border-nbac-border px-3 py-1.5 rounded-full select-none">
+                    <button
+                      type="button"
+                      onClick={handleDecrement}
+                      disabled={delegateCount <= 1}
+                      className="text-nbac-body hover:text-nbac-emerald transition-colors disabled:opacity-30 disabled:hover:text-nbac-body"
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <span className="font-sans font-bold text-sm w-6 text-center text-nbac-text">{delegateCount}</span>
+                    <button
+                      type="button"
+                      onClick={handleIncrement}
+                      disabled={delegateCount >= 10}
+                      className="text-nbac-body hover:text-nbac-emerald transition-colors disabled:opacity-30 disabled:hover:text-nbac-body"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Special Requirements */}
+                <div className="space-y-2">
+                  <label htmlFor="specialRequirements" className="font-sans text-[10px] uppercase tracking-widest font-semibold text-nbac-muted">
+                    Dietary, Accessibility, or Operational Requirements
+                  </label>
+                  <textarea
+                    id="specialRequirements"
+                    rows={3}
+                    value={formData.specialRequirements}
+                    onChange={handleInputChange}
+                    placeholder="Outline any special VIP requirements, dietary conditions, aircraft handling requests (for static display) or preferences here..."
+                    className="w-full bg-nbac-canvas/80 border border-nbac-border rounded-lg px-4 py-3 text-nbac-text placeholder:text-nbac-muted/65 font-sans text-sm focus:outline-none focus:border-nbac-emerald focus:ring-1 focus:ring-nbac-emerald/30 transition-all duration-300 resize-none"
+                  />
+                </div>
+
+                {/* Total Billing Display */}
+                <div className="bg-nbac-alt/80 border border-nbac-border rounded-lg p-4 flex justify-between items-center shadow-inner">
+                  <div className="space-y-0.5">
+                    <span className="font-sans text-[10px] uppercase tracking-widest font-bold text-nbac-muted">Estimated Total Due</span>
+                    <span className="block font-sans text-[10px] text-nbac-emerald-light">All-inclusive VIP conference access</span>
+                  </div>
+                  <span className="font-display text-xl md:text-2xl font-extrabold text-nbac-text tracking-tight">
+                    {formatPrice(selectedTier.price * delegateCount)}
+                  </span>
+                </div>
+
+                {/* Paystack Security Notice */}
+                <div className="flex items-center gap-2.5 bg-nbac-canvas/30 border border-nbac-border/30 rounded-lg p-3 text-nbac-muted text-[11px] leading-relaxed">
+                  <Lock size={16} className="text-nbac-emerald shrink-0" />
+                  <p>
+                    Payments are encrypted and processed by Paystack. Upon approval, digital access passes will be dispatched.
+                  </p>
+                </div>
+
+                {/* Submit Action Button */}
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={cn(
+                    "w-full bg-gradient-to-r from-nbac-emerald to-[#059669] hover:from-[#059669] hover:to-[#047857] text-white font-sans font-bold py-4 rounded-full text-xs uppercase tracking-widest transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_4px_15px_rgba(16,185,129,0.2)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_6px_20px_rgba(16,185,129,0.4)] active:scale-[0.98] flex items-center justify-center gap-2.5 disabled:opacity-75 disabled:cursor-not-allowed"
+                  )}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                      Initializing Secure Gateway...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard size={14} />
+                      Transmit Payment & Register
+                    </>
+                  )}
+                </button>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+}
