@@ -1,4 +1,3 @@
-<!-- BEGIN:nextjs-agent-rules -->
 # AGENTS.md — NBAC Platform
 ### Nigerian Business Aviation Conference — Full-Stack Digital Platform
 
@@ -20,15 +19,25 @@ event combining panel sessions, aircraft displays, and exhibition booths.
 **What is this platform?**
 A full-stack digital platform that serves two distinct audiences:
 
-1. **Public delegates** — browse conference info, register for passes, inquire
-   about hotels and charter flights, manage their booking through a delegate portal.
+1. **Public delegates** — browse conference info, register for passes, and pay
+   directly via Paystack. No accounts, no portal, no login. Registration is a
+   single linear flow: fill form → pay → receive confirmation email with booking
+   reference. That's it.
 
 2. **Internal admins (max 5)** — manage website content, monitor registrations,
-   update the media gallery, and audit system logs via a protected admin dashboard.
+   export delegate data, update the media gallery, and audit system logs via a
+   protected admin dashboard.
 
 This is NOT a general-purpose CMS or SaaS product. Every architectural decision
 is made specifically for a high-end conference platform with a premium dark luxury
 aesthetic targeting executive-level users.
+
+**CRITICAL ARCHITECTURE DECISION — NO DELEGATE ACCOUNTS:**
+Delegates do NOT create accounts, do NOT log in, and do NOT have a portal.
+Supabase Auth is used EXCLUSIVELY for the 5 internal admins.
+Delegates are stored as rows in the `delegates` table with no auth record attached.
+Do not implement magic links, OTP, delegate sessions, or any delegate-facing auth.
+Everything a delegate needs is delivered via email (Resend) after registration.
 
 ---
 
@@ -36,7 +45,7 @@ aesthetic targeting executive-level users.
 
 | Layer | Technology | Version |
 |---|---|---|
-| Framework | Next.js | 16 (App Router) |
+| Framework | Next.js | 15 (App Router) |
 | Language | TypeScript | Strict mode |
 | Styling | Tailwind CSS | Latest |
 | UI Components | shadcn/ui | New York preset, Zinc base, Nova-Lucide icons |
@@ -78,17 +87,15 @@ nbac-platform/
 │   │   │   │   └── page.tsx
 │   │   │   ├── about/
 │   │   │   │   └── page.tsx
-│   │   │   └── contact/
-│   │   │       └── page.tsx
-│   │   ├── (delegate)/                  # Delegate-only routes (magic link auth)
-│   │   │   ├── layout.tsx               # Delegate auth check layout
-│   │   │   ├── reservations/
-│   │   │   │   └── page.tsx             # Pass tier selection + Paystack
-│   │   │   └── portal/
-│   │   │       └── page.tsx             # Booking status + pass download
+│   │   │   ├── contact/
+│   │   │   │   └── page.tsx
+│   │   │   └── reservations/
+│   │   │       └── page.tsx             # Pass tier selection + Paystack (NO AUTH)
 │   │   ├── (admin)/                     # Admin-only routes (email/password auth)
 │   │   │   ├── layout.tsx               # Admin shell (sidebar + topbar)
 │   │   │   └── admin/
+│   │   │       ├── login/
+│   │   │       │   └── page.tsx         # Admin login (email/password only)
 │   │   │       ├── page.tsx             # Overview dashboard (KPIs + chart)
 │   │   │       ├── content/
 │   │   │       │   └── page.tsx         # Content & posting manager
@@ -103,14 +110,16 @@ nbac-platform/
 │   │   │   │   └── paystack/
 │   │   │   │       └── route.ts         # Paystack payment webhook handler
 │   │   │   ├── registrations/
-│   │   │   │   └── route.ts             # Create registration record
-│   │   │   └── inquiries/
-│   │   │       └── route.ts             # Hotel / charter inquiry submission
+│   │   │   │   └── route.ts             # Create registration + send email
+│   │   │   ├── inquiries/
+│   │   │   │   └── route.ts             # Hotel / charter inquiry submission
+│   │   │   └── admin/
+│   │   │       └── export/
+│   │   │           └── registrations/
+│   │   │               └── route.ts     # Export registrations as .xlsx or .csv
 │   │   ├── auth/
-│   │   │   ├── callback/
-│   │   │   │   └── route.ts             # Supabase auth callback handler
-│   │   │   └── confirm/
-│   │   │       └── route.ts             # Magic link confirmation
+│   │   │   └── callback/
+│   │   │       └── route.ts             # Supabase auth callback (admin only)
 │   │   ├── globals.css
 │   │   └── layout.tsx                   # Root layout (fonts + metadata)
 │   ├── components/
@@ -137,6 +146,7 @@ nbac-platform/
 │   │       ├── kpi-card.tsx
 │   │       ├── reservations-table.tsx
 │   │       ├── content-table.tsx
+│   │       ├── export-registrations.tsx # Date filter + xlsx/csv download buttons
 │   │       ├── media-upload-zone.tsx
 │   │       ├── media-gallery-grid.tsx
 │   │       ├── logs-table.tsx
@@ -153,14 +163,14 @@ nbac-platform/
 │   │   │   └── content.ts
 │   │   ├── paystack.ts                  # Paystack helpers + verification
 │   │   ├── resend.ts                    # Resend email templates + send helpers
+│   │   ├── booking-reference.ts         # Generates unique NBAC-YYYY-TIER-XXXXX refs
 │   │   └── utils.ts                     # cn() + general helpers
 │   ├── hooks/
 │   │   ├── use-admin-role.ts            # Returns current admin role
-│   │   ├── use-registration.ts          # Delegate registration state
 │   │   └── use-stat-counter.ts          # Animated counter on scroll
 │   ├── types/
 │   │   └── index.ts                     # All TypeScript interfaces (see Section 7)
-│   └── middleware.ts                    # Route protection (Supabase session check)
+│   └── middleware.ts                    # Route protection (admin only)
 ├── public/
 │   └── images/
 ├── AGENTS.md                            # This file
@@ -177,23 +187,25 @@ nbac-platform/
 ### Route Groups
 The App Router uses route groups to separate concerns without affecting URL paths.
 
-- `(public)` — No auth required. Pages are statically generated at build time.
-- `(delegate)` — Supabase magic link session required. Redirects to `/reservations`
-  if no session found.
+- `(public)` — No auth required. All pages including `/reservations` are public.
+  Pages are statically generated at build time. The reservations page is public
+  because delegates do not log in — they just fill a form and pay.
 - `(admin)` — Supabase email/password session with role check required. Redirects
   to `/admin/login` if no session. Head Admin and Editor both access this group
   but the role gates specific features (see Section 6).
 
+There is NO `(delegate)` route group. There is NO `/portal` route.
+Delegates are anonymous users — they have no session, no account, no protected routes.
+
 ### Middleware (src/middleware.ts)
 Middleware runs on every request. It:
 1. Refreshes the Supabase session cookie
-2. Redirects unauthenticated users away from `/admin/*` and `/portal/*`
+2. Redirects unauthenticated users away from `/admin/*`
 3. Redirects authenticated admins away from `/admin/login`
 
 ```ts
-// Protected route patterns
-const ADMIN_ROUTES   = ['/admin']
-const DELEGATE_ROUTES = ['/portal']
+// Only admin routes are protected — nothing else
+const ADMIN_ROUTES = ['/admin']
 ```
 
 ### Static Pages (SSG)
@@ -308,17 +320,13 @@ const role = user?.user_metadata?.role  // 'head_admin' | 'editor'
 
 ## 6. USER TYPES & PERMISSIONS
 
-### Public Visitor
-- No auth required
+### Public Visitor / Delegate
+- No auth required — no account, no session, no login
 - Can browse all public pages
-- Can submit inquiry forms
-- Cannot access `/portal/*` or `/admin/*`
-
-### Delegate
-- Authenticated via Supabase magic link (email only — no password)
-- Can register and pay via Paystack
-- Can access `/portal` to view booking status and download pass
-- Cannot access `/admin/*`
+- Can fill and submit the registration form + pay via Paystack
+- Receives a confirmation email with booking reference after successful payment
+- Cannot access `/admin/*` — full stop
+- The `delegates` table stores their info but there is NO linked auth.users record
 
 ### Editor (Standard Admin)
 - Authenticated via Supabase email/password
@@ -333,9 +341,13 @@ const role = user?.user_metadata?.role  // 'head_admin' | 'editor'
 - Can Edit, Publish, and Delete on all modules
 - Sees the Head Admin mode banner across all admin pages
 - Can view the audit dropdown to review Editor activity
+- Can export registrations as `.xlsx` or `.csv`
 
 **Always check `role` before rendering delete buttons or the logs nav item.**
 Never hide these with CSS — conditionally render them in JSX.
+
+**Supabase Auth is admin-only.** Do not create auth accounts for delegates.
+Do not implement magic links, OTP sessions, or any delegate-facing authentication.
 
 ---
 
@@ -645,11 +657,6 @@ Alternate page sections between `bg-nbac-canvas` and `bg-nbac-alt` so there's
 visual separation without hard borders. Never use white or light backgrounds.
 Sections have `py-20 md:py-32` vertical padding — never crowd them.
 
-### Responsive Styling & Mobile-First Approach
-- **You MUST always follow the mobile-first approach before anything.** Write mobile styles by default, and use Tailwind's responsive prefixes (like `md:`, `lg:`) to layer on desktop styling.
-- Design, build, and verify responsiveness on mobile layout sizes first before making desktop tweaks.
-- Ensure layouts and components are fully fluid, robust, and functional on all screen sizes, with touch targets properly sized on mobile viewports.
-
 ---
 
 ## 9. ANIMATION RULES
@@ -684,20 +691,26 @@ Sections have `py-20 md:py-32` vertical padding — never crowd them.
 ### Delegate Registration Flow
 1. Delegate lands on `/reservations` — sees 3 pass tier cards
 2. Selects a tier → right column form activates for that tier
-3. Fills form — validated with Zod schema
-4. Clicks submit → `react-paystack` inline popup opens
+3. Fills form (name, company, email, phone) — validated with Zod
+4. Clicks "Secure Executive Pass" → `react-paystack` inline popup opens
 5. Paystack processes NGN payment
 6. On `onSuccess` callback → POST to `/api/registrations` with `paystack_reference`
 7. Route handler verifies payment server-side with Paystack API
-8. On verified → insert row into `registrations` table in Supabase
-9. Resend fires confirmation email to delegate
-10. Delegate redirected to `/portal` showing booking confirmed
+8. On verified → generate unique booking reference (e.g. `NBAC-2025-VIP-00142`)
+9. Insert row into `delegates` table (upsert on email)
+10. Insert row into `registrations` table with `payment_status: 'paid'`
+11. Resend fires confirmation email to delegate containing:
+    - Booking reference
+    - Pass tier details
+    - Conference date and venue
+    - Contact info for any changes
+12. Show success message on the page — no redirect to portal, no account created
 
 ### Hotel / Charter Inquiry Flow
-1. Delegate submits inquiry form on `/hotels` or `/contact`
+1. Visitor submits inquiry form on `/hotels` or `/contact`
 2. POST to `/api/inquiries` → insert into `inquiries` table
-3. Resend fires notification email to admin inbox
-4. Admin follows up manually through the Reservations module
+3. Resend fires acknowledgement email to visitor + notification email to admin inbox
+4. Admin follows up manually through the admin dashboard
 
 ### Admin Login Flow
 1. Admin visits `/admin/login` → email/password form
@@ -707,18 +720,22 @@ Sections have `py-20 md:py-32` vertical padding — never crowd them.
 5. Role stored in React context for the session
 6. `use-admin-role` hook exposes role to all admin components
 
-### Magic Link Delegate Login
-1. Delegate enters email on `/portal` login screen
-2. `supabase.auth.signInWithOtp({ email })` called
-3. Supabase sends magic link email
-4. Delegate clicks link → hits `/auth/confirm` route handler
-5. Session set → redirected to `/portal`
+### Registration Export Flow (Admin)
+1. Admin goes to `/admin/reservations`
+2. Optionally selects a date to filter by day
+3. Clicks "Export Excel" or "Export CSV"
+4. GET `/api/admin/export/registrations?format=xlsx&date=2025-10-14`
+5. Route handler verifies admin role
+6. Queries `registrations` joined with `delegates` filtered by date
+7. SheetJS builds the workbook with formatted columns
+8. Browser downloads the file directly
+9. For Google Sheets: admin imports the CSV via File → Import in Google Sheets
 
 ### Paystack Webhook
 1. Paystack POSTs to `/api/webhooks/paystack`
 2. Route handler verifies `x-paystack-signature` header with HMAC
 3. On `charge.success` event → update `payment_status` to `'paid'` in Supabase
-4. Fire confirmation email if not already sent
+4. Fire confirmation email if not already sent (safety net for dropped callbacks)
 
 ---
 
@@ -869,6 +886,12 @@ export async function POST(request: Request) {
 
 ## 15. WHAT NOT TO DO
 
+- Do NOT build delegate accounts, a delegate portal, or any delegate-facing auth.
+  Delegates are anonymous users — they register, pay, and get an email. Done.
+- Do NOT implement magic links, OTP, or Supabase sessions for delegates.
+  Supabase Auth is for the 5 admins only.
+- Do NOT redirect delegates to a portal or dashboard after registration.
+  Show a success message on the reservations page and send a confirmation email.
 - Do NOT use `<form action>` Server Actions for the Paystack flow — Paystack
   requires a client-side popup. Use event handlers.
 - Do NOT fetch data in `useEffect` for public pages — use Server Components.
@@ -878,8 +901,6 @@ export async function POST(request: Request) {
 - Do NOT use inline `style={{ color: '#10B981' }}` — always use nbac-* Tailwind tokens.
 - Do NOT wrap the entire admin app in TanStack Query — only use it in admin
   components that need real-time or cached server data.
-- Do NOT build a custom auth system — Supabase Auth covers everything needed.
 - Do NOT use `alert()`, `confirm()`, or `prompt()` — use shadcn Dialog/AlertDialog.
 - Do NOT add light mode — `<html className="dark">` is set in root layout and stays.
 - Do NOT commit `.env.local` or any secrets to git.
-<!-- END:nextjs-agent-rules -->

@@ -1,3 +1,5 @@
+import Image from 'next/image'
+import Link from 'next/link'
 
 export function Footer() {
   return (
@@ -6,14 +8,16 @@ export function Footer() {
         <div className="space-y-4 max-w-sm">
           <div className="flex items-center gap-3 group">
             <div className="relative w-11 h-11 rounded-lg overflow-hidden border border-nbac-border shadow-md shrink-0">
-              <img
+              <Image
                 src="/images/logo-mark.jpg"
                 alt="NBAC Logo Mark"
-                className="w-full h-full object-cover scale-[1.05]"
+                fill
+                className="object-cover scale-[1.05]"
+                sizes="44px"
               />
             </div>
             <div className="flex flex-col leading-[1.05] select-none">
-              <span className="font-sans text-[9px] font-bold text-nbac-emerald uppercase tracking-wider">
+              <span className="font-sans text-[9px] font-bold text-nbac-gold uppercase tracking-wider">
                 Nigerian
               </span>
               <span className="font-display text-base font-bold text-nbac-text tracking-wide">
@@ -30,7 +34,7 @@ export function Footer() {
         </div>
         <div className="flex flex-wrap gap-12 md:gap-24">
           <div className="space-y-4">
-            <h4 className="font-sans text-xs uppercase tracking-widest text-nbac-emerald-light font-medium">Connect</h4>
+            <h4 className="font-sans text-xs uppercase tracking-widest text-nbac-gold-light font-medium">Connect</h4>
             <ul className="text-nbac-body space-y-2 text-sm font-light">
               <li className="hover:text-nbac-emerald transition-colors cursor-pointer">Sponsorships</li>
               <li className="hover:text-nbac-emerald transition-colors cursor-pointer">Exhibitor Kit</li>
@@ -38,10 +42,18 @@ export function Footer() {
             </ul>
           </div>
           <div className="space-y-4">
-            <h4 className="font-sans text-xs uppercase tracking-widest text-nbac-emerald-light font-medium">Legal</h4>
+            <h4 className="font-sans text-xs uppercase tracking-widest text-nbac-gold-light font-medium">Legal</h4>
             <ul className="text-nbac-body space-y-2 text-sm font-light">
-              <li className="hover:text-nbac-emerald transition-colors cursor-pointer">Privacy Policy</li>
-              <li className="hover:text-nbac-emerald transition-colors cursor-pointer">Terms of Service</li>
+              <li>
+                <Link href="/privacy" className="hover:text-nbac-emerald transition-colors cursor-pointer block">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="hover:text-nbac-emerald transition-colors cursor-pointer block">
+                  Terms of Service
+                </Link>
+              </li>
               <li className="hover:text-nbac-emerald transition-colors cursor-pointer">Safety Guidelines</li>
             </ul>
           </div>

@@ -25,9 +25,8 @@ export function ContactFormUI() {
       </div>
 
       <motion.div
-        className="bg-nbac-panel/70 border border-nbac-border rounded-xl p-6 md:p-8 backdrop-blur-xl relative overflow-hidden group shadow-2xl"
+        className="animated-glowing-border rounded-xl p-6 md:p-8 backdrop-blur-xl relative overflow-hidden group shadow-2xl"
         whileHover={{
-          borderColor: 'rgba(16, 185, 129, 0.3)',
           boxShadow: '0 12px 40px rgba(16, 185, 129, 0.06)',
         }}
         transition={{ duration: 0.3 }}

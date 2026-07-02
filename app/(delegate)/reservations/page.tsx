@@ -17,6 +17,8 @@ const passTiers: PassTierDetails[] = [
     price: 250000,
     currency: 'NGN',
     availability: 'available',
+    billingModel: 'per_delegate',
+    includedDelegates: 1,
     privileges: [
       'Admission to all keynote speeches, panel debates, and workshops',
       'Exclusive access to the aircraft static display ramp',
@@ -32,6 +34,8 @@ const passTiers: PassTierDetails[] = [
     price: 750000,
     currency: 'NGN',
     availability: 'limited',
+    billingModel: 'package',
+    includedDelegates: 2,
     privileges: [
       'Premium 3m x 3m designated exhibition space in main hall',
       'Two (2) full delegate access passes for company representatives',
@@ -47,6 +51,8 @@ const passTiers: PassTierDetails[] = [
     price: 1800000,
     currency: 'NGN',
     availability: 'available',
+    billingModel: 'package',
+    includedDelegates: 4,
     privileges: [
       'Reserved ramp parking slot for one (1) display aircraft',
       'Four (4) VIP All-Access delegate passes for company executives',

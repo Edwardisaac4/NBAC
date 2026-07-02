@@ -1,32 +1,44 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import Image from 'next/image'
+
+const preloaderShownStore = {
+  subscribe: () => () => {},
+  getSnapshot: () => {
+    if (typeof window === 'undefined') return false
+    return !!sessionStorage.getItem('nbac-preloader-shown')
+  },
+  getServerSnapshot: () => false,
+}
 
 export function Preloader() {
   const containerRef = useRef<HTMLDivElement>(null)
   const logoRef = useRef<HTMLDivElement>(null)
   const textRef = useRef<HTMLDivElement>(null)
   const barRef = useRef<HTMLDivElement>(null)
+  const isAlreadyShown = useSyncExternalStore(
+    preloaderShownStore.subscribe,
+    preloaderShownStore.getSnapshot,
+    preloaderShownStore.getServerSnapshot
+  )
+
   const [isVisible, setIsVisible] = useState(true)
-  const [hasChecked, setHasChecked] = useState(false)
 
   useEffect(() => {
-    // Check if preloader has already run in this session
-    const shown = sessionStorage.getItem('nbac-preloader-shown')
-    if (shown) {
-      setIsVisible(false)
-    } else {
+    if (!isAlreadyShown) {
       document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = ''
+      }
     }
-    setHasChecked(true)
-  }, [])
+  }, [isAlreadyShown])
 
   useGSAP(
     () => {
-      if (!isVisible) return
+      if (isAlreadyShown || !isVisible) return
 
       const tl = gsap.timeline({
         onComplete: () => {
@@ -68,10 +80,10 @@ export function Preloader() {
         '-=0.3'
       )
     },
-    { scope: containerRef, dependencies: [isVisible] }
+    { scope: containerRef, dependencies: [isAlreadyShown, isVisible] }
   )
 
-  if (hasChecked && !isVisible) return null
+  if (isAlreadyShown || !isVisible) return null
 
   return (
     <div
@@ -93,7 +105,7 @@ export function Preloader() {
 
         {/* Text Brand */}
         <div ref={textRef} className="flex flex-col leading-[1.1] select-none opacity-0">
-          <span className="font-sans text-[10px] font-bold text-nbac-emerald uppercase tracking-[0.25em]">
+          <span className="font-sans text-[10px] font-bold text-nbac-gold-light uppercase tracking-[0.25em]">
             Nigerian
           </span>
           <span className="font-display text-lg font-bold text-white tracking-wide mt-0.5">
@@ -108,7 +120,7 @@ export function Preloader() {
         <div className="w-48 h-[2px] bg-white/10 relative overflow-hidden rounded-full mt-2">
           <div
             ref={barRef}
-            className="absolute left-0 top-0 h-full bg-nbac-emerald w-0"
+            className="absolute left-0 top-0 h-full bg-nbac-gold w-0"
           />
         </div>
       </div>

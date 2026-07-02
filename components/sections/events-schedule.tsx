@@ -143,7 +143,7 @@ export function EventsSchedule({ sessions, eventId }: EventsScheduleProps) {
   const getCategoryStyles = (cat: SessionCategory) => {
     switch (cat) {
       case 'keynote':
-        return 'bg-nbac-emerald/10 text-nbac-emerald border border-nbac-emerald/20'
+        return 'bg-nbac-gold/10 text-nbac-gold-light border border-nbac-gold/20'
       case 'panel':
         return 'bg-nbac-amber/10 text-nbac-amber border border-nbac-amber/20'
       case 'workshop':
@@ -160,7 +160,7 @@ export function EventsSchedule({ sessions, eventId }: EventsScheduleProps) {
   const getCardBorder = (cat: SessionCategory) => {
     switch (cat) {
       case 'keynote':
-        return 'border-l-nbac-emerald'
+        return 'border-l-nbac-gold'
       case 'panel':
         return 'border-l-nbac-amber'
       case 'workshop':
@@ -289,11 +289,19 @@ export function EventsSchedule({ sessions, eventId }: EventsScheduleProps) {
                     </div>
 
                     {/* Timeline Circle Bullet (Desktop) */}
-                    <div className="absolute left-[35px] md:left-[115px] top-[10px] w-[9px] h-[9px] rounded-full border border-nbac-border bg-nbac-canvas group-hover:border-nbac-emerald group-hover:bg-nbac-emerald transition-all duration-300 hidden sm:block z-10" />
+                    <div className={`absolute left-[35px] md:left-[115px] top-[10px] w-[9px] h-[9px] rounded-full border border-nbac-border bg-nbac-canvas transition-all duration-300 hidden sm:block z-10 ${
+                      session.category === 'keynote'
+                        ? 'group-hover:border-nbac-gold group-hover:bg-nbac-gold'
+                        : 'group-hover:border-nbac-emerald group-hover:bg-nbac-emerald'
+                    }`} />
 
                     {/* Session Card Detail */}
                     <div
-                      className={`flex-1 bg-nbac-panel/40 border border-nbac-border ${getCardBorder(session.category)} border-l-4 rounded-xl p-5 md:p-6 backdrop-blur-md transition-all duration-300 hover:border-nbac-emerald/30 shadow-lg`}
+                      className={`flex-1 bg-nbac-panel/40 border border-nbac-border ${getCardBorder(session.category)} border-l-4 rounded-xl p-5 md:p-6 backdrop-blur-md transition-all duration-300 shadow-lg ${
+                        session.category === 'keynote'
+                          ? 'hover:border-nbac-gold/30'
+                          : 'hover:border-nbac-emerald/30'
+                      }`}
                       style={{
                         boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)'
                       }}

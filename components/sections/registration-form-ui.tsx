@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Mail, Shield, User, Landmark, Phone, Plus, Minus, CreditCard, Lock, Sparkles, CheckCircle2 } from 'lucide-react'
+import { Mail, Shield, User, Landmark, Phone, Plus, Minus, CreditCard, Lock, CheckCircle2 } from 'lucide-react'
 import { PassTierDetails } from '@/types'
 import { cn } from '@/lib/utils'
 
@@ -23,6 +23,13 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
   // UI states for interactive feedback (simulating payment)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [paymentSuccess, setPaymentSuccess] = useState(false)
+  const [submittedTier, setSubmittedTier] = useState<PassTierDetails | null>(null)
+  const [submittedDelegateCount, setSubmittedDelegateCount] = useState<number>(1)
+
+  const calculateTotal = (tier: PassTierDetails | null, count: number) => {
+    if (!tier) return 0
+    return tier.price * count
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target
@@ -42,6 +49,9 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    if (!selectedTier) return
+    setSubmittedTier(selectedTier)
+    setSubmittedDelegateCount(delegateCount)
     setIsSubmitting(true)
     
     // Simulate premium payment transition and success
@@ -60,17 +70,20 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
   }
 
   return (
-    <div className="space-y-6 relative">
+    <div className="space-y-3 relative">
       <div className="flex flex-col space-y-2 mb-2">
-        <span className="font-sans text-xs uppercase tracking-widest font-semibold text-nbac-emerald-light">
-          Secure Registration
+        <span className={cn(
+          "font-sans text-xs uppercase tracking-widest font-semibold",
+          selectedTier?.id === 'vip' ? "text-nbac-gold-light" : "text-nbac-emerald-light"
+        )}>
+          Securing Access Pass
         </span>
         <h2 className="font-display text-2xl md:text-3xl font-bold text-nbac-text tracking-tight">
           Delegate Registration Desk
         </h2>
       </div>
 
-      <div className="relative min-h-[550px]">
+      <div className={cn("relative", !selectedTier && "min-h-[550px]")}>
         <AnimatePresence mode="wait">
           {/* STATE 1: Locked overlay if no tier is selected */}
           {!selectedTier && (
@@ -97,7 +110,7 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
           )}
 
           {/* STATE 2: Success Confirmation Page */}
-          {selectedTier && paymentSuccess && (
+          {submittedTier && paymentSuccess && (
             <motion.div
               key="success-state"
               initial={{ opacity: 0, scale: 0.95 }}
@@ -107,51 +120,70 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
               className="bg-nbac-panel/80 border border-nbac-border rounded-xl p-8 backdrop-blur-xl flex flex-col items-center justify-center text-center space-y-6 z-30 min-h-[550px] shadow-2xl relative overflow-hidden"
             >
               {/* Luxury gold/emerald glow particles */}
-              <div className="absolute -top-24 -left-24 w-48 h-48 bg-nbac-emerald/[0.08] blur-[80px] rounded-full pointer-events-none" />
-              <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-nbac-emerald/[0.05] blur-[80px] rounded-full pointer-events-none" />
+              <div className="absolute -top-24 -left-24 w-48 h-48 blur-[80px] rounded-full pointer-events-none bg-nbac-emerald/[0.08]" />
+              <div className="absolute -bottom-24 -right-24 w-48 h-48 blur-[80px] rounded-full pointer-events-none bg-nbac-emerald/[0.05]" />
 
               <motion.div 
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 15 }}
-                className="p-4 bg-nbac-emerald/10 border border-nbac-emerald/30 rounded-full shadow-[0_0_30px_rgba(16,185,129,0.2)]"
+                className={cn(
+                  "p-4 rounded-full border",
+                  submittedTier?.id === 'vip'
+                    ? "bg-nbac-gold/10 border-nbac-gold/30 shadow-[0_0_30px_rgba(197,160,89,0.2)]"
+                    : "bg-nbac-emerald/10 border-nbac-emerald/30 shadow-[0_0_30px_rgba(16,185,129,0.2)]"
+                )}
               >
-                <CheckCircle2 size={48} className="text-nbac-emerald" />
+                <CheckCircle2 size={48} className={submittedTier?.id === 'vip' ? "text-nbac-gold" : "text-nbac-emerald"} />
               </motion.div>
 
               <div className="max-w-md space-y-3">
-                <span className="font-sans text-xs uppercase tracking-widest font-semibold text-nbac-emerald-light">
+                <span className={cn(
+                  "font-sans text-xs uppercase tracking-widest font-semibold",
+                  submittedTier?.id === 'vip' ? "text-nbac-gold-light" : "text-nbac-emerald-light"
+                )}>
                   Transaction Authenticated
                 </span>
                 <h3 className="font-display text-2xl md:text-3xl font-bold text-nbac-text tracking-tight">
                   Welcome to NBAC
                 </h3>
                 <p className="font-sans text-sm text-nbac-body font-light leading-relaxed">
-                  Thank you, <span className="font-semibold text-nbac-text">{formData.fullName || 'Delegate'}</span>. Your delegate seat reservation for the <span className="font-semibold text-nbac-text">{selectedTier.name}</span> package has been securely requested. 
+                  Thank you, <span className="font-semibold text-nbac-text">{formData.fullName || 'Delegate'}</span>. Your delegate seat reservation for the <span className="font-semibold text-nbac-text">{submittedTier.name}</span> package has been securely requested. 
                 </p>
                 <p className="font-sans text-xs text-nbac-muted font-light leading-relaxed">
-                  In a production environment, this would verify your payment of <span className="font-semibold text-nbac-text">{formatPrice(selectedTier.price * delegateCount)}</span> via Paystack, save your record in Supabase, and dispatch your access passes via Resend.
+                  In a production environment, this would verify your payment of <span className="font-semibold text-nbac-text">{formatPrice(calculateTotal(submittedTier, submittedDelegateCount))}</span> via Paystack, save your record in Supabase, and dispatch your access passes via Resend.
                 </p>
               </div>
 
               <div className="bg-nbac-canvas/80 border border-nbac-border rounded-lg p-5 w-full max-w-sm text-left space-y-3.5 shadow-inner">
                 <div className="flex justify-between items-center text-xs border-b border-nbac-border/60 pb-2">
                   <span className="text-nbac-muted uppercase tracking-wider">Package</span>
-                  <span className="font-bold text-nbac-text uppercase">{selectedTier.name}</span>
+                  <span className="font-bold text-nbac-text uppercase">{submittedTier.name}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs border-b border-nbac-border/60 pb-2">
-                  <span className="text-nbac-muted uppercase tracking-wider">Delegate Count</span>
-                  <span className="font-bold text-nbac-text">{delegateCount} Pass(es)</span>
+                  <span className="text-nbac-muted uppercase tracking-wider">
+                    {submittedTier.billingModel === 'package' ? 'Package Quantity' : 'Delegate Count'}
+                  </span>
+                  <span className="font-bold text-nbac-text">
+                    {submittedTier.billingModel === 'package'
+                      ? `${submittedDelegateCount} Package(s) (${submittedDelegateCount * (submittedTier.includedDelegates || 1)} Passes)`
+                      : `${submittedDelegateCount} Pass(es)`}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-nbac-muted uppercase tracking-wider font-semibold">Total Amount</span>
-                  <span className="font-bold text-nbac-emerald text-sm">{formatPrice(selectedTier.price * delegateCount)}</span>
+                  <span className={cn(
+                    "font-bold text-sm",
+                    submittedTier?.id === 'vip' ? "text-nbac-gold-light" : "text-nbac-emerald"
+                  )}>{formatPrice(calculateTotal(submittedTier, submittedDelegateCount))}</span>
                 </div>
               </div>
 
               <button
                 onClick={() => {
                   setPaymentSuccess(false)
+                  setSubmittedTier(null)
+                  setSubmittedDelegateCount(1)
                   setFormData({ fullName: '', email: '', company: '', phone: '', specialRequirements: '' })
                   setDelegateCount(1)
                 }}
@@ -170,31 +202,39 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
-              className="bg-nbac-panel/70 border border-nbac-border rounded-xl p-6 md:p-8 backdrop-blur-xl shadow-2xl relative overflow-hidden group"
+              className="animated-glowing-border rounded-xl p-6 md:p-8 backdrop-blur-xl shadow-2xl relative overflow-hidden group"
             >
               {/* Subtle accent glow inside card */}
-              <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-nbac-emerald/[0.03] blur-[80px] rounded-full pointer-events-none" />
+              <div className={cn(
+                "absolute -bottom-24 -left-24 w-48 h-48 blur-[80px] rounded-full pointer-events-none",
+                selectedTier?.id === 'vip' ? "bg-nbac-gold/[0.03]" : "bg-nbac-emerald/[0.03]"
+              )} />
 
               <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
                 {/* Active Package Banner */}
                 <div className="bg-nbac-canvas/80 border border-nbac-border rounded-lg p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div>
-                    <span className="font-sans text-[10px] uppercase tracking-widest font-semibold text-nbac-emerald-light">Selected Tier</span>
+                    <span className={cn(
+                      "font-sans text-[10px] uppercase tracking-widest font-semibold",
+                      selectedTier?.id === 'vip' ? "text-nbac-gold-light" : "text-nbac-emerald-light"
+                    )}>Selected Tier</span>
                     <h4 className="font-sans text-sm font-bold text-nbac-text uppercase tracking-wide mt-0.5">{selectedTier.name}</h4>
                   </div>
                   <div className="text-left sm:text-right">
-                    <span className="font-sans text-[10px] uppercase tracking-widest text-nbac-muted">Price Per Seat</span>
+                    <span className="font-sans text-[10px] uppercase tracking-widest text-nbac-muted">
+                      {selectedTier.billingModel === 'package' ? 'Package Price' : 'Price Per Seat'}
+                    </span>
                     <p className="font-sans text-sm font-bold text-nbac-text mt-0.5">{formatPrice(selectedTier.price)}</p>
                   </div>
                 </div>
 
                 {/* Delegate Credentials */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="space-y-4">
                   {/* Full Name */}
                   <div className="space-y-2">
                     <label htmlFor="fullName" className="font-sans text-[10px] uppercase tracking-widest font-semibold text-nbac-muted flex items-center gap-1.5">
-                      <User size={12} className="text-nbac-emerald" />
-                      Full Name <span className="text-nbac-emerald">*</span>
+                      <User size={12} className={selectedTier?.id === 'vip' ? "text-nbac-gold-light" : "text-nbac-emerald"} />
+                      Full Name <span className={selectedTier?.id === 'vip' ? "text-nbac-gold-light" : "text-nbac-emerald"}>*</span>
                     </label>
                     <input
                       type="text"
@@ -203,15 +243,18 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
                       value={formData.fullName}
                       onChange={handleInputChange}
                       placeholder="e.g. Aliko Dangote"
-                      className="w-full bg-nbac-canvas/80 border border-nbac-border rounded-lg px-4 py-3 text-nbac-text placeholder:text-nbac-muted/65 font-sans text-sm focus:outline-none focus:border-nbac-emerald focus:ring-1 focus:ring-nbac-emerald/30 transition-all duration-300"
+                      className={cn(
+                        "w-full bg-nbac-canvas/80 border border-nbac-border rounded-lg px-4 py-3 text-nbac-text placeholder:text-nbac-muted/65 font-sans text-sm focus:outline-none focus:ring-1 transition-all duration-300",
+                        selectedTier?.id === 'vip' ? "focus:border-nbac-gold focus:ring-nbac-gold/30" : "focus:border-nbac-emerald focus:ring-nbac-emerald/30"
+                      )}
                     />
                   </div>
 
                   {/* Corporate Email */}
                   <div className="space-y-2">
                     <label htmlFor="email" className="font-sans text-[10px] uppercase tracking-widest font-semibold text-nbac-muted flex items-center gap-1.5">
-                      <Mail size={12} className="text-nbac-emerald" />
-                      Corporate Email <span className="text-nbac-emerald">*</span>
+                      <Mail size={12} className={selectedTier?.id === 'vip' ? "text-nbac-gold-light" : "text-nbac-emerald"} />
+                      Corporate Email <span className={selectedTier?.id === 'vip' ? "text-nbac-gold-light" : "text-nbac-emerald"}>*</span>
                     </label>
                     <input
                       type="email"
@@ -219,18 +262,19 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
                       required
                       value={formData.email}
                       onChange={handleInputChange}
-                      placeholder="executive@company.com"
-                      className="w-full bg-nbac-canvas/80 border border-nbac-border rounded-lg px-4 py-3 text-nbac-text placeholder:text-nbac-muted/65 font-sans text-sm focus:outline-none focus:border-nbac-emerald focus:ring-1 focus:ring-nbac-emerald/30 transition-all duration-300"
+                      placeholder="e.g. a.dangote@dangotegroup.com"
+                      className={cn(
+                        "w-full bg-nbac-canvas/80 border border-nbac-border rounded-lg px-4 py-3 text-nbac-text placeholder:text-nbac-muted/65 font-sans text-sm focus:outline-none focus:ring-1 transition-all duration-300",
+                        selectedTier?.id === 'vip' ? "focus:border-nbac-gold focus:ring-nbac-gold/30" : "focus:border-nbac-emerald focus:ring-nbac-emerald/30"
+                      )}
                     />
                   </div>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  {/* Company */}
+                  {/* Company / Operator */}
                   <div className="space-y-2">
                     <label htmlFor="company" className="font-sans text-[10px] uppercase tracking-widest font-semibold text-nbac-muted flex items-center gap-1.5">
-                      <Landmark size={12} className="text-nbac-emerald" />
-                      Company / Operator <span className="text-nbac-emerald">*</span>
+                      <Landmark size={12} className={selectedTier?.id === 'vip' ? "text-nbac-gold-light" : "text-nbac-emerald"} />
+                      Company / Operator <span className={selectedTier?.id === 'vip' ? "text-nbac-gold-light" : "text-nbac-emerald"}>*</span>
                     </label>
                     <input
                       type="text"
@@ -239,15 +283,18 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
                       value={formData.company}
                       onChange={handleInputChange}
                       placeholder="e.g. Dangote Group"
-                      className="w-full bg-nbac-canvas/80 border border-nbac-border rounded-lg px-4 py-3 text-nbac-text placeholder:text-nbac-muted/65 font-sans text-sm focus:outline-none focus:border-nbac-emerald focus:ring-1 focus:ring-nbac-emerald/30 transition-all duration-300"
+                      className={cn(
+                        "w-full bg-nbac-canvas/80 border border-nbac-border rounded-lg px-4 py-3 text-nbac-text placeholder:text-nbac-muted/65 font-sans text-sm focus:outline-none focus:ring-1 transition-all duration-300",
+                        selectedTier?.id === 'vip' ? "focus:border-nbac-gold focus:ring-nbac-gold/30" : "focus:border-nbac-emerald focus:ring-nbac-emerald/30"
+                      )}
                     />
                   </div>
 
                   {/* Contact Number */}
                   <div className="space-y-2">
                     <label htmlFor="phone" className="font-sans text-[10px] uppercase tracking-widest font-semibold text-nbac-muted flex items-center gap-1.5">
-                      <Phone size={12} className="text-nbac-emerald" />
-                      Contact Number <span className="text-nbac-emerald">*</span>
+                      <Phone size={12} className={selectedTier?.id === 'vip' ? "text-nbac-gold-light" : "text-nbac-emerald"} />
+                      Contact Number <span className={selectedTier?.id === 'vip' ? "text-nbac-gold-light" : "text-nbac-emerald"}>*</span>
                     </label>
                     <input
                       type="tel"
@@ -256,7 +303,10 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
                       value={formData.phone}
                       onChange={handleInputChange}
                       placeholder="+234 803 123 4567"
-                      className="w-full bg-nbac-canvas/80 border border-nbac-border rounded-lg px-4 py-3 text-nbac-text placeholder:text-nbac-muted/65 font-sans text-sm focus:outline-none focus:border-nbac-emerald focus:ring-1 focus:ring-nbac-emerald/30 transition-all duration-300"
+                      className={cn(
+                        "w-full bg-nbac-canvas/80 border border-nbac-border rounded-lg px-4 py-3 text-nbac-text placeholder:text-nbac-muted/65 font-sans text-sm focus:outline-none focus:ring-1 transition-all duration-300",
+                        selectedTier?.id === 'vip' ? "focus:border-nbac-gold focus:ring-nbac-gold/30" : "focus:border-nbac-emerald focus:ring-nbac-emerald/30"
+                      )}
                     />
                   </div>
                 </div>
@@ -264,15 +314,24 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
                 {/* Delegate Quantity Counter */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border border-nbac-border bg-nbac-canvas/40 rounded-lg gap-4">
                   <div className="space-y-0.5">
-                    <h5 className="font-sans text-xs font-bold text-nbac-text uppercase tracking-wider">Delegate Attendance</h5>
-                    <p className="font-sans text-xs text-nbac-muted">Specify the number of delegates registering together</p>
+                    <h5 className="font-sans text-xs font-bold text-nbac-text uppercase tracking-wider">
+                      {selectedTier.billingModel === 'package' ? 'Package Quantity' : 'Delegate Attendance'}
+                    </h5>
+                    <p className="font-sans text-xs text-nbac-muted">
+                      {selectedTier.billingModel === 'package'
+                        ? `Specify the number of packages (each package includes ${selectedTier.includedDelegates || 1} delegate passes)`
+                        : 'Specify the number of delegates registering together'}
+                    </p>
                   </div>
                   <div className="flex items-center gap-4 bg-nbac-canvas border border-nbac-border px-3 py-1.5 rounded-full select-none">
                     <button
                       type="button"
                       onClick={handleDecrement}
-                      disabled={delegateCount <= 1}
-                      className="text-nbac-body hover:text-nbac-emerald transition-colors disabled:opacity-30 disabled:hover:text-nbac-body"
+                      className={cn(
+                        "text-nbac-body transition-colors disabled:opacity-30 disabled:hover:text-nbac-body",
+                        selectedTier?.id === 'vip' ? "hover:text-nbac-gold" : "hover:text-nbac-emerald"
+                      )}
+                      aria-label="Decrease delegate count"
                     >
                       <Minus size={16} />
                     </button>
@@ -280,8 +339,11 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
                     <button
                       type="button"
                       onClick={handleIncrement}
-                      disabled={delegateCount >= 10}
-                      className="text-nbac-body hover:text-nbac-emerald transition-colors disabled:opacity-30 disabled:hover:text-nbac-body"
+                      className={cn(
+                        "text-nbac-body transition-colors disabled:opacity-30 disabled:hover:text-nbac-body",
+                        selectedTier?.id === 'vip' ? "hover:text-nbac-gold" : "hover:text-nbac-emerald"
+                      )}
+                      aria-label="Increase delegate count"
                     >
                       <Plus size={16} />
                     </button>
@@ -299,7 +361,10 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
                     value={formData.specialRequirements}
                     onChange={handleInputChange}
                     placeholder="Outline any special VIP requirements, dietary conditions, aircraft handling requests (for static display) or preferences here..."
-                    className="w-full bg-nbac-canvas/80 border border-nbac-border rounded-lg px-4 py-3 text-nbac-text placeholder:text-nbac-muted/65 font-sans text-sm focus:outline-none focus:border-nbac-emerald focus:ring-1 focus:ring-nbac-emerald/30 transition-all duration-300 resize-none"
+                    className={cn(
+                      "w-full bg-nbac-canvas/80 border border-nbac-border rounded-lg px-4 py-3 text-nbac-text placeholder:text-nbac-muted/65 font-sans text-sm focus:outline-none focus:ring-1 transition-all duration-300 resize-none",
+                      selectedTier?.id === 'vip' ? "focus:border-nbac-gold focus:ring-nbac-gold/30" : "focus:border-nbac-emerald focus:ring-nbac-emerald/30"
+                    )}
                   />
                 </div>
 
@@ -307,16 +372,19 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
                 <div className="bg-nbac-alt/80 border border-nbac-border rounded-lg p-4 flex justify-between items-center shadow-inner">
                   <div className="space-y-0.5">
                     <span className="font-sans text-[10px] uppercase tracking-widest font-bold text-nbac-muted">Estimated Total Due</span>
-                    <span className="block font-sans text-[10px] text-nbac-emerald-light">All-inclusive VIP conference access</span>
+                    <span className={cn(
+                      "block font-sans text-[10px]",
+                      selectedTier?.id === 'vip' ? "text-nbac-gold-light" : "text-nbac-emerald-light"
+                    )}>All-inclusive VIP conference access</span>
                   </div>
                   <span className="font-display text-xl md:text-2xl font-extrabold text-nbac-text tracking-tight">
-                    {formatPrice(selectedTier.price * delegateCount)}
+                    {formatPrice(calculateTotal(selectedTier, delegateCount))}
                   </span>
                 </div>
 
                 {/* Paystack Security Notice */}
                 <div className="flex items-center gap-2.5 bg-nbac-canvas/30 border border-nbac-border/30 rounded-lg p-3 text-nbac-muted text-[11px] leading-relaxed">
-                  <Lock size={16} className="text-nbac-emerald shrink-0" />
+                  <Lock size={16} className={cn("shrink-0", selectedTier?.id === 'vip' ? "text-nbac-gold" : "text-nbac-emerald")} />
                   <p>
                     Payments are encrypted and processed by Paystack. Upon approval, digital access passes will be dispatched.
                   </p>
@@ -327,7 +395,10 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
                   type="submit"
                   disabled={isSubmitting}
                   className={cn(
-                    "w-full bg-gradient-to-r from-nbac-emerald to-[#059669] hover:from-[#059669] hover:to-[#047857] text-white font-sans font-bold py-4 rounded-full text-xs uppercase tracking-widest transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_4px_15px_rgba(16,185,129,0.2)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_6px_20px_rgba(16,185,129,0.4)] active:scale-[0.98] flex items-center justify-center gap-2.5 disabled:opacity-75 disabled:cursor-not-allowed"
+                    "w-full font-sans font-bold py-4 rounded-full text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2.5 disabled:opacity-75 disabled:cursor-not-allowed active:scale-[0.98]",
+                    selectedTier?.id === 'vip'
+                      ? "bg-gradient-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold text-[#0b0f10] shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_4px_15px_rgba(197,160,89,0.25)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),0_6px_20px_rgba(197,160,89,0.45)]"
+                      : "bg-gradient-to-r from-nbac-emerald to-[#059669] hover:from-[#059669] hover:to-[#047857] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_4px_15px_rgba(16,185,129,0.2)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_6px_20px_rgba(16,185,129,0.4)]"
                   )}
                 >
                   {isSubmitting ? (

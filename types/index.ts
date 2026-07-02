@@ -69,6 +69,8 @@ export interface EventDetails {
   sessions: EventSession[];
 }
 
+export type BillingModel = 'per_delegate' | 'package';
+
 export interface PassTierDetails {
   id: PassTier;
   name: string;
@@ -77,5 +79,123 @@ export interface PassTierDetails {
   privileges: string[];
   availability: 'available' | 'limited' | 'sold_out';
   badge?: string;
+  billingModel: BillingModel;
+  includedDelegates?: number;
 }
 
+// Content Manager
+export type ContentType = 'announcement' | 'press' | 'event_copy' | 'sponsor_update';
+export type ContentStatus = 'draft' | 'published';
+
+export interface ContentPost {
+  id: string;
+  title: string;
+  type: ContentType;
+  status: ContentStatus;
+  body?: string;
+  author_id?: string;
+  created_at?: string;
+  updated_at: string;
+  featured_image?: string;
+}
+
+// Inquiries
+export type InquiryType = 'general' | 'hotel' | 'charter' | 'sponsorship' | 'media' | 'vip';
+export type InquiryStatus = 'open' | 'in_progress' | 'resolved';
+
+export interface Inquiry {
+  id: string;
+  full_name: string;
+  email: string;
+  company?: string;
+  phone?: string;
+  inquiry_type: InquiryType;
+  message: string;
+  status: InquiryStatus;
+  created_at: string;
+}
+
+// Media
+export interface MediaFile {
+  id: string;
+  file_name: string;
+  file_url: string;
+  storage_path: string;
+  tags: string[];
+  uploaded_by: string;
+  created_at: string;
+  sort_order: number;
+}
+
+// Admin logs
+export type LogAction = 'published' | 'edited' | 'deleted' | 'login' | 'permission_changed';
+
+export interface AdminLog {
+  id: string;
+  admin_id: string;
+  admin?: AdminUser;
+  action: LogAction;
+  target?: string;
+  ip_address?: string;
+  created_at: string;
+}
+
+// Hotel
+export interface PartnerHotel {
+  id: string;
+  name: string;
+  stars: number;
+  distance_km: number;
+  promo_code: string;
+  amenities: string[];
+  image_url?: string;
+  booking_url: string;
+}
+
+// FBO / Flight logistics
+export interface FBOTerminal {
+  id: string;
+  name: string;
+  icao_code: string;
+  location: string;
+  services: string[];
+  phone: string;
+  email: string;
+  coordinates?: { lat: number; lng: number };
+}
+
+// Form schemas (Zod/Form validation)
+export interface RegistrationFormData {
+  pass_tier: PassTier;
+  full_name: string;
+  company: string;
+  email: string;
+  phone: string;
+  delegate_count: number;
+  special_requirements?: string;
+}
+
+export interface InquiryFormData {
+  full_name: string;
+  company?: string;
+  email: string;
+  phone?: string;
+  inquiry_type: InquiryType;
+  message: string;
+}
+
+// API responses
+export interface ApiResponse<T> {
+  data?: T;
+  error?: string;
+  success: boolean;
+}
+
+// Paystack
+export interface PaystackResponse {
+  reference: string;
+  status: 'success' | 'failed';
+  trans: string;
+  transaction: string;
+  message: string;
+}

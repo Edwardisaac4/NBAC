@@ -106,40 +106,55 @@ export function CommitteeSection() {
           <h2 className="comm-heading opacity-0 font-display text-3xl md:text-5xl font-bold text-nbac-text tracking-tight">
             Executive Committee Grid
           </h2>
-          <div className="comm-divider h-1 w-24 bg-nbac-emerald mx-auto rounded-full mt-4 origin-center opacity-0" />
+          <div className="comm-divider h-1 w-24 bg-nbac-gold mx-auto rounded-full mt-4 origin-center opacity-0" />
         </div>
 
         {/* Committee Grid */}
         <div className="comm-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16 w-full max-w-6xl">
-          {members.map((member) => (
-            <motion.div
-              key={member.name}
-              className="committee-card opacity-0 flex flex-col items-center relative group"
-              whileHover={{ y: -8 }}
-              transition={{ duration: 0.3, ease: 'easeOut' }}
-            >
-              {/* Circular Avatar with Glowing Ring */}
-              <div className="w-44 h-44 rounded-full border-[3px] border-nbac-emerald overflow-hidden relative z-10 shadow-lg shadow-nbac-emerald/10 transition-all duration-300 group-hover:border-nbac-emerald-light group-hover:shadow-nbac-emerald/30 group-hover:scale-105">
-                <Image
-                  src={member.image}
-                  alt={member.name}
-                  width={176}
-                  height={176}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-              </div>
+          {members.map((member) => {
+            const isPremiumRole = member.role === 'Chairman' || member.role === 'CEO'
+            return (
+              <motion.div
+                key={member.name}
+                className="committee-card opacity-0 flex flex-col items-center relative group"
+                whileHover={{ y: -8 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+              >
+                {/* Circular Avatar with Glowing Ring */}
+                <div className={`w-44 h-44 rounded-full border-[3px] overflow-hidden relative z-10 shadow-lg transition-all duration-300 group-hover:scale-105 ${
+                  isPremiumRole
+                    ? 'border-nbac-gold shadow-nbac-gold/15 group-hover:border-nbac-gold-light group-hover:shadow-nbac-gold/35'
+                    : 'border-nbac-emerald shadow-nbac-emerald/10 group-hover:border-nbac-emerald-light group-hover:shadow-nbac-emerald/30'
+                }`}>
+                  <Image
+                    src={member.image}
+                    alt={member.name}
+                    width={176}
+                    height={176}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                </div>
 
-              {/* Information Pill Overlay */}
-              <div className="w-full bg-nbac-panel border border-nbac-border rounded-xl px-6 pt-14 pb-5 text-center -mt-10 relative z-0 transition-colors duration-300 group-hover:border-nbac-emerald/30 group-hover:bg-nbac-panel/90 shadow-md">
-                <h3 className="font-sans text-base font-semibold text-nbac-text leading-snug group-hover:text-nbac-emerald transition-colors duration-300">
-                  {member.name}
-                </h3>
-                <p className="font-sans text-xs font-medium text-nbac-emerald-light tracking-wide mt-1 uppercase">
-                  {member.role}
-                </p>
-              </div>
-            </motion.div>
-          ))}
+                {/* Information Pill Overlay */}
+                <div className={`w-full bg-nbac-panel border rounded-xl px-6 pt-14 pb-5 text-center -mt-10 relative z-0 transition-colors duration-300 group-hover:bg-nbac-panel/90 shadow-md ${
+                  isPremiumRole
+                    ? 'border-nbac-border group-hover:border-nbac-gold/30'
+                    : 'border-nbac-border group-hover:border-nbac-emerald/30'
+                }`}>
+                  <h3 className={`font-sans text-base font-semibold text-nbac-text leading-snug transition-colors duration-300 ${
+                    isPremiumRole ? 'group-hover:text-nbac-gold-light' : 'group-hover:text-nbac-emerald'
+                  }`}>
+                    {member.name}
+                  </h3>
+                  <p className={`font-sans text-xs font-medium tracking-wide mt-1 uppercase ${
+                    isPremiumRole ? 'text-nbac-gold-light' : 'text-nbac-emerald-light'
+                  }`}>
+                    {member.role}
+                  </p>
+                </div>
+              </motion.div>
+            )
+          })}
         </div>
       </div>
     </section>

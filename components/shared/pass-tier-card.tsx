@@ -16,7 +16,7 @@ export function PassTierCard({ tier, isSelected, onSelect }: PassTierCardProps) 
   const getIcon = () => {
     switch (tier.id) {
       case 'vip':
-        return <Crown className="text-nbac-emerald-light h-6 w-6" />
+        return <Crown className="text-nbac-gold h-6 w-6" />
       case 'exhibitor':
         return <ShieldCheck className="text-nbac-emerald-light h-6 w-6" />
       case 'jet_display':
@@ -69,20 +69,26 @@ export function PassTierCard({ tier, isSelected, onSelect }: PassTierCardProps) 
       className={cn(
         "relative rounded-xl p-6 backdrop-blur-xl transition-all duration-300 border cursor-pointer select-none overflow-hidden flex flex-col justify-between h-full group",
         isSelected
-          ? "bg-nbac-panel border-nbac-emerald shadow-[0_12px_40px_rgba(16,185,129,0.08)] border-l-4 border-l-nbac-emerald"
-          : "bg-nbac-panel/40 border-nbac-border hover:bg-nbac-panel/70 hover:border-nbac-emerald/30",
+          ? (tier.id === 'vip'
+              ? "bg-nbac-panel border-nbac-gold shadow-[0_12px_40px_rgba(197,160,89,0.08)] border-l-4 border-l-nbac-gold"
+              : "bg-nbac-panel border-nbac-emerald shadow-[0_12px_40px_rgba(16,185,129,0.08)] border-l-4 border-l-nbac-emerald")
+          : "bg-nbac-panel/40 border-nbac-border hover:bg-nbac-panel/70 hover:border-nbac-emerald/40",
         isSoldOut && "opacity-50 cursor-not-allowed hover:border-nbac-border hover:shadow-none hover:bg-nbac-panel/40"
       )}
       whileHover={!isSoldOut ? {
         y: -4,
-        borderColor: isSelected ? 'var(--color-nbac-emerald)' : 'rgba(16, 185, 129, 0.4)',
-        boxShadow: isSelected ? '0 12px 40px rgba(16, 185, 129, 0.12)' : '0 12px 32px rgba(16, 185, 129, 0.04)',
+        boxShadow: isSelected
+          ? (tier.id === 'vip' ? '0 12px 40px rgba(197, 160, 89, 0.12)' : '0 12px 40px rgba(16, 185, 129, 0.12)')
+          : (tier.id === 'vip' ? '0 12px 32px rgba(197, 160, 89, 0.04)' : '0 12px 32px rgba(16, 185, 129, 0.04)'),
       } : {}}
       transition={{ duration: 0.2 }}
     >
       {/* Subtle glow background for selected state */}
       {isSelected && (
-        <div className="absolute -right-24 -top-24 w-48 h-48 bg-nbac-emerald/[0.04] blur-[80px] rounded-full pointer-events-none" />
+        <div className={cn(
+          "absolute -right-24 -top-24 w-48 h-48 blur-[80px] rounded-full pointer-events-none",
+          tier.id === 'vip' ? "bg-nbac-gold/[0.04]" : "bg-nbac-emerald/[0.04]"
+        )} />
       )}
 
       <div className="space-y-6">
@@ -100,7 +106,10 @@ export function PassTierCard({ tier, isSelected, onSelect }: PassTierCardProps) 
             {tier.name}
           </h3>
           {tier.badge && (
-            <span className="text-[11px] font-sans text-nbac-emerald-light font-medium uppercase tracking-wider block mt-1">
+            <span className={cn(
+              "text-[11px] font-sans font-medium uppercase tracking-wider block mt-1",
+              tier.id === 'vip' ? "text-nbac-gold-light" : "text-nbac-emerald-light"
+            )}>
               {tier.badge}
             </span>
           )}
@@ -108,7 +117,9 @@ export function PassTierCard({ tier, isSelected, onSelect }: PassTierCardProps) 
             <span className="font-display text-3xl font-extrabold text-nbac-text tracking-tight">
               {formatPrice(tier.price)}
             </span>
-            <span className="font-sans text-xs text-nbac-muted ml-2">/ delegate</span>
+            <span className="font-sans text-xs text-nbac-muted ml-2">
+              {tier.billingModel === 'package' ? '/ package' : '/ delegate'}
+            </span>
           </div>
         </div>
 
@@ -119,7 +130,7 @@ export function PassTierCard({ tier, isSelected, onSelect }: PassTierCardProps) 
         <ul className="space-y-3.5">
           {tier.privileges.map((privilege, index) => (
             <li key={index} className="flex items-start gap-3">
-              <Check size={16} className="text-nbac-emerald shrink-0 mt-0.5" />
+              <Check size={16} className={cn("shrink-0 mt-0.5", tier.id === 'vip' ? "text-nbac-gold" : "text-nbac-emerald")} />
               <span className="font-sans text-xs text-nbac-body leading-relaxed font-light font-sans">
                 {privilege}
               </span>
@@ -135,7 +146,9 @@ export function PassTierCard({ tier, isSelected, onSelect }: PassTierCardProps) 
           className={cn(
             "w-full font-sans font-bold py-3.5 rounded-full text-[10px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2",
             isSelected
-              ? "bg-nbac-emerald text-white shadow-lg shadow-nbac-emerald/10"
+              ? (tier.id === 'vip'
+                  ? "bg-gradient-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold text-[#0b0f10] shadow-lg shadow-nbac-gold/15"
+                  : "bg-nbac-emerald text-white shadow-lg shadow-nbac-emerald/10")
               : "border border-nbac-border text-nbac-body hover:text-nbac-text hover:bg-nbac-panel/80",
             isSoldOut && "border-nbac-border text-nbac-muted bg-transparent hover:bg-transparent"
           )}

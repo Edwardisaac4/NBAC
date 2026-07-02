@@ -104,7 +104,6 @@ export function AboutHero() {
 
   const cardHoverConfig = {
     y: -6,
-    borderColor: 'rgba(16, 185, 129, 0.4)',
     boxShadow: '0 12px 40px rgba(16, 185, 129, 0.08)',
   }
 
@@ -133,7 +132,7 @@ export function AboutHero() {
           <div className="about-cards-container grid grid-cols-1 md:grid-cols-2 gap-6 w-full pt-4">
             {/* Mission Card */}
             <motion.div
-              className="about-card opacity-0 bg-nbac-panel border border-nbac-border rounded-xl p-6 md:p-8 flex flex-col justify-between relative overflow-hidden group min-h-[260px]"
+              className="about-card opacity-0 bg-nbac-panel border border-nbac-border rounded-xl p-6 md:p-8 flex flex-col justify-between relative overflow-hidden group min-h-[260px] transition-colors duration-300 hover:border-nbac-emerald/40"
               whileHover={cardHoverConfig}
               transition={{ duration: 0.3, ease: 'easeOut' }}
             >
@@ -160,7 +159,7 @@ export function AboutHero() {
 
             {/* Vision Card */}
             <motion.div
-              className="about-card opacity-0 bg-nbac-panel border border-nbac-border rounded-xl p-6 md:p-8 flex flex-col justify-between relative overflow-hidden group min-h-[260px]"
+              className="about-card opacity-0 bg-nbac-panel border border-nbac-border rounded-xl p-6 md:p-8 flex flex-col justify-between relative overflow-hidden group min-h-[260px] transition-colors duration-300 hover:border-nbac-emerald/40"
               whileHover={cardHoverConfig}
               transition={{ duration: 0.3, ease: 'easeOut' }}
             >

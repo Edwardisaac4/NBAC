@@ -106,27 +106,37 @@ export function AudienceSection() {
           <h2 className="aud-heading opacity-0 font-display text-3xl md:text-5xl font-bold text-nbac-text tracking-tight">
             This Conference Is For...
           </h2>
-          <div className="aud-divider h-1 w-24 bg-nbac-emerald mx-auto rounded-full mt-4 origin-center opacity-0" />
+          <div className="aud-divider h-1 w-24 bg-nbac-gold mx-auto rounded-full mt-4 origin-center opacity-0" />
         </div>
 
         {/* Audience Grid */}
         <div className="aud-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
           {audiences.map((audience) => {
             const Icon = audience.icon
+            const isHNWI = audience.title.includes('High-Net-Worth')
             return (
               <motion.div
                 key={audience.title}
-                className="audience-card opacity-0 bg-nbac-panel border border-nbac-border rounded-lg p-6 flex flex-col justify-between h-full"
+                className={`audience-card opacity-0 bg-nbac-panel border rounded-lg p-6 flex flex-col justify-between h-full transition-colors duration-300 ${
+                  isHNWI
+                    ? 'border-nbac-gold/30 border-l-4 border-l-nbac-gold bg-nbac-gold/[0.01] hover:border-nbac-gold/50'
+                    : 'border-nbac-border hover:border-nbac-emerald/50'
+                }`}
                 whileHover={{
                   y: -6,
-                  borderColor: 'rgba(16, 185, 129, 0.5)',
-                  boxShadow: '0 8px 32px rgba(16, 185, 129, 0.08)',
+                  boxShadow: isHNWI
+                    ? '0 8px 32px rgba(197, 160, 89, 0.08)'
+                    : '0 8px 32px rgba(16, 185, 129, 0.08)',
                 }}
                 transition={{ duration: 0.25, ease: 'easeOut' }}
               >
                 <div className="space-y-4">
                   {/* Icon */}
-                  <div className="bg-nbac-emerald/10 p-3 rounded-lg text-nbac-emerald h-11 w-11 flex items-center justify-center">
+                  <div className={`p-3 rounded-lg h-11 w-11 flex items-center justify-center ${
+                    isHNWI
+                      ? 'bg-nbac-gold/10 text-nbac-gold'
+                      : 'bg-nbac-emerald/10 text-nbac-emerald'
+                  }`}>
                     <Icon size={20} />
                   </div>
                   {/* Content */}
