@@ -10,6 +10,7 @@ import { SectionEyebrow } from '@/components/shared/section-eyebrow'
 import { getStoredPosts, BlogPost } from '@/lib/blog-data'
 import { Calendar, User, Clock, ArrowRight, Mail, Sparkles } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { formatDate } from '@/lib/utils'
 
 export default function BlogOverviewPage() {
   const [posts, setPosts] = useState<BlogPost[]>([])
@@ -19,7 +20,20 @@ export default function BlogOverviewPage() {
 
   useEffect(() => {
     // Load posts from localStorage (reactive to admin changes)
-    setPosts(getStoredPosts())
+    const timeoutId = setTimeout(() => {
+      setPosts(getStoredPosts())
+    }, 0)
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'nbac-blog-posts') {
+        setPosts(getStoredPosts())
+      }
+    }
+    window.addEventListener('storage', handleStorage)
+    return () => {
+      clearTimeout(timeoutId)
+      window.removeEventListener('storage', handleStorage)
+    }
   }, [])
 
   // Find the featured post (fallback to first post if none matches 'post_featured')
@@ -40,19 +54,7 @@ export default function BlogOverviewPage() {
     }, 1200)
   }
 
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return ''
-    try {
-      const date = new Date(dateStr)
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      })
-    } catch (e) {
-      return dateStr
-    }
-  }
+
 
   return (
     <PageTransition>
@@ -64,17 +66,18 @@ export default function BlogOverviewPage() {
           <section className="relative min-h-[85vh] flex items-center overflow-hidden border-b border-nbac-border">
             {/* Background Image with subtle zoom overlay */}
             <div className="absolute inset-0 z-0">
-              <div className="absolute inset-0 bg-gradient-to-r from-nbac-canvas via-nbac-canvas/80 to-transparent z-10" />
-              <div className="absolute inset-0 bg-gradient-to-t from-nbac-canvas via-transparent to-transparent z-10" />
-              <div className="absolute inset-0 bg-black/30 z-0" />
               <Image
                 src={featuredPost.featured_image || '/images/private_jet_runway_dusk.png'}
                 alt={featuredPost.title}
                 fill
-                className="object-cover scale-[1.03] transition-transform duration-10000 ease-out hover:scale-105"
+                className="object-cover scale-[1.03] transition-transform duration-10000 ease-out hover:scale-105 z-0"
                 priority
                 sizes="100vw"
+                quality={90}
               />
+              <div className="absolute inset-0 bg-black/30 z-10" />
+              <div className="absolute inset-0 bg-linear-to-r from-nbac-canvas via-nbac-canvas/80 to-transparent z-20" />
+              <div className="absolute inset-0 bg-linear-to-t from-nbac-canvas via-transparent to-transparent z-20" />
             </div>
 
             {/* Environmental Glow */}
@@ -87,7 +90,7 @@ export default function BlogOverviewPage() {
                   <span className="bg-nbac-emerald/15 border border-nbac-emerald/30 text-nbac-emerald text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full">
                     Featured Briefing
                   </span>
-                  <span className="w-12 h-[1px] bg-nbac-border" />
+                  <span className="w-12 h-px bg-nbac-border" />
                 </div>
 
                 <h1 className="font-display text-4xl md:text-6xl font-bold leading-tight md:leading-none tracking-tight text-nbac-text mb-6">
@@ -145,58 +148,63 @@ export default function BlogOverviewPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {otherPosts.map((post, idx) => (
-                  <motion.article
+                {otherPosts.map((post) => (
+                  <Link
                     key={post.id}
-                    className="group relative flex flex-col bg-nbac-panel border border-nbac-border rounded-xl overflow-hidden shadow-md cursor-pointer hover:border-nbac-emerald/40 transition-all duration-300"
-                    whileHover={{ y: -6, boxShadow: '0 12px 30px rgba(16,185,129,0.06)' }}
-                    onClick={() => window.location.href = `/blog/${post.id}`}
+                    href={`/blog/${post.id}`}
+                    className="focus:outline-none focus-visible:ring-2 focus-visible:ring-nbac-emerald rounded-xl block h-full"
                   >
-                    {/* Featured Image */}
-                    <div className="h-56 relative overflow-hidden bg-nbac-deep">
-                      {post.featured_image ? (
-                        <Image
-                          src={post.featured_image}
-                          alt={post.title}
-                          fill
-                          className="object-cover transition-transform duration-500 group-hover:scale-105"
-                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-nbac-muted">
-                          No Image
+                    <motion.article
+                      className="group relative flex flex-col bg-nbac-panel border border-nbac-border rounded-xl overflow-hidden shadow-md hover:border-nbac-emerald/40 transition-all duration-300 h-full"
+                      whileHover={{ y: -6, boxShadow: '0 12px 30px rgba(16,185,129,0.06)' }}
+                    >
+                      {/* Featured Image */}
+                      <div className="h-56 relative overflow-hidden bg-nbac-deep">
+                        {post.featured_image ? (
+                          <Image
+                            src={post.featured_image}
+                            alt={post.title}
+                            fill
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            quality={90}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-nbac-muted">
+                            No Image
+                          </div>
+                        )}
+                        
+                        {/* Category Tag */}
+                        <div className="absolute top-4 left-4 z-20">
+                          <span className="bg-nbac-panel/90 backdrop-blur-md text-nbac-emerald border border-nbac-emerald/20 px-2.5 py-0.5 rounded-full text-[9px] font-bold tracking-widest uppercase">
+                            {post.type === 'press_release' ? 'Press Release' : post.type === 'announcement' ? 'Announcement' : 'Intelligence'}
+                          </span>
                         </div>
-                      )}
-                      
-                      {/* Category Tag */}
-                      <div className="absolute top-4 left-4 z-20">
-                        <span className="bg-nbac-panel/90 backdrop-blur-md text-nbac-emerald border border-nbac-emerald/20 px-2.5 py-0.5 rounded-full text-[9px] font-bold tracking-widest uppercase">
-                          {post.type === 'press' ? 'Press Release' : post.type === 'announcement' ? 'Announcement' : 'Intelligence'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-6 flex-grow flex flex-col justify-between">
-                      <div>
-                        <h3 className="font-sans text-lg font-bold mb-3 leading-snug text-nbac-text group-hover:text-nbac-emerald transition-colors line-clamp-2">
-                          {post.title}
-                        </h3>
-                        <p className="font-sans text-xs font-light text-nbac-body leading-relaxed mb-6 line-clamp-3">
-                          {post.body ? post.body.replace(/[#*`>]/g, '').trim().substring(0, 140) + '...' : ''}
-                        </p>
                       </div>
 
-                      {/* Footer Metadata */}
-                      <div className="pt-4 border-t border-nbac-border/50 flex items-center justify-between text-[11px] text-nbac-muted uppercase tracking-wider font-medium">
-                        <span>{formatDate(post.created_at)}</span>
-                        <span className="flex items-center gap-1 text-nbac-emerald font-semibold">
-                          Read Briefing
-                          <ArrowRight size={10} className="group-hover:translate-x-1 transition-transform" />
-                        </span>
+                      {/* Content */}
+                      <div className="p-6 grow flex flex-col justify-between">
+                        <div>
+                          <h3 className="font-sans text-lg font-bold mb-3 leading-snug text-nbac-text group-hover:text-nbac-emerald transition-colors line-clamp-2">
+                            {post.title}
+                          </h3>
+                          <p className="font-sans text-xs font-light text-nbac-body leading-relaxed mb-6 line-clamp-3">
+                            {post.body ? post.body.replace(/[#*`>]/g, '').trim().substring(0, 140) + '...' : ''}
+                          </p>
+                        </div>
+
+                        {/* Footer Metadata */}
+                        <div className="pt-4 border-t border-nbac-border/50 flex items-center justify-between text-[11px] text-nbac-muted uppercase tracking-wider font-medium">
+                          <span>{formatDate(post.created_at)}</span>
+                          <span className="flex items-center gap-1 text-nbac-emerald font-semibold">
+                            Read Briefing
+                            <ArrowRight size={10} className="group-hover:translate-x-1 transition-transform" />
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  </motion.article>
+                    </motion.article>
+                  </Link>
                 ))}
               </div>
             )}
@@ -218,7 +226,7 @@ export default function BlogOverviewPage() {
                   The Executive Briefing
                 </h2>
                 <p className="font-sans text-base font-light text-nbac-body leading-relaxed max-w-lg">
-                  Receive the month's most critical business aviation intelligence, regulatory policy briefs, and market predictions sent straight to your desk. Join 500+ aviation executives shaping regional transport policy.
+                  Receive the month&apos;s most critical business aviation intelligence, regulatory policy briefs, and market predictions sent straight to your desk. Join 500+ aviation executives shaping regional transport policy.
                 </p>
                 <div className="flex items-center gap-3 text-nbac-emerald text-xs font-semibold uppercase tracking-widest pt-2">
                   <Sparkles size={14} className="animate-pulse" />
@@ -246,10 +254,11 @@ export default function BlogOverviewPage() {
                   ) : (
                     <form onSubmit={handleSubscribe} className="space-y-6">
                       <div className="space-y-2">
-                        <label className="block text-[10px] font-sans font-bold uppercase tracking-widest text-nbac-muted">
+                        <label htmlFor="newsletter-email" className="block text-[10px] font-sans font-bold uppercase tracking-widest text-nbac-muted">
                           Official Email Address
                         </label>
                         <input
+                          id="newsletter-email"
                           type="email"
                           required
                           value={email}

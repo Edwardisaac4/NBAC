@@ -63,11 +63,22 @@ export function PassTierCard({ tier, isSelected, onSelect }: PassTierCardProps) 
 
   const isSoldOut = tier.availability === 'sold_out'
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (isSoldOut) return
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      onSelect()
+    }
+  }
+
   return (
     <motion.div
+      role="button"
+      tabIndex={isSoldOut ? -1 : 0}
+      onKeyDown={handleKeyDown}
       onClick={() => !isSoldOut && onSelect()}
       className={cn(
-        "relative rounded-xl p-6 backdrop-blur-xl transition-all duration-300 border cursor-pointer select-none overflow-hidden flex flex-col justify-between h-full group",
+        "relative rounded-xl p-6 backdrop-blur-xl transition-all duration-300 border cursor-pointer select-none overflow-hidden flex flex-col justify-between h-full group focus:outline-none focus-visible:ring-2 focus-visible:ring-nbac-emerald",
         isSelected
           ? (tier.id === 'vip'
               ? "bg-nbac-panel border-nbac-gold shadow-[0_12px_40px_rgba(197,160,89,0.08)] border-l-4 border-l-nbac-gold"

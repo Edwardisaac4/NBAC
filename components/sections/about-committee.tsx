@@ -8,41 +8,13 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { SectionEyebrow } from '../shared/section-eyebrow'
 import { useMediaQuery } from '@/hooks/use-media-query'
+import { ABOUT_COMMITTEE_MEMBERS } from '@/lib/constants'
 
 gsap.registerPlugin(ScrollTrigger)
-
-interface CommitteeMember {
-  name: string
-  role: string
-  image: string
-}
 
 export function AboutCommittee() {
   const containerRef = useRef<HTMLDivElement>(null)
   const isLaptop = useMediaQuery('(min-width: 1024px)', false)
-
-  const members: CommitteeMember[] = [
-    {
-      name: 'Capt. Ibrahim Nuru',
-      role: 'BOARD CHAIRMAN',
-      image: '/images/capt_ibrahim_nuru.png',
-    },
-    {
-      name: 'Dr. Amina Olaye',
-      role: 'STRATEGIC DIRECTOR',
-      image: '/images/dr_amina_olaye.png',
-    },
-    {
-      name: 'Yande Bakare',
-      role: 'POLICY LIAISON',
-      image: '/images/yande_bakare.png',
-    },
-    {
-      name: 'Samuel Akenzua',
-      role: 'OPS COMMITTEE',
-      image: '/images/samuel_akenzua.png',
-    },
-  ]
 
   useGSAP(
     () => {
@@ -86,7 +58,7 @@ export function AboutCommittee() {
 
         {/* Committee Grid */}
         <div className="committee-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 w-full max-w-6xl">
-          {members.map((member) => {
+          {ABOUT_COMMITTEE_MEMBERS.map((member) => {
             const isPremium = member.role === 'BOARD CHAIRMAN' || member.role === 'STRATEGIC DIRECTOR'
             return (
               <motion.div
@@ -108,6 +80,8 @@ export function AboutCommittee() {
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     className="object-cover grayscale-0 lg:grayscale lg:group-hover:grayscale-0 scale-100 lg:group-hover:scale-105 transition-all duration-500 ease-out"
+                    style={{ objectPosition: member.objectPosition || 'center' }}
+                    quality={90}
                   />
                   {/* Thin overlay to tie into dark luxury aesthetic */}
                   <div className="absolute inset-0 bg-linear-to-t from-nbac-panel/90 via-transparent to-transparent opacity-60 pointer-events-none" />

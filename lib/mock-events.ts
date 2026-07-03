@@ -6,7 +6,6 @@ export const SPEAKERS: Record<string, Speaker> = {
     name: "Yande Bakare",
     title: "Chairperson",
     company: "Nigerian Aviation Association",
-    avatar_url: "/images/yande_bakare.png",
     bio: "Yande Bakare has over 25 years of leadership experience across aviation operations, regulatory policy, and industry advocacy in West Africa. As Chairperson of the NAA, she champions infrastructure development, international partnerships, and commercial growth strategies."
   },
   chidinma: {
@@ -14,7 +13,6 @@ export const SPEAKERS: Record<string, Speaker> = {
     name: "Chidinma Okafor",
     title: "Head of Regulatory Compliance",
     company: "Nigerian Civil Aviation Authority (NCAA)",
-    avatar_url: "/images/ms_chidinma_okafor.png",
     bio: "Ms. Chidinma Okafor is an aviation law expert specializing in regulatory compliance, safety oversight audit processes, and airspace management policies. She has represented Nigeria in numerous international aviation safety summits."
   },
   fatima: {
@@ -22,7 +20,6 @@ export const SPEAKERS: Record<string, Speaker> = {
     name: "Capt. Fatima Ali",
     title: "Director of Flight Operations",
     company: "Zenith Jet Services",
-    avatar_url: "/images/captain_fatima_ali.png",
     bio: "Capt. Fatima Ali is a pioneer in corporate aviation piloting with over 8,000 flight hours command experience on Gulfstream and Bombardier aircraft. She oversees Zenith Jet's flight crew operations, route safety, and fleet management."
   },
   ibrahim: {
@@ -30,7 +27,6 @@ export const SPEAKERS: Record<string, Speaker> = {
     name: "Capt. Ibrahim Nuru",
     title: "Chief Pilot",
     company: "Air Nigeria Charter",
-    avatar_url: "/images/capt_ibrahim_nuru.png",
     bio: "Capt. Ibrahim Nuru commands charter operations across the Middle East and African corridors. A crew resource management specialist, he advises operators on procedural safety, ground compliance, and private terminal logistics."
   },
   samuel: {
@@ -38,7 +34,6 @@ export const SPEAKERS: Record<string, Speaker> = {
     name: "Samuel Akenzua",
     title: "Managing Director",
     company: "West Africa Charter Group",
-    avatar_url: "/images/samuel_akenzua.png",
     bio: "Samuel Akenzua is a logistics and aviation management executive. He has directed several high-profile charter projects for multinational corporations and diplomatic missions, optimizing flight paths and passenger logistics."
   },
   kenji: {
@@ -46,7 +41,6 @@ export const SPEAKERS: Record<string, Speaker> = {
     name: "Kenji Tanaka",
     title: "Global Aviation Strategist",
     company: "Skyline Consulting",
-    avatar_url: "/images/mr_kenji_tanaka.png",
     bio: "Kenji Tanaka is an international aviation consultant based in London and Tokyo. He specializes in market entry strategies, corporate fleet acquisition portfolios, and FBO (Fixed-Base Operator) terminal efficiency optimizations."
   },
   adebayo: {
@@ -54,7 +48,6 @@ export const SPEAKERS: Record<string, Speaker> = {
     name: "Dr. Adebayo Ojo",
     title: "Senior Aviation Economist & Advisor",
     company: "Lagos Business School",
-    avatar_url: "/images/dr_adebayo_ojo.png",
     bio: "Dr. Adebayo Ojo conducts policy research on transport economics and infrastructure financing. He consults widely for governments and private consortia seeking to establish airport networks and dry ports."
   },
   amina: {
@@ -62,7 +55,6 @@ export const SPEAKERS: Record<string, Speaker> = {
     name: "Dr. Amina Olaye",
     title: "Executive Director",
     company: "AeroGreen Technologies",
-    avatar_url: "/images/dr_amina_olaye.png",
     bio: "Dr. Amina Olaye is an aerospace engineer and environmental advocate. She leads research into sustainable aviation fuels (SAF), hybrid propulsion systems, and green initiatives designed for rapid adoption in emerging markets."
   }
 };

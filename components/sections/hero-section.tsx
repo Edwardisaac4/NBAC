@@ -1,7 +1,8 @@
 'use client'
 
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState } from 'react'
 import { useGSAP } from '@gsap/react'
+import Link from 'next/link'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { StatCounter } from '../shared/stat-counter'
@@ -18,17 +19,29 @@ const PARTICLE_COLORS = [
   'rgba(52, 211, 153, 0.12)',   // emerald-light
 ]
 
+/* ── Seeded PRNG (mulberry32) — deterministic across SSR + client ── */
+function createSeededRandom(seed: number) {
+  return () => {
+    seed |= 0
+    seed = (seed + 0x6d2b79f5) | 0
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
 function generateParticles() {
+  const random = createSeededRandom(42)
   return Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
     id: i,
-    size: 2 + Math.random() * 3,          // 2–5px
-    x: Math.random() * 100,               // random horizontal start %
-    y: Math.random() * 100,               // random vertical start %
+    size: 2 + random() * 3,          // 2–5px
+    x: random() * 100,               // random horizontal start %
+    y: random() * 100,               // random vertical start %
     color: PARTICLE_COLORS[i % PARTICLE_COLORS.length],
-    driftX: (Math.random() - 0.5) * 120,  // horizontal drift range px
-    driftY: -40 - Math.random() * 80,     // float upward 40–120px
-    duration: 6 + Math.random() * 8,      // 6–14s per loop
-    delay: Math.random() * 5,             // stagger start
+    driftX: (random() - 0.5) * 120,  // horizontal drift range px
+    driftY: -40 - random() * 80,     // float upward 40–120px
+    duration: 6 + random() * 8,      // 6–14s per loop
+    delay: random() * 5,             // stagger start
   }))
 }
 
@@ -61,11 +74,7 @@ export function HeroSection() {
   const lightSweepRef = useRef<HTMLDivElement>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
 
-  const [particles, setParticles] = useState<ReturnType<typeof generateParticles>>([])
-
-  useEffect(() => {
-    setParticles(generateParticles())
-  }, [])
+  const [particles] = useState<ReturnType<typeof generateParticles>>(() => generateParticles())
 
   useGSAP(
     () => {
@@ -242,47 +251,7 @@ export function HeroSection() {
         },
       })
 
-      /* ── 5. Ambient Floating Particles ──────────────── */
-      const particleEls = gsap.utils.toArray('.hero-particle') as HTMLElement[]
 
-      // Fade particles in after entrance completes
-      gsap.fromTo(
-        particleEls,
-        { opacity: 0 },
-        {
-          opacity: 1,
-          duration: 2,
-          stagger: 0.15,
-          delay: delayOffset + 2.5,  // after entrance timeline
-          ease: 'power1.in',
-        }
-      )
-
-      // Each particle floats independently in an infinite loop
-      particleEls.forEach((el, i) => {
-        const p = particles[i]
-        if (!p) return
-
-        gsap.to(el, {
-          x: `+=${p.driftX}`,
-          y: `+=${p.driftY}`,
-          opacity: 0,
-          duration: p.duration,
-          delay: p.delay + delayOffset + 3,
-          ease: 'none',
-          repeat: -1,
-          repeatDelay: 1,
-          yoyo: false,
-          onRepeat: () => {
-            // Reset position for next loop cycle
-            gsap.set(el, {
-              x: 0,
-              y: 0,
-              opacity: parseFloat(el.dataset.baseOpacity || '0.25'),
-            })
-          },
-        })
-      })
 
       /* ── 6. Eyebrow Phrase Rotation ────────────────────── */
       const startEyebrowLoop = () => {
@@ -349,6 +318,63 @@ export function HeroSection() {
       })
     },
     { scope: containerRef }
+  )
+
+  useGSAP(
+    () => {
+      if (particles.length === 0) return;
+
+      const prefersReduced = window.matchMedia(
+        '(prefers-reduced-motion: reduce)'
+      ).matches;
+
+      if (prefersReduced) return;
+
+      const isFirstLoad = !sessionStorage.getItem('nbac-preloader-shown');
+      const delayOffset = isFirstLoad ? 1.8 : 0;
+
+      const particleEls = gsap.utils.toArray('.hero-particle') as HTMLElement[];
+
+      // Fade particles in after entrance completes
+      gsap.fromTo(
+        particleEls,
+        { opacity: 0 },
+        {
+          opacity: 1,
+          duration: 2,
+          stagger: 0.15,
+          delay: delayOffset + 2.5,  // after entrance timeline
+          ease: 'power1.in',
+        }
+      );
+
+      // Each particle floats independently in an infinite loop
+      particleEls.forEach((el, i) => {
+        const p = particles[i];
+        if (!p) return;
+
+        gsap.to(el, {
+          x: `+=${p.driftX}`,
+          y: `+=${p.driftY}`,
+          opacity: 0,
+          duration: p.duration,
+          delay: p.delay + delayOffset + 3,
+          ease: 'none',
+          repeat: -1,
+          repeatDelay: 1,
+          yoyo: false,
+          onRepeat: () => {
+            // Reset position for next loop cycle
+            gsap.set(el, {
+              x: 0,
+              y: 0,
+              opacity: parseFloat(el.dataset.baseOpacity || '0.25'),
+            });
+          },
+        });
+      });
+    },
+    { dependencies: [particles], scope: containerRef }
   )
 
   return (
@@ -433,7 +459,7 @@ export function HeroSection() {
 
         {/* Venue / Date Metadata */}
         <p className="hero-meta font-sans text-xs sm:text-sm md:text-lg text-white/90 tracking-wider font-medium max-w-2xl opacity-0">
-          October 24-26, 2024 • Eko Convention Centre, Lagos, Nigeria
+          May 4-5, 2027 • Mariot Hotel Ikeja, Lagos, Nigeria
         </p>
 
         {/* Stats Row */}
@@ -442,13 +468,13 @@ export function HeroSection() {
           <div className="hero-divider-line absolute top-0 left-0 right-0 h-px bg-white/15 origin-center opacity-0" />
 
           <div className="hero-stat-item opacity-0">
-            <StatCounter value={500} suffix="+" label="Delegates" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
+            <StatCounter value={300} suffix="+" label="Delegates" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
           </div>
           <div className="hero-stat-item opacity-0">
-            <StatCounter value={30} suffix="+" label="Exhibitors" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
+            <StatCounter value={30} suffix="+" label="AeroLab Finalist Teams" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
           </div>
           <div className="hero-stat-item opacity-0">
-            <StatCounter value={50} suffix="+" label="Speakers" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
+            <StatCounter value={8} suffix="+" label="Speakers" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
           </div>
           <div className="hero-stat-item opacity-0">
             <StatCounter value={15} suffix="+" label="Aircraft on Display" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
@@ -460,9 +486,11 @@ export function HeroSection() {
 
         {/* CTAs */}
         <div className="hero-buttons flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto opacity-0">
-          <button className="hero-shimmer w-full sm:w-auto bg-gradient-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold hover:from-nbac-gold-light hover:to-nbac-gold text-[#0b0f10] font-sans font-bold px-6 md:px-8 py-2.5 md:py-3 rounded-full transition-all duration-300 shadow-lg shadow-nbac-gold/15 hover:shadow-nbac-gold/30 hover:scale-[1.02] active:scale-[0.98] text-sm uppercase tracking-widest">
-            Secure Executive Pass
-          </button>
+          <Link href="/reservations" className="w-full sm:w-auto">
+            <button className="hero-shimmer w-full bg-gradient-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold hover:from-nbac-gold-light hover:to-nbac-gold text-[#0b0f10] font-sans font-bold px-6 md:px-8 py-2.5 md:py-3 rounded-full transition-all duration-300 shadow-lg shadow-nbac-gold/15 hover:shadow-nbac-gold/30 hover:scale-[1.02] active:scale-[0.98] text-sm uppercase tracking-widest">
+              Secure Executive Pass
+            </button>
+          </Link>
           <button className="w-full sm:w-auto border border-white/20 text-white hover:bg-white/10 hover:border-white/40 font-sans font-medium px-6 md:px-8 py-2.5 md:py-3 rounded-full transition-colors backdrop-blur-sm text-sm uppercase tracking-widest">
             Download Brochure
           </button>

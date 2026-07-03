@@ -9,7 +9,7 @@ export const DEFAULT_POSTS: BlogPost[] = [
   {
     id: 'post_featured',
     title: 'Redefining the West African Aviation Corridor',
-    type: 'press' as ContentType,
+    type: 'press_release' as ContentType,
     status: 'published' as ContentStatus,
     author: 'Capt. Ibrahim Musa',
     author_id: 'user_admin',
@@ -175,7 +175,7 @@ At the upcoming NBAC sessions, airspace directors will meet to discuss a unified
   {
     id: 'post_1',
     title: 'Nigerian Business Aviation Outlook 2026 Report Released',
-    type: 'press' as ContentType,
+    type: 'press_release' as ContentType,
     status: 'published' as ContentStatus,
     author: 'Chief Coordinator',
     author_id: 'user_admin',
@@ -248,7 +248,28 @@ export function getStoredPosts(): BlogPost[] {
   }
   
   try {
-    return JSON.parse(local)
+    const parsed = JSON.parse(local) as BlogPost[];
+    
+    // Deduplicate posts by ID to prevent key duplication errors
+    const seen = new Set<string>();
+    const deduped: BlogPost[] = [];
+    let hasDuplicates = false;
+    
+    for (const post of parsed) {
+      if (!post.id) continue;
+      if (seen.has(post.id)) {
+        hasDuplicates = true;
+        continue;
+      }
+      seen.add(post.id);
+      deduped.push(post);
+    }
+    
+    if (hasDuplicates) {
+      localStorage.setItem('nbac-blog-posts', JSON.stringify(deduped));
+    }
+    
+    return deduped;
   } catch (e) {
     console.error('Failed to parse blog posts from localStorage', e)
     return DEFAULT_POSTS

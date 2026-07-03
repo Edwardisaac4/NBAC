@@ -59,7 +59,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   ];
 
   // Filter items based on current admin role
-  const filteredItems = menuItems.filter(item => item.roles.includes(role));
+  const filteredItems = menuItems.filter(item => role ? item.roles.includes(role) : false);
 
   const content = (
     <div className="flex flex-col h-full bg-[#0b0f10] border-r border-nbac-border text-nbac-text select-none">
@@ -131,7 +131,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
               User Profile
             </p>
             <p className="font-sans text-[10px] text-nbac-muted truncate capitalize">
-              {role.replace('_', ' ')}
+              {role ? role.replace('_', ' ') : ''}
             </p>
           </div>
         </div>
@@ -168,6 +168,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
       {/* Mobile Drawer Sidebar */}
       <aside 
+        inert={!isOpen}
         className={cn(
           "lg:hidden fixed inset-y-0 left-0 w-64 z-50 transform transition-transform duration-300 ease-out",
           isOpen ? "translate-x-0" : "-translate-x-full"

@@ -100,7 +100,8 @@ export function SpeakerDialog({ speaker, sessions, isOpen, onClose }: SpeakerDia
                       alt={speaker.name}
                       fill
                       className="object-cover"
-                      sizes="(max-width: 768px) 112px, 128px"
+                      sizes="(max-width: 768px) 224px, 256px"
+                      quality={90}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-nbac-gold/10 text-nbac-gold text-3xl font-display font-semibold">

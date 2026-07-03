@@ -8,8 +8,9 @@ import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
 import { PageTransition } from '@/components/layout/page-transition'
 import { getStoredPosts, BlogPost } from '@/lib/blog-data'
-import { ArrowLeft, User, Clock, Calendar, Share2, Check, ArrowRight } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { ArrowLeft, User, Clock, Calendar, Share2, Check } from 'lucide-react'
+import { formatDate } from '@/lib/utils'
+import { MarkdownRenderer } from '@/components/shared/markdown-renderer'
 
 export default function BlogPostPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params)
@@ -27,11 +28,14 @@ export default function BlogPostPage({ params }: { params: Promise<{ id: string 
       return
     }
 
-    setPost(foundPost)
-    
-    // Find up to 3 recommendations
-    const otherPosts = allPosts.filter(p => p.id !== resolvedParams.id && p.status === 'published')
-    setRecommendations(otherPosts.slice(0, 3))
+    const timer = setTimeout(() => {
+      setPost(foundPost)
+      
+      // Find up to 3 recommendations
+      const otherPosts = allPosts.filter(p => p.id !== resolvedParams.id && p.status === 'published')
+      setRecommendations(otherPosts.slice(0, 3))
+    }, 0);
+    return () => clearTimeout(timer);
   }, [resolvedParams.id, router])
 
   const handleShare = () => {
@@ -42,134 +46,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ id: string 
     }
   }
 
-  // Helper to format date
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return ''
-    try {
-      const date = new Date(dateStr)
-      return date.toLocaleDateString('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric'
-      })
-    } catch (e) {
-      return dateStr
-    }
-  }
 
-  // Custom parser to translate markdown to styled React elements
-  const parseMarkdown = (markdown?: string) => {
-    if (!markdown) return null
-
-    // Split blocks by double newline
-    const blocks = markdown.split(/\n\n+/)
-
-    return blocks.map((block, index) => {
-      const trimmed = block.trim()
-
-      if (!trimmed) return null
-
-      // Check for code blocks
-      if (trimmed.startsWith('```')) {
-        const lines = trimmed.split('\n')
-        const codeLines = lines.slice(1, -1).join('\n')
-        return (
-          <pre key={index} className="bg-nbac-alt/80 border border-nbac-border rounded-xl p-5 my-6 overflow-x-auto text-xs text-nbac-muted font-mono leading-relaxed">
-            <code>{codeLines}</code>
-          </pre>
-        )
-      }
-
-      // Check for headings
-      if (trimmed.startsWith('# ')) {
-        return (
-          <h1 key={index} className="font-display text-3xl md:text-4xl font-bold mt-10 mb-4 text-nbac-text tracking-tight leading-tight">
-            {trimmed.slice(2)}
-          </h1>
-        )
-      }
-      if (trimmed.startsWith('## ')) {
-        return (
-          <h2 key={index} className="font-display text-2xl md:text-3xl font-bold mt-8 mb-4 text-nbac-text tracking-tight border-b border-nbac-border pb-2">
-            {trimmed.slice(3)}
-          </h2>
-        )
-      }
-      if (trimmed.startsWith('### ')) {
-        return (
-          <h3 key={index} className="font-sans text-lg font-bold mt-6 mb-3 text-nbac-text">
-            {trimmed.slice(4)}
-          </h3>
-        )
-      }
-
-      // Check for quote blocks
-      if (trimmed.startsWith('> ')) {
-        // Splitting lines and removing '>'
-        const quoteContent = trimmed
-          .split('\n')
-          .map(line => line.replace(/^>\s*/, '').trim())
-          .join('\n')
-          .replace(/\*\*/g, '') // remove markdown bold syntax inside quotes for display
-
-        return (
-          <blockquote key={index} className="border-l-[3.5px] border-l-nbac-emerald bg-nbac-panel/50 px-6 py-4 my-8 rounded-r-xl shadow-sm italic text-nbac-body text-base leading-relaxed">
-            {quoteContent}
-          </blockquote>
-        )
-      }
-
-      // Check for lists (bullet list)
-      if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
-        const listItems = trimmed
-          .split(/\n[*+-]\s+/)
-          .map(item => item.replace(/^[*+-]\s+/, '').trim())
-        
-        return (
-          <ul key={index} className="list-disc pl-6 space-y-2.5 my-6 text-nbac-body font-light text-base leading-relaxed">
-            {listItems.map((item, i) => {
-              // Parse basic bold inline formatting inside list items
-              const parts = item.split('**')
-              return (
-                <li key={i}>
-                  {parts.map((part, pIdx) => pIdx % 2 === 1 ? <strong key={pIdx} className="font-bold text-nbac-text">{part}</strong> : part)}
-                </li>
-              )
-            })}
-          </ul>
-        )
-      }
-
-      // Check for lists (ordered list)
-      if (trimmed.match(/^\d+\.\s+/)) {
-        const listItems = trimmed
-          .split(/\n\d+\.\s+/)
-          .map(item => item.replace(/^\d+\.\s+/, '').trim())
-
-        return (
-          <ol key={index} className="list-decimal pl-6 space-y-2.5 my-6 text-nbac-body font-light text-base leading-relaxed">
-            {listItems.map((item, i) => {
-              const parts = item.split('**')
-              return (
-                <li key={i}>
-                  {parts.map((part, pIdx) => pIdx % 2 === 1 ? <strong key={pIdx} className="font-bold text-nbac-text">{part}</strong> : part)}
-                </li>
-              )
-            })}
-          </ol>
-        )
-      }
-
-      // Standard Paragraph
-      // Handle inline bold formatting
-      const parts = trimmed.split('**')
-      return (
-        <p key={index} className="font-sans text-base font-light text-nbac-body leading-relaxed mb-5">
-          {parts.map((part, pIdx) => pIdx % 2 === 1 ? <strong key={pIdx} className="font-bold text-nbac-text">{part}</strong> : part)}
-        </p>
-      )
-    })
-  }
 
   if (!post) {
     return (
@@ -199,7 +76,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ id: string 
           {/* Heading Info */}
           <div className="space-y-6">
             <span className="bg-nbac-emerald/10 border border-nbac-emerald/20 text-nbac-emerald text-[9px] font-bold tracking-widest uppercase px-3 py-1 rounded-full inline-block">
-              {post.type === 'press' ? 'Press Release' : post.type === 'announcement' ? 'Announcement' : 'Intelligence'}
+              {post.type === 'press_release' ? 'Press Release' : post.type === 'announcement' ? 'Announcement' : 'Intelligence'}
             </span>
             
             <h1 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight text-nbac-text">
@@ -234,6 +111,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ id: string 
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 900px"
+                quality={90}
                 priority
               />
             </div>
@@ -243,8 +121,8 @@ export default function BlogPostPage({ params }: { params: Promise<{ id: string 
           <div className="flex flex-col lg:flex-row gap-12 items-start pt-4">
             
             {/* Main Content Body */}
-            <article className="flex-grow max-w-full">
-              {parseMarkdown(post.body)}
+            <article className="grow max-w-full">
+              <MarkdownRenderer content={post.body} />
             </article>
 
             {/* Sticky Actions Sidebar */}
@@ -285,7 +163,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ id: string 
                     className="group flex flex-col bg-nbac-panel/40 border border-nbac-border rounded-xl overflow-hidden p-5 hover:border-nbac-emerald/30 transition-all duration-300"
                   >
                     <span className="text-[9px] font-sans font-bold text-nbac-emerald uppercase tracking-wider mb-2">
-                      {item.type === 'press' ? 'Press Release' : item.type === 'announcement' ? 'Announcement' : 'Intelligence'}
+                      {item.type === 'press_release' ? 'Press Release' : item.type === 'announcement' ? 'Announcement' : 'Intelligence'}
                     </span>
                     <h4 className="font-sans text-sm font-semibold text-nbac-text group-hover:text-nbac-emerald transition-colors line-clamp-2 leading-snug mb-3">
                       {item.title}

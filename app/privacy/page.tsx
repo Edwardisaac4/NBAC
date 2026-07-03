@@ -79,7 +79,7 @@ export default function PrivacyPolicyPage() {
                   3. Payment Security
                 </h2>
                 <p>
-                  All payments are processed securely through **Paystack**, a PCI-DSS certified payment provider. NBAC does not store, process, or have access to your credit card numbers, bank credentials, or other direct payment details on our servers.
+                  All payments are processed securely through <strong className="font-semibold text-nbac-text">Paystack</strong>, a PCI-DSS certified payment provider. NBAC does not store, process, or have access to your credit card numbers, bank credentials, or other direct payment details on our servers.
                 </p>
               </div>
 

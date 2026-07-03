@@ -10,6 +10,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { Menu, X, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { NAV_LINKS } from '@/lib/constants'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -22,13 +23,17 @@ export function Navbar() {
   const [aboutDropdownOpen, setAboutDropdownOpen] = useState(false)
   const [mobileAboutOpen, setMobileAboutOpen] = useState(false)
   const [tabletAboutOpen, setTabletAboutOpen] = useState(false)
+  const [galleryDropdownOpen, setGalleryDropdownOpen] = useState(false)
+  const [mobileGalleryOpen, setMobileGalleryOpen] = useState(false)
+  const [tabletGalleryOpen, setTabletGalleryOpen] = useState(false)
 
   const activeLink = useMemo(() => {
     if (pathname === '/about' || pathname === '/blog' || pathname?.startsWith('/blog/') || pathname === '/privacy' || pathname === '/terms') return 'About Us'
     if (pathname === '/contact') return 'Contact'
-    if (pathname === '/events') return 'Events'
+    if (pathname === '/program' || pathname?.startsWith('/program/') || pathname === '/events' || pathname?.startsWith('/events/')) return 'Program'
     if (pathname === '/speakers' || pathname?.startsWith('/speakers/')) return 'Speakers'
     if (pathname === '/exhibitors' || pathname?.startsWith('/exhibitors/')) return 'Exhibitors'
+    if (pathname === '/gallery' || pathname?.startsWith('/gallery/')) return 'Gallery'
     return 'Home'
   }, [pathname])
 
@@ -85,17 +90,11 @@ export function Navbar() {
     if (!mobileMenuOpen) {
       setMobileAboutOpen(false)
       setTabletAboutOpen(false)
+      setMobileGalleryOpen(false)
+      setTabletGalleryOpen(false)
     }
   }
 
-  const navLinks = [
-    { label: 'Home', href: '/' },
-    { label: 'About Us', href: '/about' },
-    { label: 'Program', href: '/program' },
-    { label: 'Speakers', href: '/speakers' },
-    { label: 'Exhibitors', href: '/exhibitors' },
-    { label: 'Contact', href: '/contact' },
-  ]
 
   return (
     <>
@@ -134,7 +133,7 @@ export function Navbar() {
 
         {/* Desktop Navigation Links */}
         <div className="hidden lg:flex items-center gap-6 xl:gap-8">
-          {navLinks.map((link) => {
+          {NAV_LINKS.map((link) => {
             if (link.label === 'About Us') {
               return (
                 <div
@@ -142,9 +141,17 @@ export function Navbar() {
                   className="relative py-4"
                   onMouseEnter={() => setAboutDropdownOpen(true)}
                   onMouseLeave={() => setAboutDropdownOpen(false)}
+                  onFocus={() => setAboutDropdownOpen(true)}
+                  onBlur={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                      setAboutDropdownOpen(false);
+                    }
+                  }}
                 >
                   <Link
                     href={link.href}
+                    aria-expanded={aboutDropdownOpen}
+                    aria-haspopup="menu"
                     className={cn(
                       "flex items-center gap-1 font-sans text-xs uppercase tracking-wider transition-colors px-1",
                       activeLink === link.label ? "text-nbac-emerald font-medium" : "text-nbac-body hover:text-nbac-emerald"
@@ -195,6 +202,62 @@ export function Navbar() {
               )
             }
 
+            if (link.label === 'Gallery') {
+              return (
+                <div
+                  key={link.label}
+                  className="relative py-4"
+                  onMouseEnter={() => setGalleryDropdownOpen(true)}
+                  onMouseLeave={() => setGalleryDropdownOpen(false)}
+                  onFocus={() => setGalleryDropdownOpen(true)}
+                  onBlur={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                      setGalleryDropdownOpen(false);
+                    }
+                  }}
+                >
+                  <Link
+                    href={link.href}
+                    aria-expanded={galleryDropdownOpen}
+                    aria-haspopup="menu"
+                    className={cn(
+                      "flex items-center gap-1 font-sans text-xs uppercase tracking-wider transition-colors px-1",
+                      activeLink === link.label ? "text-nbac-emerald font-medium" : "text-nbac-body hover:text-nbac-emerald"
+                    )}
+                  >
+                    {link.label}
+                    <ChevronDown size={12} className={cn("transition-transform duration-200", galleryDropdownOpen && "rotate-180")} />
+                    {activeLink === link.label && (
+                      <motion.div
+                        layoutId="activeNavIndicator"
+                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-nbac-emerald rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)]"
+                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                  </Link>
+
+                  <AnimatePresence>
+                    {galleryDropdownOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                        transition={{ duration: 0.15, ease: 'easeOut' }}
+                        className="absolute left-1/2 -translate-x-1/2 top-full mt-1.5 w-48 rounded-xl bg-nbac-panel/95 border border-nbac-border backdrop-blur-md p-2 shadow-xl z-50 flex flex-col gap-0.5"
+                      >
+                        <Link
+                          href="/gallery/archives"
+                          className="px-4 py-2 font-sans text-[11px] uppercase tracking-wider text-nbac-body hover:text-nbac-emerald hover:bg-nbac-emerald/5 rounded-lg transition-all duration-200"
+                        >
+                          Archives
+                        </Link>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )
+            }
+
             return (
               <Link
                 key={link.label}
@@ -221,7 +284,10 @@ export function Navbar() {
         <div className="flex items-center gap-3">
           <Link 
             href="/reservations"
-            className="hidden md:inline-block bg-gradient-to-r from-nbac-gold to-nbac-gold-dark hover:from-nbac-gold-light hover:to-nbac-gold text-[#0b0f10] font-sans font-bold px-6 py-2 rounded-full text-xs uppercase tracking-wider transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_4px_15px_rgba(197,160,89,0.25)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),0_6px_20px_rgba(197,160,89,0.45)] active:scale-95"
+            className={cn(
+              mobileMenuOpen ? "hidden lg:inline-block" : "hidden md:inline-block",
+              "bg-gradient-to-r from-nbac-gold to-nbac-gold-dark hover:from-nbac-gold-light hover:to-nbac-gold text-[#0b0f10] font-sans font-bold px-6 py-2 rounded-full text-xs uppercase tracking-wider transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_4px_15px_rgba(197,160,89,0.25)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),0_6px_20px_rgba(197,160,89,0.45)] active:scale-95"
+            )}
           >
             REGISTER
           </Link>
@@ -267,6 +333,7 @@ export function Navbar() {
                         fill
                         className="object-cover scale-[1.05]"
                         sizes="32px"
+                        priority
                       />
                     </div>
                     <div className="flex flex-col leading-[1.05] select-none">
@@ -286,7 +353,7 @@ export function Navbar() {
                   </button>
                 </div>
                 <div className="flex flex-col gap-6">
-                  {navLinks.map((link) => {
+                  {NAV_LINKS.map((link) => {
                     if (link.label === 'About Us') {
                       return (
                         <div key={link.label} className="flex flex-col">
@@ -346,6 +413,51 @@ export function Navbar() {
                       )
                     }
 
+                    if (link.label === 'Gallery') {
+                      return (
+                        <div key={link.label} className="flex flex-col">
+                          <div className="flex items-center justify-between">
+                            <Link
+                              href={link.href}
+                              onClick={toggleMobileMenu}
+                              className={cn(
+                                "text-sm font-sans uppercase tracking-wide transition-colors",
+                                activeLink === link.label ? "text-[#10b981] font-semibold" : "text-nbac-text hover:text-nbac-emerald"
+                              )}
+                            >
+                              {link.label}
+                            </Link>
+                            <button
+                              onClick={() => setMobileGalleryOpen(!mobileGalleryOpen)}
+                              className="p-1 text-nbac-muted hover:text-nbac-text"
+                            >
+                              <ChevronDown size={14} className={cn("transition-transform duration-250", mobileGalleryOpen && "rotate-180")} />
+                            </button>
+                          </div>
+                          
+                          <AnimatePresence initial={false}>
+                            {mobileGalleryOpen && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                                className="overflow-hidden flex flex-col pl-4 mt-2 gap-3 border-l border-nbac-border"
+                              >
+                                <Link
+                                  href="/gallery/archives"
+                                  onClick={toggleMobileMenu}
+                                  className="text-xs font-sans uppercase tracking-wider text-nbac-muted hover:text-nbac-emerald py-1 transition-colors text-left"
+                                >
+                                  Archives
+                                </Link>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      )
+                    }
+
                     return (
                       <Link
                         key={link.label}
@@ -382,7 +494,7 @@ export function Navbar() {
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             >
               <div className="grid grid-cols-3 gap-6">
-                {navLinks.map((link) => {
+                {NAV_LINKS.map((link) => {
                   if (link.label === 'About Us') {
                     return (
                       <div
@@ -440,6 +552,57 @@ export function Navbar() {
                                 className="text-xs font-sans uppercase tracking-wider text-nbac-muted hover:text-nbac-emerald py-1 transition-colors text-left"
                               >
                                 Terms of Use
+                              </Link>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    )
+                  }
+
+                  if (link.label === 'Gallery') {
+                    return (
+                      <div
+                        key={link.label}
+                        className={cn(
+                          "flex flex-col gap-3 p-4 rounded-xl border transition-all duration-300",
+                          activeLink === link.label ? "border-nbac-emerald/40 bg-nbac-emerald/5" : "border-nbac-border bg-nbac-canvas/40"
+                        )}
+                      >
+                        <div className="flex items-center justify-between">
+                          <Link
+                            href={link.href}
+                            onClick={toggleMobileMenu}
+                            className={cn(
+                              "text-sm font-sans uppercase tracking-widest font-semibold",
+                              activeLink === link.label ? "text-[#10b981]" : "text-nbac-text"
+                            )}
+                          >
+                            {link.label}
+                          </Link>
+                          <button
+                            onClick={() => setTabletGalleryOpen(!tabletGalleryOpen)}
+                            className="p-1 text-nbac-muted hover:text-nbac-text"
+                          >
+                            <ChevronDown size={14} className={cn("transition-transform duration-250", tabletGalleryOpen && "rotate-180")} />
+                          </button>
+                        </div>
+                        
+                        <AnimatePresence initial={false}>
+                          {tabletGalleryOpen && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="overflow-hidden flex flex-col gap-2 border-t border-nbac-border/50 pt-2"
+                            >
+                              <Link
+                                href="/gallery/archives"
+                                onClick={toggleMobileMenu}
+                                className="text-xs font-sans uppercase tracking-wider text-nbac-muted hover:text-nbac-emerald py-1 transition-colors text-left"
+                              >
+                                Archives
                               </Link>
                             </motion.div>
                           )}

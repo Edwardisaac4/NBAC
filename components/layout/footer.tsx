@@ -14,6 +14,7 @@ export function Footer() {
                 fill
                 className="object-cover scale-[1.05]"
                 sizes="44px"
+                priority
               />
             </div>
             <div className="flex flex-col leading-[1.05] select-none">
@@ -36,7 +37,11 @@ export function Footer() {
           <div className="space-y-4">
             <h4 className="font-sans text-xs uppercase tracking-widest text-nbac-gold-light font-medium">Connect</h4>
             <ul className="text-nbac-body space-y-2 text-sm font-light">
-              <li className="hover:text-nbac-emerald transition-colors cursor-pointer">Sponsorships</li>
+              <li>
+                <Link href="/reservations?type=sponsor" className="hover:text-nbac-emerald transition-colors cursor-pointer block">
+                  Sponsorships
+                </Link>
+              </li>
               <li className="hover:text-nbac-emerald transition-colors cursor-pointer">Exhibitor Kit</li>
               <li className="hover:text-nbac-emerald transition-colors cursor-pointer">Media Center</li>
             </ul>
@@ -59,8 +64,23 @@ export function Footer() {
           </div>
         </div>
       </div>
-      <div className="mt-12 pt-8 border-t border-nbac-border/30 text-center text-xs text-nbac-muted tracking-widest uppercase">
-        © {new Date().getFullYear()} Nigerian Business Aviation Conference. All Rights Reserved.
+      <div className="max-w-7xl mx-auto px-6 md:px-24 mt-12 pt-8 border-t border-nbac-border/30 flex flex-col sm:flex-row justify-between items-center gap-6 text-sm text-nbac-muted">
+        <div className="flex items-center gap-3 select-none">
+          <span className="font-sans text-xs font-light text-nbac-muted">Organised by</span>
+          <div className="relative w-[120px] h-[55px]">
+            <Image
+              src="/images/ean-logo-full.png"
+              alt="EAN Aviation"
+              fill
+              className="object-contain dark:brightness-0 dark:invert opacity-80 hover:opacity-100 transition-opacity"
+              sizes="120px"
+              priority
+            />
+          </div>
+        </div>
+        <div className="font-sans text-xs font-light text-nbac-muted text-center sm:text-right">
+          Copyright {new Date().getFullYear()}, Nigerian Business Aviation Conference
+        </div>
       </div>
     </footer>
   )

@@ -110,7 +110,8 @@ export function ExperienceSection() {
               alt="Luxury business jet interior"
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-700"
-              sizes="(max-w-720px) 100vw, 50vw"
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              quality={90}
             />
           </div>
         </div>

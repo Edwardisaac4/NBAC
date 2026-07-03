@@ -14,22 +14,35 @@ export default function AdminLoginPage() {
 
   const handleLogin = (e: React.FormEvent, roleType?: 'head_admin' | 'editor') => {
     e.preventDefault();
+
+    if (roleType && process.env.NODE_ENV === 'production') {
+      alert('Developer Demo Mode is disabled in production.');
+      return;
+    }
+
     setIsLoading(true);
 
     // Simulate authenticating
     setTimeout(() => {
       if (roleType) {
         setRole(roleType);
+        setIsLoading(false);
+        router.push('/admin');
       } else {
-        // Simple mock check
-        if (email.includes('editor')) {
-          setRole('editor');
-        } else {
+        // Strict mock check for admin credentials
+        if (email === 'admin@nbac.com.ng' && password === 'admin123') {
           setRole('head_admin');
+          setIsLoading(false);
+          router.push('/admin');
+        } else if (email === 'editor@nbac.com.ng' && password === 'editor123') {
+          setRole('editor');
+          setIsLoading(false);
+          router.push('/admin');
+        } else {
+          setIsLoading(false);
+          alert('Access Denied: Invalid email or security key.');
         }
       }
-      setIsLoading(false);
-      router.push('/admin');
     }, 800);
   };
 
@@ -98,27 +111,29 @@ export default function AdminLoginPage() {
         </form>
 
         {/* Demo Roles Quick-Selector */}
-        <div className="mt-8 pt-6 border-t border-nbac-border">
-          <p className="font-sans text-[10px] uppercase tracking-wider font-semibold text-nbac-muted text-center mb-3">
-            Developer Demo Mode — Click to bypass & set role:
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={(e) => handleLogin(e, 'head_admin')}
-              className="bg-nbac-gold/10 hover:bg-nbac-gold/20 border border-nbac-gold/30 text-nbac-gold-light font-sans font-semibold text-xs py-2.5 rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-            >
-              <Shield size={12} />
-              <span>Head Admin</span>
-            </button>
-            <button
-              onClick={(e) => handleLogin(e, 'editor')}
-              className="bg-nbac-panel hover:bg-nbac-border border border-nbac-border text-nbac-text font-sans font-semibold text-xs py-2.5 rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-            >
-              <Lock size={12} />
-              <span>Editor / Staff</span>
-            </button>
+        {process.env.NODE_ENV !== 'production' && (
+          <div className="mt-8 pt-6 border-t border-nbac-border">
+            <p className="font-sans text-[10px] uppercase tracking-wider font-semibold text-nbac-muted text-center mb-3">
+              Developer Demo Mode — Click to bypass & set role:
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={(e) => handleLogin(e, 'head_admin')}
+                className="bg-nbac-gold/10 hover:bg-nbac-gold/20 border border-nbac-gold/30 text-nbac-gold-light font-sans font-semibold text-xs py-2.5 rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <Shield size={12} />
+                <span>Head Admin</span>
+              </button>
+              <button
+                onClick={(e) => handleLogin(e, 'editor')}
+                className="bg-nbac-panel hover:bg-nbac-border border border-nbac-border text-nbac-text font-sans font-semibold text-xs py-2.5 rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <Lock size={12} />
+                <span>Editor / Staff</span>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

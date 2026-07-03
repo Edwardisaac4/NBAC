@@ -71,11 +71,27 @@ export interface EventDetails {
 
 export type BillingModel = 'per_delegate' | 'package';
 
+export type SponsorTier = 'title' | 'platinum' | 'gold' | 'silver' | 'bronze';
+
+export interface SponsorTierDetails {
+  id: SponsorTier;
+  name: string;
+  price: number;
+  currency: 'USD';
+  description: string;
+  brandingPrivileges: string[];
+  speakingPrivileges: string[];
+  digitalPrivileges: string[];
+  availability: 'available' | 'limited' | 'sold_out';
+  badge?: string;
+  slotsAvailable?: number;
+}
+
 export interface PassTierDetails {
   id: PassTier;
   name: string;
   price: number;
-  currency: 'NGN';
+  currency: 'NGN' | 'USD';
   privileges: string[];
   availability: 'available' | 'limited' | 'sold_out';
   badge?: string;
@@ -83,20 +99,42 @@ export interface PassTierDetails {
   includedDelegates?: number;
 }
 
+
 // Content Manager
-export type ContentType = 'announcement' | 'press' | 'event_copy' | 'sponsor_update';
-export type ContentStatus = 'draft' | 'published';
+export type PostTemplate =
+  | 'announcement'
+  | 'press_release'
+  | 'sponsor_update'
+  | 'event_copy'
+  | 'blank';
+
+export type PostVisibility = 'draft' | 'published';
+
+// Keep old names as aliases for backward compatibility if any imports exist
+export type ContentType = PostTemplate;
+export type ContentStatus = PostVisibility;
 
 export interface ContentPost {
   id: string;
   title: string;
-  type: ContentType;
-  status: ContentStatus;
-  body?: string;
-  author_id?: string;
-  created_at?: string;
+  type: PostTemplate;
+  status: PostVisibility;
+  body: string;
+  author_id: string;
+  author_name?: string; // display name for "Written by"
+  cover_image_url?: string;
+  created_at: string;
   updated_at: string;
-  featured_image?: string;
+  featured_image?: string; // keep for backward compatibility
+}
+
+export interface ContentPostFormData {
+  title: string;
+  type: PostTemplate;
+  status: PostVisibility;
+  body: string;
+  author_name: string;
+  cover_image_url?: string;
 }
 
 // Inquiries
@@ -199,3 +237,12 @@ export interface PaystackResponse {
   transaction: string;
   message: string;
 }
+
+// Committee
+export interface CommitteeMember {
+  name: string;
+  role: string;
+  image: string;
+  objectPosition?: string;
+}
+

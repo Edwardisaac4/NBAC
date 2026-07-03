@@ -10,7 +10,7 @@ interface MockRegistration {
   name: string;
   email: string;
   company: string;
-  tier: 'VIP Pass' | 'Exhibitor Pass' | 'Jet Display';
+  tier: string;
   status: 'paid' | 'pending' | 'cancelled';
   reference: string;
   date: string;
@@ -41,6 +41,17 @@ const initialRegistrations: MockRegistration[] = [
     amount: '₦1,200,000'
   },
   {
+    id: 'reg_5',
+    name: 'Tariq Al-Mansoor',
+    email: 'tariq@skyline-fbo.ae',
+    company: 'Skyline FBO Services',
+    tier: 'Platinum Sponsor',
+    status: 'paid',
+    reference: 'NBAC-2026-SPN-PLAT-002',
+    date: '2026-06-27 18:22',
+    amount: '$40,000'
+  },
+  {
     id: 'reg_3',
     name: 'Amina Bello',
     email: 'amina.bello@regulator.gov.ng',
@@ -52,6 +63,17 @@ const initialRegistrations: MockRegistration[] = [
     amount: '₦350,000'
   },
   {
+    id: 'reg_6',
+    name: 'Finance Desk',
+    email: 'finance@aerologistics.co.uk',
+    company: 'Aero Logistics Ltd',
+    tier: 'Gold Sponsor',
+    status: 'pending',
+    reference: 'NBAC-2026-SPN-GOLD-014',
+    date: '2026-06-27 14:15',
+    amount: '$33,000'
+  },
+  {
     id: 'reg_4',
     name: 'Marcus Vance',
     email: 'vance@gulfstream-brokerage.com',
@@ -61,6 +83,17 @@ const initialRegistrations: MockRegistration[] = [
     reference: 'NBAC-2026-VIP-00389',
     date: '2026-06-28 15:45',
     amount: '₦500,000'
+  },
+  {
+    id: 'reg_7',
+    name: 'Kofi Mensah',
+    email: 'k.mensah@ghana-wings.com',
+    company: 'West Africa Jet Connect',
+    tier: 'Title Sponsor',
+    status: 'paid',
+    reference: 'NBAC-2026-SPN-TITLE-001',
+    date: '2026-06-26 09:12',
+    amount: '$65,000'
   }
 ];
 
@@ -112,7 +145,10 @@ export default function ReservationsPage() {
     }
   };
 
-  const getTierColor = (tier: MockRegistration['tier']) => {
+  const getTierColor = (tier: string) => {
+    if (tier.toLowerCase().includes('sponsor')) {
+      return 'text-nbac-gold-light border-nbac-gold/30 bg-nbac-gold/10';
+    }
     switch (tier) {
       case 'VIP Pass':
         return 'text-nbac-gold-light border-nbac-gold/20 bg-nbac-gold/5';
@@ -178,10 +214,11 @@ export default function ReservationsPage() {
             onChange={(e) => setSelectedTier(e.target.value)}
             className="w-full bg-[#0b0f10]/60 border border-nbac-border rounded-lg px-4 py-2.5 text-nbac-text font-sans text-sm focus:outline-none focus:border-nbac-gold focus:ring-1 focus:ring-nbac-gold transition-colors"
           >
-            <option value="all">All Pass Tiers</option>
+            <option value="all">All Packages</option>
             <option value="vip">VIP Pass</option>
             <option value="exhibitor">Exhibitor Pass</option>
             <option value="jet">Jet Display</option>
+            <option value="sponsor">Sponsors</option>
           </select>
         </div>
       </div>

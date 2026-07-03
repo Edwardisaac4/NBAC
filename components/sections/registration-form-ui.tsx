@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Mail, Shield, User, Landmark, Phone, Plus, Minus, CreditCard, Lock, CheckCircle2 } from 'lucide-react'
 import { PassTierDetails } from '@/types'
