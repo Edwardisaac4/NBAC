@@ -33,7 +33,7 @@ export const STEERING_COMMITTEE_MEMBERS: CommitteeMember[] = [
     objectPosition: 'top',
   },
   {
-    name: 'Tunde Awe',
+    name: 'Tunde Tunde-Awe',
     role: 'HEAD, PMO',
     image: '/images/Tunde Awe NBAC.jpg',
     objectPosition: 'top',
