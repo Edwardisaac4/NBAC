@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { PageAnimatePresence } from "@/components/layout/page-animate-presence";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -56,7 +57,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-nbac-canvas text-nbac-text font-sans antialiased">
-        {children}
+        <PageAnimatePresence>
+          {children}
+        </PageAnimatePresence>
       </body>
     </html>
   );

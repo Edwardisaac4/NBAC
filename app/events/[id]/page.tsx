@@ -1,6 +1,5 @@
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
-import { PageTransition } from "@/components/layout/page-transition"
 import { SectionBlur } from "@/components/shared/section-blur"
 import { EventProgramHero } from "@/components/sections/event-program-hero"
 import { EventsSchedule } from "@/components/sections/events-schedule"
@@ -31,7 +30,7 @@ export default async function EventProgramPage({ params }: EventProgramPageProps
   }
 
   return (
-    <PageTransition>
+    <>
       <Navbar />
 
       <main className="flex flex-col min-h-screen bg-nbac-canvas text-nbac-text pt-24 md:pt-28 overflow-hidden">
@@ -57,6 +56,6 @@ export default async function EventProgramPage({ params }: EventProgramPageProps
       </main>
 
       <Footer />
-    </PageTransition>
+    </>
   )
 }

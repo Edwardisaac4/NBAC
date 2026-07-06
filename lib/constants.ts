@@ -109,7 +109,7 @@ export const NAV_LINKS = [
   { label: 'Home', href: '/' },
   { label: 'About Us', href: '/about' },
   { label: 'Program', href: '/program' },
-  { label: 'Speakers', href: '/speakers' },
+  { label: 'AeroLab', href: '/aerolab' },
   { label: 'Gallery', href: '/gallery' },
   { label: 'Contact', href: '/contact' },
 ]

@@ -2,13 +2,12 @@
 
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
-import { PageTransition } from '@/components/layout/page-transition'
 import { SectionBlur } from '@/components/shared/section-blur'
 import { SectionEyebrow } from '@/components/shared/section-eyebrow'
 
 export default function TermsOfUsePage() {
   return (
-    <PageTransition>
+    <>
       <Navbar />
       <main className="flex flex-col min-h-screen bg-nbac-canvas text-nbac-text pt-24 md:pt-32 pb-20">
         
@@ -108,6 +107,6 @@ export default function TermsOfUsePage() {
 
       </main>
       <Footer />
-    </PageTransition>
+    </>
   )
 }

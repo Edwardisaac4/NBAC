@@ -62,7 +62,7 @@ export function AboutHero() {
           trigger: containerRef.current,
           start: 'top bottom',
           end: 'bottom top',
-          scrub: true,
+          scrub: 1,
         },
       })
     },
@@ -90,19 +90,23 @@ export function AboutHero() {
           </div>
         </div>
 
-        {/* Right Column: Premium About Image */}
-        <div ref={imageWrapperRef} className="about-image-wrapper lg:col-span-5 relative w-full aspect-video lg:aspect-4/5 rounded-xl overflow-hidden border border-nbac-border shadow-2xl shadow-nbac-emerald/5 group">
-          {/* Subtle green ambient lighting underneath */}
-          <div className="absolute -top-10 -left-10 w-40 h-40 bg-nbac-emerald/5 blur-[85px] rounded-full" />
-          <Image
-            src="/images/about_us_aviation.png"
-            alt="NBAC Luxury Aviation Lounge and Private Jet"
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-700"
-            sizes="(max-width: 1024px) 100vw, 40vw"
-            quality={90}
-            priority
-          />
+        {/* Right Column: Creative Image Montage */}
+        <div className="lg:col-span-5 relative flex items-center justify-center">
+          <div className="absolute inset-0 bg-nbac-emerald/[0.02] blur-3xl rounded-full pointer-events-none" />
+          
+          <div ref={imageWrapperRef} className="about-image-wrapper opacity-0 scale-95 translate-x-12 relative w-full aspect-square max-w-sm sm:max-w-md rounded-2xl overflow-hidden border border-nbac-border shadow-2xl shadow-nbac-emerald/5 group" style={{ willChange: 'transform' }}>
+            {/* Subtle green ambient lighting underneath */}
+            <div className="absolute -top-10 -left-10 w-40 h-40 bg-nbac-emerald/5 blur-[85px] rounded-full" />
+            <Image
+              src="/images/about_us_aviation.png"
+              alt="NBAC Luxury Aviation Lounge and Private Jet"
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-700"
+              sizes="(max-width: 1024px) 100vw, 40vw"
+              quality={90}
+              priority
+            />
+          </div>
         </div>
       </div>
     </section>

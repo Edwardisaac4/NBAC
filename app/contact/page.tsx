@@ -5,12 +5,11 @@ import { ContactHero } from "@/components/sections/contact-hero"
 import { ContactInfo } from "@/components/sections/contact-info"
 import { ContactFormUI } from "@/components/sections/contact-form-ui"
 import { Footer } from "@/components/layout/footer"
-import { PageTransition } from "@/components/layout/page-transition"
 import { SectionBlur } from "@/components/shared/section-blur"
 
 export default function ContactPage() {
   return (
-    <PageTransition>
+    <>
       <Navbar />
       
       <main className="flex flex-col min-h-screen bg-nbac-canvas text-nbac-text pt-20 md:pt-24">
@@ -27,6 +26,6 @@ export default function ContactPage() {
       </main>
 
       <Footer />
-    </PageTransition>
+    </>
   )
 }

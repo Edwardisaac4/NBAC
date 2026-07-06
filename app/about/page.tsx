@@ -7,12 +7,11 @@ import { AboutHistory } from "@/components/sections/about-history"
 import { AboutCommittee } from "@/components/sections/about-committee"
 import { AboutSponsors } from "@/components/sections/about-sponsors"
 import { Footer } from "@/components/layout/footer"
-import { PageTransition } from "@/components/layout/page-transition"
 import { SectionBlur } from "@/components/shared/section-blur"
 
 export default function AboutPage() {
   return (
-    <PageTransition>
+    <>
       <Navbar />
       <main className="flex flex-col min-h-screen bg-nbac-canvas text-nbac-text pt-20 md:pt-24">
         <AboutHero />
@@ -28,6 +27,6 @@ export default function AboutPage() {
         </SectionBlur>
       </main>
       <Footer />
-    </PageTransition>
+    </>
   )
 }

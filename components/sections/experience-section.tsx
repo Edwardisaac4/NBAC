@@ -84,7 +84,7 @@ export function ExperienceSection() {
           trigger: containerRef.current,
           start: 'top bottom',
           end: 'bottom top',
-          scrub: true,
+          scrub: 1,
         },
       })
     },
@@ -104,7 +104,7 @@ export function ExperienceSection() {
         <div className="reveal-left opacity-0 order-2 lg:order-1 relative w-full aspect-video lg:aspect-[4/3] rounded-xl overflow-hidden border border-nbac-border shadow-2xl shadow-nbac-emerald/5 group">
           {/* Subtle green ambient lighting underneath */}
           <div className="absolute -top-10 -left-10 w-40 h-40 bg-nbac-emerald/5 blur-[85px] rounded-full" />
-          <div ref={imageRef} className="w-full h-full absolute inset-0">
+          <div ref={imageRef} className="w-full h-full absolute inset-0" style={{ willChange: 'transform' }}>
             <Image
               src="/images/interior_cabin.jpg"
               alt="Luxury business jet interior"
@@ -120,10 +120,12 @@ export function ExperienceSection() {
         <div className="reveal-right order-1 lg:order-2 space-y-6 max-w-xl">
           <SectionEyebrow className="exp-eyebrow opacity-0">Exclusive Experience</SectionEyebrow>
           <h2 className="exp-heading opacity-0 font-display text-3xl md:text-5xl font-bold text-nbac-text tracking-tight leading-tight">
-            Where Policy Meets Luxury Engineering
+            One Sky, Many Stakeholders:
+            Building a Connected Business Aviation
+            Ecosystem
           </h2>
           <p className="exp-body opacity-0 font-sans text-base font-light text-nbac-body leading-relaxed">
-            NBAC 2024 is the only platform where the decision-makers of West African aviation congregate to discuss the future of the industry while experiencing the latest in aeronautical engineering.
+            NBAC 2027 is the only platform where the decision-makers of West African aviation congregate to discuss the future of the industry while experiencing the latest in aeronautical engineering.
           </p>
           <ul className="space-y-4 pt-4">
             {items.map((item) => (

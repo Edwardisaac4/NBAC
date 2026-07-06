@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
-import { PageTransition } from "@/components/layout/page-transition"
 import { PassTierCard } from "@/components/shared/pass-tier-card"
 import { RegistrationFormUI } from "@/components/sections/registration-form-ui"
 import { SponsorBentoGrid } from "@/components/sections/sponsor-bento-grid"
@@ -94,7 +93,7 @@ export default function ReservationsPage() {
   }
 
   return (
-    <PageTransition>
+    <>
       <Navbar />
       
       <main className="flex flex-col min-h-screen bg-nbac-canvas text-nbac-text pt-24 md:pt-28 pb-12 md:pb-16">
@@ -181,6 +180,6 @@ export default function ReservationsPage() {
       </main>
 
       <Footer />
-    </PageTransition>
+    </>
   )
 }

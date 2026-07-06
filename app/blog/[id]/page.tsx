@@ -6,7 +6,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
-import { PageTransition } from '@/components/layout/page-transition'
 import { getDbPosts, BlogPost } from '@/lib/blog-data'
 import { ArrowLeft, User, Clock, Calendar, Share2, Check } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
@@ -63,7 +62,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ id: string 
   }
 
   return (
-    <PageTransition>
+    <>
       <Navbar />
       <main className="flex flex-col min-h-screen bg-nbac-canvas text-nbac-text pt-24 md:pt-32 pb-20">
         
@@ -187,6 +186,6 @@ export default function BlogPostPage({ params }: { params: Promise<{ id: string 
 
       </main>
       <Footer />
-    </PageTransition>
+    </>
   )
 }

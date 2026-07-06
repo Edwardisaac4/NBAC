@@ -7,13 +7,12 @@ import { AudienceSection } from "@/components/sections/audience-section";
 import { TestimonialsSection } from "@/components/sections/testimonials-section";
 import { SponsorsStrip } from "@/components/sections/sponsors-strip";
 import { Footer } from "@/components/layout/footer";
-import { PageTransition } from "@/components/layout/page-transition";
 import { SectionBlur } from "@/components/shared/section-blur";
 import { Preloader } from "@/components/shared/preloader";
 
 export default function Home() {
   return (
-    <PageTransition>
+    <>
       <Preloader />
       <Navbar />
       <main className="flex flex-col min-h-screen bg-nbac-canvas text-nbac-text">
@@ -38,6 +37,6 @@ export default function Home() {
         </SectionBlur>
       </main>
       <Footer />
-    </PageTransition>
+    </>
   );
 }

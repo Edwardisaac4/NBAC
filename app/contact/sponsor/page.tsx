@@ -6,7 +6,6 @@ import { Mail, User, Phone, Plus, Minus, Lock, CheckCircle2, Globe, Building2, L
 import Link from 'next/link'
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
-import { PageTransition } from "@/components/layout/page-transition"
 import { SPONSOR_TIERS, SPONSOR_ADD_ONS } from '@/lib/constants'
 import { SponsorTierDetails } from '@/types'
 import { cn } from '@/lib/utils'
@@ -140,7 +139,7 @@ export default function SponsorContactPage() {
   }
 
   return (
-    <PageTransition>
+    <>
       <Navbar />
       
       <main className="flex flex-col min-h-screen bg-nbac-canvas text-nbac-text pt-24 md:pt-28 pb-16 md:pb-24">
@@ -625,6 +624,6 @@ export default function SponsorContactPage() {
       </main>
 
       <Footer />
-    </PageTransition>
+    </>
   )
 }

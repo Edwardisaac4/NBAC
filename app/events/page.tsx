@@ -3,7 +3,6 @@
 import { useRef } from 'react'
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
-import { PageTransition } from "@/components/layout/page-transition"
 import { SectionBlur } from "@/components/shared/section-blur"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 import { MOCK_EVENTS } from "@/lib/mock-events"
@@ -92,7 +91,7 @@ export default function EventsCatalogPage() {
   }
 
   return (
-    <PageTransition>
+    <>
       <Navbar />
 
       <main 
@@ -199,6 +198,6 @@ export default function EventsCatalogPage() {
       </main>
 
       <Footer />
-    </PageTransition>
+    </>
   )
 }

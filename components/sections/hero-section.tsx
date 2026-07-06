@@ -1,11 +1,12 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useGSAP } from '@gsap/react'
 import Link from 'next/link'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { StatCounter } from '../shared/stat-counter'
+import { motion, AnimatePresence } from 'framer-motion'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -75,6 +76,14 @@ export function HeroSection() {
   const headingRef = useRef<HTMLHeadingElement>(null)
 
   const [particles] = useState<ReturnType<typeof generateParticles>>(() => generateParticles())
+  const [showTheme, setShowTheme] = useState(false)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setShowTheme((prev) => !prev)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [])
 
   useGSAP(
     () => {
@@ -209,20 +218,20 @@ export function HeroSection() {
           trigger: containerRef.current,
           start: 'top top',
           end: '95% top',
-          scrub: true,
+          scrub: 1.2,
         },
       })
 
       /* ── 3. Multi-Layer Parallax ───────────────────────── */
       // Background layer — moves slower than scroll (creates depth)
       gsap.to(bgRef.current, {
-        yPercent: 25,
+        yPercent: 20,
         ease: 'none',
         scrollTrigger: {
           trigger: containerRef.current,
           start: 'top top',
           end: 'bottom top',
-          scrub: true,
+          scrub: 1.2,
         },
       })
 
@@ -234,20 +243,20 @@ export function HeroSection() {
           trigger: containerRef.current,
           start: '20% top',
           end: '100% top',
-          scrub: true,
+          scrub: 1.2,
         },
       })
 
       /* ── 4. Stats Row Independent Parallax ────────────── */
       // Creates a 3-layer depth sandwich: bg (slow) → stats (medium) → content (fast)
       gsap.to(statsRowRef.current, {
-        yPercent: -8,
+        yPercent: -6,
         ease: 'none',
         scrollTrigger: {
           trigger: containerRef.current,
           start: 'top top',
           end: '80% top',
-          scrub: true,
+          scrub: 1.2,
         },
       })
 
@@ -384,7 +393,7 @@ export function HeroSection() {
     >
       {/* ── Background Image Layer ─────────────────────── */}
       <div className="absolute inset-0 z-0">
-        <div ref={bgRef} className="absolute inset-0 w-full h-full opacity-0 scale-110">
+        <div ref={bgRef} className="absolute inset-0 w-full h-full opacity-0 scale-110" style={{ willChange: 'transform' }}>
           {bgImages.map((src, index) => (
             <div
               key={src}
@@ -424,7 +433,7 @@ export function HeroSection() {
         </div>
         
         {/* Scroll-reactive theme-colored overlay — starts transparent */}
-        <div className="hero-gradient-scroll absolute inset-0 bg-nbac-canvas z-10 opacity-0" />
+        <div className="hero-gradient-scroll absolute inset-0 bg-nbac-canvas z-10 opacity-0" style={{ willChange: 'opacity' }} />
         
         {/* Subtle multiply layer for deep shadows */}
         <div className="absolute inset-0 bg-black/20 mix-blend-multiply z-10" />
@@ -434,6 +443,7 @@ export function HeroSection() {
       <div
         ref={contentRef}
         className="relative z-20 max-w-4xl space-y-3 md:space-y-4 flex flex-col items-center"
+        style={{ willChange: 'transform, opacity' }}
       >
         {/* Eyebrow */}
         <span
@@ -457,13 +467,40 @@ export function HeroSection() {
           ))}
         </h1>
 
-        {/* Venue / Date Metadata */}
-        <p className="hero-meta font-sans text-xs sm:text-sm md:text-lg text-white/90 tracking-wider font-medium max-w-2xl opacity-0">
-          May 4-5, 2027 • Mariot Hotel Ikeja, Lagos, Nigeria
-        </p>
+        {/* Venue / Date & Theme Metadata Carousel */}
+        <div className="hero-meta relative w-full h-14 sm:h-10 md:h-8 flex items-center justify-center opacity-0 select-none overflow-hidden">
+          <AnimatePresence mode="wait">
+            {!showTheme ? (
+              <motion.p
+                key="venue"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.6, ease: 'easeInOut' }}
+                className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-center font-sans text-xs sm:text-sm md:text-lg text-white/90 tracking-wider font-medium max-w-2xl mx-auto text-center"
+              >
+                May 4-5, 2027 • Mariot Hotel Ikeja, Lagos, Nigeria
+              </motion.p>
+            ) : (
+              <motion.p
+                key="theme"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.6, ease: 'easeInOut' }}
+                className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-center font-sans text-xs sm:text-sm md:text-lg text-nbac-gold-light tracking-wider font-medium max-w-3xl mx-auto text-center px-4"
+              >
+                <span>
+                  <span className="text-white/60 font-light mr-1.5">Theme:</span>
+                  One Sky, Many Stakeholders: Building a Connected Business Aviation Ecosystem
+                </span>
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Stats Row */}
-        <div ref={statsRowRef} className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-16 py-2 md:py-3 w-full my-2 md:my-3 relative">
+        <div ref={statsRowRef} className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-16 py-2 md:py-3 w-full my-2 md:my-3 relative" style={{ willChange: 'transform' }}>
           {/* Top divider — grows from center */}
           <div className="hero-divider-line absolute top-0 left-0 right-0 h-px bg-white/15 origin-center opacity-0" />
 

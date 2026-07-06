@@ -5,7 +5,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
-import { PageTransition } from '@/components/layout/page-transition'
 import { SectionEyebrow } from '@/components/shared/section-eyebrow'
 import { getDbPosts, BlogPost } from '@/lib/blog-data'
 import { Calendar, User, Clock, ArrowRight, Mail, Sparkles } from 'lucide-react'
@@ -53,7 +52,7 @@ export default function BlogOverviewPage() {
 
 
   return (
-    <PageTransition>
+    <>
       <Navbar />
       <main className="flex flex-col min-h-screen bg-nbac-canvas text-nbac-text pt-16 md:pt-20">
         
@@ -291,6 +290,6 @@ export default function BlogOverviewPage() {
 
       </main>
       <Footer />
-    </PageTransition>
+    </>
   )
 }
