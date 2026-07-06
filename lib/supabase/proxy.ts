@@ -33,7 +33,7 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const pathname = request.nextUrl.pathname
-  const userRole = user?.user_metadata?.role
+  const userRole = user?.app_metadata?.role
   let isAdmin = userRole === 'head_admin' || userRole === 'editor'
 
   // Gated fallback for development mode

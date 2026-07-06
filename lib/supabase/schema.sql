@@ -8,7 +8,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE OR REPLACE FUNCTION public.user_role()
 RETURNS text AS $$
   SELECT coalesce(
-    (auth.jwt() -> 'user_metadata' ->> 'role'),
+    (auth.jwt() -> 'app_metadata' ->> 'role'),
     ''
   );
 $$ LANGUAGE sql STABLE SECURITY DEFINER;
@@ -155,3 +155,43 @@ CREATE POLICY "Allow admins to insert audit logs" ON public.audit_logs
 
 CREATE POLICY "Allow admins to read audit logs" ON public.audit_logs
     FOR SELECT USING (public.user_role() IN ('head_admin', 'editor'));
+
+-- -------------------------------------------------------------
+-- TABLE: media_assets
+-- Stores uploaded media assets metadata
+-- -------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.media_assets (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    file_name text NOT NULL,
+    file_url text NOT NULL,
+    storage_path text NOT NULL,
+    tags text[] DEFAULT '{}'::text[],
+    uploaded_by text NOT NULL,
+    file_size text,
+    sort_order integer DEFAULT 0,
+    created_at timestamptz DEFAULT now()
+);
+
+-- Enable RLS
+ALTER TABLE public.media_assets ENABLE ROW LEVEL SECURITY;
+
+-- Policies for public.media_assets
+CREATE POLICY "Allow public read of media assets" ON public.media_assets
+    FOR SELECT USING (true);
+
+CREATE POLICY "Allow admins full access to media assets" ON public.media_assets
+    FOR ALL USING (public.user_role() IN ('head_admin', 'editor'))
+    WITH CHECK (public.user_role() IN ('head_admin', 'editor'));
+
+-- -------------------------------------------------------------
+-- DEFAULT AND EXPLICIT GRANTS
+-- Ensures that API roles have access to tables, sequences, and functions
+-- (Row Level Security policies enforce the actual rows visible/modifiable)
+-- -------------------------------------------------------------
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO anon, authenticated, service_role;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO anon, authenticated, service_role;

@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
           return;
         }
 
-        const userRole = data.user?.user_metadata?.role;
+        const userRole = data.user?.app_metadata?.role;
         if (userRole === 'head_admin' || userRole === 'editor') {
           setRole(userRole);
           await logAdminActivity('login', `Administrator logged in: ${data.user?.email}`);
@@ -122,7 +122,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-linear-to-r from-nbac-emerald to-nbac-emerald-dark hover:from-nbac-emerald-dark hover:to-nbac-emerald-dark text-white font-sans font-medium py-3 rounded-lg transition-all duration-300 shadow-md hover:shadow-nbac-emerald/10 text-sm mt-2 flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full bg-linear-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold text-[#0b0f10] font-sans font-bold py-3 rounded-lg transition-all duration-300 shadow-md hover:shadow-nbac-gold/10 text-sm mt-2 flex items-center justify-center gap-2 cursor-pointer"
           >
             {isLoading ? 'Decrypting credentials...' : 'Enter Admin Control Board'}
           </button>

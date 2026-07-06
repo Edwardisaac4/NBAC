@@ -166,7 +166,7 @@ export interface MediaFile {
 }
 
 // Admin logs
-export type LogAction = 'published' | 'edited' | 'deleted' | 'login' | 'permission_changed';
+export type LogAction = 'published' | 'edited' | 'deleted' | 'login' | 'logout' | 'permission_changed';
 
 export interface AdminLog {
   id: string;

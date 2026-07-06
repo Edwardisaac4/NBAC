@@ -49,6 +49,7 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
   const [saveStatus, setSaveStatus] = useState<'saved' | 'unsaved' | 'saving'>('saved');
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef(true);
 
   // Execute Save/Update logic
   const executeSave = useCallback(async (targetVisibility: PostVisibility, navigateBackAfterSave = false) => {
@@ -60,7 +61,9 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
       return;
     }
 
-    setSaveStatus('saving');
+    if (isMountedRef.current) {
+      setSaveStatus('saving');
+    }
 
     try {
       const posts = await getDbPosts();
@@ -118,23 +121,27 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
       const logAction = currentMode === 'edit' ? 'edited' : 'published';
       await logAdminActivity(logAction, `${logAction === 'published' ? 'Published' : 'Edited'} article: "${title}" (ID: ${targetPostId})`);
 
-      if (currentMode !== 'edit') {
-        // Transition state to edit mode so subsequent updates edit this post
-        setCurrentPostId(targetPostId);
-        setCurrentMode('edit');
-        
-        // Update the browser URL without full reload so refresh loads the edit page
-        window.history.replaceState(null, '', `/admin/content/${targetPostId}/edit`);
-      }
+      if (isMountedRef.current) {
+        if (currentMode !== 'edit') {
+          // Transition state to edit mode so subsequent updates edit this post
+          setCurrentPostId(targetPostId);
+          setCurrentMode('edit');
+          
+          // Update the browser URL without full reload so refresh loads the edit page
+          window.history.replaceState(null, '', `/admin/content/${targetPostId}/edit`);
+        }
 
-      setSaveStatus('saved');
+        setSaveStatus('saved');
+      }
 
       if (navigateBackAfterSave) {
         router.push('/admin/content');
       }
     } catch (err) {
       console.error('Save failed', err);
-      setSaveStatus('unsaved');
+      if (isMountedRef.current) {
+        setSaveStatus('unsaved');
+      }
     }
   }, [title, body, postType, authorName, coverImageUrl, currentMode, currentPostId, router]);
 
@@ -199,7 +206,9 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
 
   // Clean up timers on unmount - flush any pending debounced save
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
+      isMountedRef.current = false;
       if (saveTimerRef.current) {
         clearTimeout(saveTimerRef.current);
         executeSaveRef.current(visibilityRef.current, false);

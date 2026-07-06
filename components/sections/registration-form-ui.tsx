@@ -73,7 +73,7 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
           company: formData.company,
           phone: formData.phone,
           tier: selectedTier.name,
-          status: 'paid',
+          status: 'pending',
           reference: reference,
           amount: amount,
           currency: 'NGN',
@@ -247,7 +247,7 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
-              className="animated-glowing-border rounded-xl p-6 md:p-8 backdrop-blur-xl shadow-2xl relative overflow-hidden group"
+              className="sponsor-animated-border rounded-2xl p-6 md:p-8 backdrop-blur-xl shadow-2xl relative"
             >
               {/* Subtle accent glow inside card */}
                <div className={cn(
@@ -439,16 +439,11 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={cn(
-                    "w-full font-sans font-bold py-4 rounded-full text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2.5 disabled:opacity-75 disabled:cursor-not-allowed active:scale-[0.98]",
-                     selectedTier?.id === 'vip'
-                      ? "bg-linear-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold text-[#0b0f10] shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_4px_15px_rgba(197,160,89,0.25)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),0_6px_20px_rgba(197,160,89,0.45)]"
-                      : "bg-linear-to-r from-nbac-emerald to-[#059669] hover:from-[#059669] hover:to-[#047857] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_4px_15px_rgba(16,185,129,0.2)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_6px_20px_rgba(16,185,129,0.4)]"
-                  )}
+                  className="w-full font-sans font-bold py-4 rounded-full text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2.5 disabled:opacity-75 disabled:cursor-not-allowed active:scale-[0.98] bg-linear-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold text-[#0b0f10] shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_4px_15px_rgba(197,160,89,0.25)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),0_6px_20px_rgba(197,160,89,0.45)]"
                 >
                   {isSubmitting ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#0b0f10] border-t-transparent" />
                       Initializing Secure Gateway...
                     </>
                   ) : (

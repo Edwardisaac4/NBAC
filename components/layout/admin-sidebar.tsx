@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAdminRole } from '@/hooks/use-admin-role';
+import { createClient } from '@/lib/supabase/client';
+import { logAdminActivity } from '@/lib/blog-data';
 
 interface AdminSidebarProps {
   isOpen?: boolean;
@@ -23,7 +25,9 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
-  const { role } = useAdminRole();
+  const router = useRouter();
+  const { role, setRole } = useAdminRole();
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const menuItems = [
     {
@@ -138,14 +142,27 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
         {/* Logout Button */}
         <button 
-          onClick={() => {
-            console.log('Logging out...');
-            alert('Logout action triggered (mocked UI)');
+          disabled={loggingOut}
+          onClick={async () => {
+            setLoggingOut(true);
+            try {
+              await logAdminActivity('logout', `Administrator logged out`);
+              const supabase = createClient();
+              await supabase.auth.signOut();
+              setRole(null);
+              router.push('/admin/login');
+            } catch (err) {
+              console.error('Logout failed:', err);
+              setLoggingOut(false);
+            }
           }}
-          className="flex items-center justify-center gap-2 w-full border border-nbac-border text-nbac-body hover:bg-nbac-panel hover:text-nbac-danger hover:border-nbac-danger/35 font-sans font-medium px-4 py-2 rounded-lg transition-colors text-xs"
+          className={cn(
+            "flex items-center justify-center gap-2 w-full border border-nbac-border text-nbac-body hover:bg-nbac-panel hover:text-nbac-danger hover:border-nbac-danger/35 font-sans font-medium px-4 py-2 rounded-lg transition-colors text-xs",
+            loggingOut && "opacity-50 cursor-not-allowed"
+          )}
         >
-          <LogOut size={14} />
-          <span>Logout</span>
+          <LogOut size={14} className={loggingOut ? 'animate-spin' : ''} />
+          <span>{loggingOut ? 'Signing out…' : 'Logout'}</span>
         </button>
       </div>
     </div>

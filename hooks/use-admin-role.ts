@@ -30,7 +30,7 @@ export function useAdminRole() {
 
         let targetRole: AdminRole | null = null;
         if (user) {
-          const userRole = user.user_metadata?.role;
+          const userRole = user.app_metadata?.role;
           if (userRole === 'head_admin' || userRole === 'editor') {
             targetRole = userRole as AdminRole;
           }
@@ -54,7 +54,7 @@ export function useAdminRole() {
         if (!active) return;
         let targetRole: AdminRole | null = null;
         if (session?.user) {
-          const userRole = session.user.user_metadata?.role;
+          const userRole = session.user.app_metadata?.role;
           if (userRole === 'head_admin' || userRole === 'editor') {
             targetRole = userRole as AdminRole;
           }

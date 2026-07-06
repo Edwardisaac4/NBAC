@@ -36,49 +36,92 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   },
 });
 
-// 3. Admin & Editor Users to provision
-const users = [
-  { email: 'chief.admin@nbac.com.ng', password: 'NbacAdmin2026!', role: 'head_admin' },
-  { email: 'finance@nbac.com.ng', password: 'NbacAdmin2026!', role: 'head_admin' },
-  { email: 'staff.editor@nbac.com.ng', password: 'NbacAdmin2026!', role: 'editor' },
-  { email: 'operations@nbac.com.ng', password: 'NbacAdmin2026!', role: 'editor' },
-  { email: 'support@nbac.com.ng', password: 'NbacAdmin2026!', role: 'editor' },
-  { email: 'marketing@nbac.com.ng', password: 'NbacAdmin2026!', role: 'editor' },
-];
+// 3. Parse users list from environment configuration
+let users = [];
+try {
+  if (!process.env.SEED_USERS_CONFIG) {
+    console.error('ERROR: SEED_USERS_CONFIG environment variable is missing in .env.local.');
+    process.exit(1);
+  }
+  users = JSON.parse(process.env.SEED_USERS_CONFIG);
+  if (!Array.isArray(users)) {
+    throw new Error('Parsed config is not an array');
+  }
+} catch (err) {
+  console.error('ERROR: Failed to parse SEED_USERS_CONFIG environment variable as JSON:', err.message);
+  process.exit(1);
+}
 
 async function seed() {
   console.log('Starting Supabase Auth user seeding...');
   
-  for (const user of users) {
-    try {
-      // Check if user already exists in auth.users (we list users to check)
-      const { data: { users: existingUsers }, error: listError } = await supabase.auth.admin.listUsers();
+  // 4. Fetch all existing users with explicit pagination
+  const existingUsersMap = new Map();
+  let page = 1;
+  const limit = 100;
+  
+  try {
+    console.log('Fetching existing users from Supabase Auth...');
+    while (true) {
+      const { data, error: listError } = await supabase.auth.admin.listUsers({
+        page: page,
+        perPage: limit
+      });
+      
       if (listError) {
         throw listError;
       }
       
-      const existing = existingUsers.find((u) => u.email === user.email);
+      const usersList = data?.users || [];
+      if (usersList.length === 0) {
+        break;
+      }
+      
+      for (const u of usersList) {
+        if (u.email) {
+          existingUsersMap.set(u.email.toLowerCase(), u);
+        }
+      }
+      
+      if (usersList.length < limit) {
+        break;
+      }
+      page++;
+    }
+    console.log(`Successfully preloaded ${existingUsersMap.size} existing users.`);
+  } catch (err) {
+    console.error('[FATAL] Failed to fetch existing users:', err.message || err);
+    process.exit(1);
+  }
+  
+  for (const user of users) {
+    try {
+      const existing = existingUsersMap.get(user.email.toLowerCase());
       
       if (existing) {
         console.log(`[INFO] User ${user.email} already exists. Updating metadata...`);
         const { error: updateError } = await supabase.auth.admin.updateUserById(
           existing.id,
           {
-            user_metadata: { role: user.role }
+            app_metadata: { role: user.role }
           }
         );
         if (updateError) {
-          console.error(`[ERROR] Failed to update user metadata for ${user.email}:`, updateError.message);
+          console.error(`[ERROR] Failed to update user app_metadata for ${user.email}:`, updateError.message);
         } else {
-          console.log(`[SUCCESS] Updated ${user.email} metadata with role: ${user.role}`);
+          console.log(`[SUCCESS] Updated ${user.email} app_metadata with role: ${user.role}`);
         }
       } else {
+        if (!user.password) {
+          console.error(`[ERROR] Cannot create new user ${user.email}: Password is not provided in SEED_USERS_CONFIG.`);
+          continue;
+        }
         // Create user
         const { data, error: createError } = await supabase.auth.admin.createUser({
           email: user.email,
           password: user.password,
           email_confirm: true,
-          user_metadata: { role: user.role }
+          app_metadata: { role: user.role }
         });
         
         if (createError) {

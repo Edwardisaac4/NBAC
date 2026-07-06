@@ -98,14 +98,14 @@ export function CommitteeSection() {
 
           {/* Viewport */}
           <div className="overflow-hidden w-full">
-            <div className="flex flex-nowrap -ml-6 md:-ml-8 animate-marquee">
+            <div className="flex flex-nowrap w-max -ml-6 md:-ml-8 animate-marquee">
               {duplicatedMembers.map((member, index) => {
                 const roleLower = member.role.toLowerCase()
                 const isPremiumRole = roleLower === 'chairman' || roleLower === 'vice chairman'
                 return (
                   <div
                     key={`${member.name}-${index}`}
-                    className="committee-card opacity-0 min-w-0 flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_25%] pl-6 md:pl-8 py-4 flex flex-col items-center relative group"
+                    className="committee-card opacity-0 w-[280px] shrink-0 pl-6 md:pl-8 py-4 flex flex-col items-center relative group"
                   >
                     <motion.div
                       className="w-full flex flex-col items-center"

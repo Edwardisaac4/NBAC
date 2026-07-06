@@ -242,7 +242,7 @@ export function SponsorRegistrationFormUI({ selectedTier }: SponsorRegistrationF
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
-              className="animated-glowing-border rounded-xl p-6 md:p-8 backdrop-blur-xl shadow-2xl relative overflow-hidden group"
+              className="sponsor-animated-border rounded-2xl p-6 md:p-8 backdrop-blur-xl shadow-2xl relative"
             >
               {/* Subtle gold glow background */}
               <div className="absolute -bottom-24 -left-24 w-48 h-48 blur-[80px] rounded-full pointer-events-none bg-nbac-gold/4" />

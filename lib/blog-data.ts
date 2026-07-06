@@ -306,7 +306,11 @@ export async function getDbPosts(): Promise<BlogPost[]> {
         .from('posts')
         .insert(DEFAULT_POSTS)
       if (seedError) {
-        console.error('Failed to seed default posts:', seedError.message)
+        if (seedError.code === '42501') {
+          console.info('Database is empty and user does not have permission to seed. Returning local default posts.')
+        } else {
+          console.error('Failed to seed default posts:', seedError.message)
+        }
       }
       return DEFAULT_POSTS
     }
@@ -356,26 +360,33 @@ export async function deleteDbPost(id: string): Promise<boolean> {
 }
 
 export async function logAdminActivity(
-  action: 'login' | 'published' | 'edited' | 'deleted' | 'permission_changed',
+  action: 'login' | 'logout' | 'published' | 'edited' | 'deleted' | 'permission_changed',
   target: string
 ): Promise<void> {
   try {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     
-    const adminEmail = user?.email || 'developer@nbac.com.ng'
-    const role = user?.user_metadata?.role || 'head_admin'
+    // Skip the audit entry if no authenticated user is found
+    if (!user) {
+      return;
+    }
     
-    let ipAddress = '127.0.0.1'
+    const adminEmail = user.email || 'unknown'
+    const roleVal = (user.app_metadata?.role as string) || 'unknown'
+    
+    let ipAddress = 'unavailable'
     if (typeof window !== 'undefined') {
-      ipAddress = window.location.hostname === 'localhost' ? '127.0.0.1' : window.location.hostname
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        ipAddress = '127.0.0.1'
+      }
     }
 
     const { error } = await supabase
       .from('audit_logs')
       .insert({
         admin_email: adminEmail,
-        role: role === 'head_admin' ? 'Head Admin' : 'Editor',
+        role: roleVal === 'head_admin' ? 'Head Admin' : roleVal === 'editor' ? 'Editor' : roleVal,
         action,
         target,
         ip_address: ipAddress

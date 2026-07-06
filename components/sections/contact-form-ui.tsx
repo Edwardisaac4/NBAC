@@ -79,7 +79,7 @@ export function ContactFormUI() {
       </div>
 
       <motion.div
-        className="animated-glowing-border rounded-xl p-6 md:p-8 backdrop-blur-xl relative overflow-hidden group shadow-2xl"
+        className="sponsor-animated-border rounded-2xl p-6 md:p-8 backdrop-blur-xl relative shadow-2xl"
         whileHover={{
           boxShadow: '0 12px 40px rgba(16, 185, 129, 0.06)',
         }}
@@ -242,11 +242,11 @@ export function ContactFormUI() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-gradient-to-r from-nbac-emerald to-[#059669] hover:from-[#059669] hover:to-[#047857] text-white font-sans font-bold py-4 rounded-full text-xs uppercase tracking-widest transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_4px_15px_rgba(16,185,129,0.2)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_6px_20px_rgba(16,185,129,0.4)] active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="w-full bg-linear-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold text-[#0b0f10] font-sans font-bold py-4 rounded-full text-xs uppercase tracking-widest transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_4px_15px_rgba(197,160,89,0.25)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),0_6px_20px_rgba(197,160,89,0.45)] active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#0b0f10] border-t-transparent" />
                     Transmitting Inquiry...
                   </>
                 ) : (
