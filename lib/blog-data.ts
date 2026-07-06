@@ -375,13 +375,9 @@ export async function logAdminActivity(
     const adminEmail = user.email || 'unknown'
     const roleVal = (user.app_metadata?.role as string) || 'unknown'
     
-    let ipAddress = 'unavailable'
-    if (typeof window !== 'undefined') {
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        ipAddress = '127.0.0.1'
-      }
-    }
-
+    // Client-side call context: secure IP tracking is not available directly on the client.
+    const clientActivityContext = 'client-side'
+ 
     const { error } = await supabase
       .from('audit_logs')
       .insert({
@@ -389,7 +385,7 @@ export async function logAdminActivity(
         role: roleVal === 'head_admin' ? 'Head Admin' : roleVal === 'editor' ? 'Editor' : roleVal,
         action,
         target,
-        ip_address: ipAddress
+        ip_address: clientActivityContext
       })
       
     if (error) {

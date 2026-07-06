@@ -68,7 +68,7 @@ export default function MediaGalleryPage() {
     return mediaItems.filter(
       item =>
         item.file_name.toLowerCase().includes(q) ||
-        item.tags.some(tag => tag.toLowerCase().includes(q))
+        (item.tags && item.tags.some(tag => tag.toLowerCase().includes(q)))
     );
   }, [searchQuery, mediaItems]);
 
@@ -173,6 +173,7 @@ export default function MediaGalleryPage() {
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       handleFiles(e.target.files);
+      e.target.value = '';
     }
   };
 
@@ -282,11 +283,10 @@ export default function MediaGalleryPage() {
               onDragOver={onDrag}
               onDrop={onDrop}
               onClick={() => !uploading && fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-lg p-5 text-center transition-all duration-300 select-none group cursor-pointer ${
-                dragActive
+              className={`border-2 border-dashed rounded-lg p-5 text-center transition-all duration-300 select-none group cursor-pointer ${dragActive
                   ? 'border-nbac-gold bg-[#0b0f10]/80'
                   : 'border-nbac-border hover:border-nbac-gold/30 bg-[#0b0f10]/20 hover:bg-[#0b0f10]/40'
-              } ${uploading ? 'pointer-events-none opacity-60' : ''}`}
+                } ${uploading ? 'pointer-events-none opacity-60' : ''}`}
             >
               <div className="flex flex-col items-center gap-2">
                 <div className="w-9 h-9 rounded-full bg-nbac-panel border border-nbac-border flex items-center justify-center text-nbac-muted group-hover:text-nbac-gold transition-colors">

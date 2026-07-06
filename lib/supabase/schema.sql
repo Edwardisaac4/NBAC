@@ -177,21 +177,42 @@ ALTER TABLE public.media_assets ENABLE ROW LEVEL SECURITY;
 
 -- Policies for public.media_assets
 CREATE POLICY "Allow public read of media assets" ON public.media_assets
-    FOR SELECT USING (true);
+    FOR SELECT TO authenticated USING (true);
 
 CREATE POLICY "Allow admins full access to media assets" ON public.media_assets
     FOR ALL USING (public.user_role() IN ('head_admin', 'editor'))
     WITH CHECK (public.user_role() IN ('head_admin', 'editor'));
 
 -- -------------------------------------------------------------
+-- VIEW: public_media_assets
+-- Exposes media assets metadata without sensitive uploader info
+-- -------------------------------------------------------------
+CREATE OR REPLACE VIEW public.public_media_assets AS
+    SELECT id, file_name, file_url, storage_path, tags, file_size, sort_order, created_at
+    FROM public.media_assets;
+
+-- -------------------------------------------------------------
 -- DEFAULT AND EXPLICIT GRANTS
 -- Ensures that API roles have access to tables, sequences, and functions
 -- (Row Level Security policies enforce the actual rows visible/modifiable)
 -- -------------------------------------------------------------
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
-GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
-GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO anon, authenticated, service_role;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated, service_role;
 
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO anon, authenticated, service_role;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO anon, authenticated, service_role;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated, service_role;
+
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO authenticated, service_role;
+
+-- Explicitly grant INSERT to anon for public submission tables (since anon only gets SELECT by default)
+GRANT INSERT ON public.reservations TO anon;
+GRANT INSERT ON public.sponsors TO anon;
+GRANT INSERT ON public.contacts TO anon;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO anon;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO authenticated, service_role;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO anon;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO authenticated, service_role;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO authenticated, service_role;
