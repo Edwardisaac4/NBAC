@@ -82,6 +82,7 @@ export function AboutCommittee() {
                     className="object-cover grayscale-0 lg:grayscale lg:group-hover:grayscale-0 scale-100 lg:group-hover:scale-105 transition-all duration-500 ease-out"
                     style={{ objectPosition: member.objectPosition || 'center' }}
                     quality={90}
+                    priority={member.image === '/images/SD ! NBAC.jpg'}
                   />
                   {/* Thin overlay to tie into dark luxury aesthetic */}
                   <div className="absolute inset-0 bg-linear-to-t from-nbac-panel/90 via-transparent to-transparent opacity-60 pointer-events-none" />
