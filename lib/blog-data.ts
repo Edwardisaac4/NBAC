@@ -301,14 +301,11 @@ export async function getDbPosts(): Promise<BlogPost[]> {
 
     // Seed default posts if database is empty
     if (!data || data.length === 0) {
-      console.log('Database posts table is empty, seeding defaults...')
-      const { error: seedError } = await supabase
-        .from('posts')
-        .insert(DEFAULT_POSTS)
-      if (seedError) {
-        if (seedError.code === '42501') {
-          console.info('Database is empty and user does not have permission to seed. Returning local default posts.')
-        } else {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        console.log('Database posts table is empty, seeding defaults...')
+        const { error: seedError } = await supabase.from('posts').insert(DEFAULT_POSTS)
+        if (seedError) {
           console.error('Failed to seed default posts:', seedError.message)
         }
       }
