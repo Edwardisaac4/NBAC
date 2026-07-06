@@ -61,6 +61,9 @@
   --color-nbac-emerald-light: var(--nbac-emerald-light);
   --color-nbac-amber: var(--nbac-amber);
   --color-nbac-danger: var(--nbac-danger);
+  --color-nbac-gold: var(--nbac-gold);
+  --color-nbac-gold-light: var(--nbac-gold-light);
+  --color-nbac-gold-dark: var(--nbac-gold-dark);
 
   --font-display: var(--font-display);
 }
@@ -83,6 +86,9 @@
   --nbac-emerald-light: #10b981;
   --nbac-amber: #b45309;
   --nbac-danger: #dc2626;
+  --nbac-gold: #c5a059;
+  --nbac-gold-light: #dfb76c;
+  --nbac-gold-dark: #9a7638;
 
   --card: #ffffff;
   --card-foreground: #101415;
@@ -126,6 +132,11 @@
   /* Glass Card Variables (Light Mode) */
   --nbac-glass-bg: rgba(255, 255, 255, 0.65);
   --nbac-glass-border: rgba(16, 20, 21, 0.08);
+
+  /* Animated border variables (Light Mode) */
+  --border-gradient-start: #d4af37; /* Premium Gold */
+  --border-gradient-end: #0b9666;   /* Green (light mode) */
+  --nbac-panel-translucent: rgba(255, 255, 255, 0.7);
 }
 
 .dark, :root.dark {
@@ -146,6 +157,9 @@
   --nbac-emerald-light: #34d399;
   --nbac-amber: #f59e0b;
   --nbac-danger: #ef4444;
+  --nbac-gold: #dfb76c;
+  --nbac-gold-light: #f5c042;
+  --nbac-gold-dark: #b8860b;
 
   --card: #1d2022;
   --card-foreground: #e0e3e5;
@@ -188,6 +202,11 @@
   /* Glass Card Variables (Dark Mode) */
   --nbac-glass-bg: rgba(29, 32, 34, 0.7);
   --nbac-glass-border: rgba(255, 255, 255, 0.05);
+
+  /* Animated border variables (Dark Mode) */
+  --border-gradient-start: #f5c042; /* Bright Premium Gold */
+  --border-gradient-end: #10b981;   /* Green (dark mode) */
+  --nbac-panel-translucent: rgba(29, 32, 34, 0.75);
 }
 
 @layer base {
@@ -229,4 +248,228 @@
   .animate-marquee:hover {
     animation-play-state: paused;
   }
+
+  .animated-glowing-border {
+    position: relative;
+    overflow: hidden;
+    border: none !important;
+  }
+
+  .animated-glowing-border::before {
+    content: '';
+    position: absolute;
+    top: -80%;
+    left: -80%;
+    width: 260%;
+    height: 260%;
+    background: conic-gradient(
+      from 0deg,
+      transparent 15%,
+      var(--border-gradient-start) 30%,      /* Gold */
+      #f59e0b 45%,      /* Orange/Amber */
+      var(--border-gradient-end) 65%, /* Brand Green */
+      #34d399 75%,      /* Emerald Light */
+      transparent 90%
+    );
+    animation: rotate-border-gradient 6s linear infinite;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .animated-glowing-border::after {
+    content: '';
+    position: absolute;
+    inset: 1.5px;
+    background: var(--nbac-panel-translucent);
+    backdrop-filter: blur(16px);
+    border-radius: 10.5px;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* Ensure all child content inside the card renders above the animating border */
+  .animated-glowing-border > * {
+    position: relative;
+    z-index: 2;
+  }
+
+  .sponsor-animated-border {
+    position: relative;
+    overflow: hidden;
+    border: none !important;
+  }
+
+  .sponsor-animated-border::before {
+    content: '';
+    position: absolute;
+    top: -150%;
+    left: -150%;
+    width: 400%;
+    height: 400%;
+    background: conic-gradient(
+      from 0deg,
+      transparent 10%,
+      var(--nbac-gold) 25%,
+      #f59e0b 40%,       /* Orange */
+      #ec4899 55%,       /* Pink/Magenta */
+      #3b82f6 70%,       /* Blue */
+      var(--nbac-emerald) 85%,
+      transparent 95%
+    );
+    animation: rotate-border-gradient 8s linear infinite;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .sponsor-animated-border::after {
+    content: '';
+    position: absolute;
+    inset: 3px;          /* thicker border matching screenshot */
+    background: var(--nbac-panel);
+    backdrop-filter: blur(16px);
+    border-radius: 14px;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .sponsor-animated-border > * {
+    position: relative;
+    z-index: 2;
+  }
+
+  @keyframes rotate-border-gradient {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* ── Hero Section — CTA Shimmer ────────────────────── */
+  @keyframes hero-shimmer {
+    0%   { transform: translateX(-100%) skewX(-15deg); }
+    100% { transform: translateX(200%) skewX(-15deg); }
+  }
+
+  .hero-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.15) 40%,
+      rgba(255, 255, 255, 0.35) 50%,
+      rgba(255, 255, 255, 0.15) 60%,
+      transparent 100%
+    );
+    animation: hero-shimmer 3s ease-in-out infinite;
+    animation-delay: 2s;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .hero-shimmer:hover::after {
+    animation-play-state: paused;
+  }
+
+  /* ── Hero Section — Light Sweep ────────────────────── */
+  .hero-light-sweep {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 15;
+  }
+
+  .hero-light-sweep-beam {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 40%;
+    height: 200%;
+    background: linear-gradient(
+      105deg,
+      transparent 30%,
+      rgba(223, 183, 108, 0.06) 42%,
+      rgba(223, 183, 108, 0.12) 48%,
+      rgba(245, 192, 66, 0.08) 52%,
+      rgba(223, 183, 108, 0.06) 58%,
+      transparent 70%
+    );
+    transform: translateX(-100%) rotate(15deg);
+    will-change: transform;
+    mix-blend-mode: overlay;
+  }
+
+  /* ── Hero Section — Floating Particles ─────────────── */
+  .hero-particle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    will-change: transform, opacity;
+    z-index: 12;
+  }
+}
+
+/* ── Tiptap Prose Mirror Overrides ─────────────────── */
+.ProseMirror {
+  outline: none;
+}
+
+.ProseMirror p {
+  @apply mb-4 text-nbac-body;
+}
+
+.ProseMirror h2 {
+  @apply font-display text-2xl font-bold text-nbac-text mt-8 mb-3;
+}
+
+.ProseMirror h3 {
+  @apply font-sans text-lg font-semibold text-nbac-text mt-6 mb-2;
+}
+
+.ProseMirror strong {
+  @apply font-semibold text-nbac-text;
+}
+
+.ProseMirror em {
+  @apply italic text-nbac-body;
+}
+
+.ProseMirror blockquote {
+  @apply border-l-4 border-nbac-emerald pl-4 italic text-nbac-muted my-6;
+}
+
+.ProseMirror ul {
+  @apply list-disc list-inside mb-4 text-nbac-body space-y-1;
+}
+
+.ProseMirror ol {
+  @apply list-decimal list-inside mb-4 text-nbac-body space-y-1;
+}
+
+.ProseMirror hr {
+  @apply border-nbac-border my-8;
+}
+
+.ProseMirror a {
+  @apply text-nbac-emerald underline;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  @apply text-nbac-muted;
+  content: attr(data-placeholder);
+  float: left;
+  pointer-events: none;
+  height: 0;
 }

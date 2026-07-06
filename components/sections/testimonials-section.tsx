@@ -104,7 +104,7 @@ export function TestimonialsSection() {
           <h2 className="test-heading opacity-0 font-display text-3xl md:text-5xl font-bold text-nbac-text tracking-tight">
             Voices of the Industry
           </h2>
-          <div className="test-divider h-1 w-24 bg-nbac-emerald mx-auto rounded-full mt-4 origin-center opacity-0" />
+          <div className="test-divider h-1 w-24 bg-nbac-gold mx-auto rounded-full mt-4 origin-center opacity-0" />
         </div>
 
         {/* Testimonials Grid */}
@@ -112,20 +112,19 @@ export function TestimonialsSection() {
           {testimonials.map((t) => (
             <motion.div
               key={t.author}
-              className="testimonial-card opacity-0 bg-nbac-panel border border-nbac-border rounded-lg p-8 flex flex-col justify-between h-full relative overflow-hidden"
+              className="testimonial-card opacity-0 bg-nbac-panel border border-nbac-border rounded-lg p-8 flex flex-col justify-between h-full relative overflow-hidden transition-colors duration-300 hover:border-nbac-gold/50"
               whileHover={{
                 y: -6,
-                borderColor: 'rgba(16, 185, 129, 0.5)',
-                boxShadow: '0 8px 32px rgba(16, 185, 129, 0.08)',
+                boxShadow: '0 8px 32px rgba(197, 160, 89, 0.08)',
               }}
               transition={{ duration: 0.25, ease: 'easeOut' }}
             >
               {/* Background glowing indicator */}
-              <div className="absolute top-0 right-0 w-24 h-24 bg-nbac-emerald/5 blur-[35px] rounded-full pointer-events-none" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-nbac-gold/5 blur-[35px] rounded-full pointer-events-none" />
 
               <div className="space-y-6 relative">
                 {/* Quote Icon */}
-                <Quote className="text-nbac-emerald h-8 w-8 opacity-40" />
+                <Quote className="text-nbac-gold h-8 w-8 opacity-40" />
                 {/* Quote Text */}
                 <p className="font-sans text-sm font-light text-nbac-body leading-relaxed italic">
                   &ldquo;{t.quote}&rdquo;

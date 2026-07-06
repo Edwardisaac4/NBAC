@@ -141,7 +141,8 @@ export default function EventsCatalogPage() {
                         alt={event.title}
                         fill
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        sizes="(max-width: 768px) 100vw, 33vw"
+                        sizes="(max-width: 1024px) 100vw, 33vw"
+                        quality={90}
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-nbac-panel text-nbac-muted">

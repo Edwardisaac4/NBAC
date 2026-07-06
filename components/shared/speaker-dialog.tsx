@@ -72,17 +72,17 @@ export function SpeakerDialog({ speaker, sessions, isOpen, onClose }: SpeakerDia
             transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
             className="relative w-full max-w-2xl bg-nbac-panel/95 border border-nbac-border rounded-xl shadow-2xl overflow-hidden z-10 glass-card"
             style={{
-              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(16, 185, 129, 0.1)'
+              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(197, 160, 89, 0.1)'
             }}
           >
             {/* Ambient Background Glow */}
-            <div className="absolute -top-24 -left-24 w-48 h-48 bg-nbac-emerald/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-nbac-emerald/5 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -top-24 -left-24 w-48 h-48 bg-nbac-gold/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-nbac-gold/5 rounded-full blur-3xl pointer-events-none" />
 
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-nbac-canvas/40 hover:bg-nbac-canvas/80 text-nbac-text hover:text-nbac-emerald flex items-center justify-center transition-all duration-200 cursor-pointer"
+              className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-nbac-canvas/40 hover:bg-nbac-canvas/80 text-nbac-text hover:text-nbac-gold flex items-center justify-center transition-all duration-200 cursor-pointer"
               aria-label="Close Dialog"
             >
               <X size={18} />
@@ -100,10 +100,11 @@ export function SpeakerDialog({ speaker, sessions, isOpen, onClose }: SpeakerDia
                       alt={speaker.name}
                       fill
                       className="object-cover"
-                      sizes="(max-width: 768px) 112px, 128px"
+                      sizes="(max-width: 768px) 224px, 256px"
+                      quality={90}
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-nbac-emerald/10 text-nbac-emerald text-3xl font-display font-semibold">
+                    <div className="w-full h-full flex items-center justify-center bg-nbac-gold/10 text-nbac-gold text-3xl font-display font-semibold">
                       {speaker.name.charAt(0)}
                     </div>
                   )}
@@ -111,7 +112,7 @@ export function SpeakerDialog({ speaker, sessions, isOpen, onClose }: SpeakerDia
 
                 {/* Name & Title */}
                 <div className="text-center md:text-left flex flex-col justify-center">
-                  <span className="font-sans text-xs uppercase tracking-widest font-semibold text-nbac-emerald mb-1">
+                  <span className="font-sans text-xs uppercase tracking-widest font-semibold text-nbac-gold mb-1">
                     FEATURED SPEAKER
                   </span>
                   <h3 className="font-display text-2xl md:text-3xl font-bold text-nbac-text tracking-tight mb-2">
@@ -146,9 +147,9 @@ export function SpeakerDialog({ speaker, sessions, isOpen, onClose }: SpeakerDia
                     {speakerSessions.map(session => (
                       <div 
                         key={session.id} 
-                        className="p-4 rounded-lg bg-nbac-canvas/50 border border-nbac-border border-l-4 border-l-nbac-emerald hover:border-l-nbac-emerald-light transition-all"
+                        className="p-4 rounded-lg bg-nbac-canvas/50 border border-nbac-border border-l-4 border-l-nbac-gold hover:border-l-nbac-gold-light transition-all"
                       >
-                        <span className="inline-block bg-nbac-emerald/15 text-nbac-emerald text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm mb-2">
+                        <span className="inline-block bg-nbac-gold/15 text-nbac-gold text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm mb-2">
                           {session.category}
                         </span>
                         <h5 className="font-sans text-sm font-semibold text-nbac-text leading-tight mb-2">
@@ -156,16 +157,16 @@ export function SpeakerDialog({ speaker, sessions, isOpen, onClose }: SpeakerDia
                         </h5>
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-nbac-muted">
                           <span className="flex items-center gap-1">
-                            <Calendar size={12} className="text-nbac-emerald-light" />
+                            <Calendar size={12} className="text-nbac-gold-light" />
                             {formatDayName(session.day)}
                           </span>
                           <span className="flex items-center gap-1">
-                            <Clock size={12} className="text-nbac-emerald-light" />
+                            <Clock size={12} className="text-nbac-gold-light" />
                             {session.start_time} - {session.end_time}
                           </span>
                           {session.location && (
                             <span className="flex items-center gap-1">
-                              <MapPin size={12} className="text-nbac-emerald-light" />
+                              <MapPin size={12} className="text-nbac-gold-light" />
                               {session.location}
                             </span>
                           )}

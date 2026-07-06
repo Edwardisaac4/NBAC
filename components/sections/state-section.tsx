@@ -107,7 +107,7 @@ export function StateSection() {
           <h2 className="state-heading opacity-0 font-display text-3xl md:text-5xl font-bold text-nbac-text tracking-tight">
             The State of Nigerian Business Aviation
           </h2>
-          <div className="state-divider h-1 w-24 bg-nbac-emerald mx-auto rounded-full mt-4 origin-center opacity-0" />
+          <div className="state-divider h-1 w-24 bg-nbac-gold mx-auto rounded-full mt-4 origin-center opacity-0" />
         </div>
 
         {/* Pillars Grid */}
@@ -119,18 +119,23 @@ export function StateSection() {
                 key={pillar.title}
                 className={`reveal-item opacity-0 bg-nbac-panel border rounded-lg p-8 border-l-4 flex gap-6 ${
                   pillar.highlighted
-                    ? 'border-nbac-border border-l-nbac-emerald shadow-[0_0_20px_rgba(16,185,129,0.08)]'
+                    ? 'border-nbac-border border-l-nbac-gold shadow-[0_0_20px_rgba(197,160,89,0.08)]'
                     : 'border-nbac-border border-l-nbac-emerald/40'
                 }`}
                 whileHover={{
                   y: -6,
-                  borderColor: 'rgba(16, 185, 129, 0.5)',
-                  boxShadow: '0 12px 40px rgba(16, 185, 129, 0.1)',
+                  borderTopColor: pillar.highlighted ? 'rgba(197, 160, 89, 0.5)' : 'rgba(16, 185, 129, 0.5)',
+                  borderRightColor: pillar.highlighted ? 'rgba(197, 160, 89, 0.5)' : 'rgba(16, 185, 129, 0.5)',
+                  borderBottomColor: pillar.highlighted ? 'rgba(197, 160, 89, 0.5)' : 'rgba(16, 185, 129, 0.5)',
+                  borderLeftColor: pillar.highlighted ? 'rgba(197, 160, 89, 0.8)' : 'rgba(16, 185, 129, 0.8)',
+                  boxShadow: pillar.highlighted ? '0 12px 40px rgba(197, 160, 89, 0.1)' : '0 12px 40px rgba(16, 185, 129, 0.1)',
                 }}
                 transition={{ duration: 0.25, ease: 'easeOut' }}
               >
                 {/* Icon Column */}
-                <div className="shrink-0 bg-nbac-emerald/10 p-3 rounded-lg text-nbac-emerald h-12 w-12 flex items-center justify-center">
+                <div className={`shrink-0 p-3 rounded-lg h-12 w-12 flex items-center justify-center ${
+                  pillar.highlighted ? 'bg-nbac-gold/10 text-nbac-gold' : 'bg-nbac-emerald/10 text-nbac-emerald'
+                }`}>
                   <Icon size={24} />
                 </div>
                 {/* Content Column */}

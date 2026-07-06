@@ -1,12 +1,49 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { useGSAP } from '@gsap/react'
+import Link from 'next/link'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { StatCounter } from '../shared/stat-counter'
 
 gsap.registerPlugin(ScrollTrigger)
+
+/* ── Particle Configuration ─────────────────────────── */
+const PARTICLE_COUNT = 18
+const PARTICLE_COLORS = [
+  'rgba(223, 183, 108, 0.25)',  // gold
+  'rgba(245, 192, 66, 0.20)',   // gold-light
+  'rgba(16, 185, 129, 0.18)',   // emerald
+  'rgba(223, 183, 108, 0.15)',  // gold faint
+  'rgba(52, 211, 153, 0.12)',   // emerald-light
+]
+
+/* ── Seeded PRNG (mulberry32) — deterministic across SSR + client ── */
+function createSeededRandom(seed: number) {
+  return () => {
+    seed |= 0
+    seed = (seed + 0x6d2b79f5) | 0
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+function generateParticles() {
+  const random = createSeededRandom(42)
+  return Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
+    id: i,
+    size: 2 + random() * 3,          // 2–5px
+    x: random() * 100,               // random horizontal start %
+    y: random() * 100,               // random vertical start %
+    color: PARTICLE_COLORS[i % PARTICLE_COLORS.length],
+    driftX: (random() - 0.5) * 120,  // horizontal drift range px
+    driftY: -40 - random() * 80,     // float upward 40–120px
+    duration: 6 + random() * 8,      // 6–14s per loop
+    delay: random() * 5,             // stagger start
+  }))
+}
 
 const phrases = [
   "The Pinnacle of West African Aviation",
@@ -33,6 +70,11 @@ export function HeroSection() {
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const eyebrowRef = useRef<HTMLSpanElement>(null)
+  const statsRowRef = useRef<HTMLDivElement>(null)
+  const lightSweepRef = useRef<HTMLDivElement>(null)
+  const headingRef = useRef<HTMLHeadingElement>(null)
+
+  const [particles] = useState<ReturnType<typeof generateParticles>>(() => generateParticles())
 
   useGSAP(
     () => {
@@ -51,10 +93,12 @@ export function HeroSection() {
             '.hero-stat-item',
             '.hero-divider-line',
             '.hero-buttons',
+            '.hero-particle',
           ],
           { opacity: 1, y: 0 }
         )
         gsap.set(bgRef.current, { scale: 1.1 })
+        gsap.set('.hero-particle', { opacity: 0 })  // hide particles entirely
         return
       }
 
@@ -129,6 +173,31 @@ export function HeroSection() {
         '-=0.4'
       )
 
+      /* ── NEW: Cinematic Light Sweep (fires once) ─────── */
+      tl.to(
+        lightSweepRef.current,
+        {
+          x: '300%',
+          duration: 1.6,
+          ease: 'power2.inOut',
+        },
+        '-=0.6'  // overlaps slightly with CTA entrance
+      )
+
+      /* ── NEW: Heading Glow Pulse ────────────────────── */
+      tl.fromTo(
+        headingRef.current,
+        { textShadow: '0 0 0px rgba(223, 183, 108, 0)' },
+        {
+          textShadow: '0 0 40px rgba(223, 183, 108, 0.25), 0 0 80px rgba(223, 183, 108, 0.1)',
+          duration: 1.2,
+          ease: 'power2.inOut',
+          yoyo: true,
+          repeat: 1,
+        },
+        '-=1.0'
+      )
+
       /* ── 2. Scroll-Driven Content Fade-Out ─────────────── */
       // Hero content fades, moves up, and slightly scales down as user scrolls
       gsap.to(contentRef.current, {
@@ -169,7 +238,22 @@ export function HeroSection() {
         },
       })
 
-      /* ── 4. Eyebrow Phrase Rotation ────────────────────── */
+      /* ── 4. Stats Row Independent Parallax ────────────── */
+      // Creates a 3-layer depth sandwich: bg (slow) → stats (medium) → content (fast)
+      gsap.to(statsRowRef.current, {
+        yPercent: -8,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: 'top top',
+          end: '80% top',
+          scrub: true,
+        },
+      })
+
+
+
+      /* ── 6. Eyebrow Phrase Rotation ────────────────────── */
       const startEyebrowLoop = () => {
         const loopTl = gsap.timeline({ repeat: -1 })
         const loopPhrases = [...phrases.slice(1), phrases[0]]
@@ -236,6 +320,63 @@ export function HeroSection() {
     { scope: containerRef }
   )
 
+  useGSAP(
+    () => {
+      if (particles.length === 0) return;
+
+      const prefersReduced = window.matchMedia(
+        '(prefers-reduced-motion: reduce)'
+      ).matches;
+
+      if (prefersReduced) return;
+
+      const isFirstLoad = !sessionStorage.getItem('nbac-preloader-shown');
+      const delayOffset = isFirstLoad ? 1.8 : 0;
+
+      const particleEls = gsap.utils.toArray('.hero-particle') as HTMLElement[];
+
+      // Fade particles in after entrance completes
+      gsap.fromTo(
+        particleEls,
+        { opacity: 0 },
+        {
+          opacity: 1,
+          duration: 2,
+          stagger: 0.15,
+          delay: delayOffset + 2.5,  // after entrance timeline
+          ease: 'power1.in',
+        }
+      );
+
+      // Each particle floats independently in an infinite loop
+      particleEls.forEach((el, i) => {
+        const p = particles[i];
+        if (!p) return;
+
+        gsap.to(el, {
+          x: `+=${p.driftX}`,
+          y: `+=${p.driftY}`,
+          opacity: 0,
+          duration: p.duration,
+          delay: p.delay + delayOffset + 3,
+          ease: 'none',
+          repeat: -1,
+          repeatDelay: 1,
+          yoyo: false,
+          onRepeat: () => {
+            // Reset position for next loop cycle
+            gsap.set(el, {
+              x: 0,
+              y: 0,
+              opacity: parseFloat(el.dataset.baseOpacity || '0.25'),
+            });
+          },
+        });
+      });
+    },
+    { dependencies: [particles], scope: containerRef }
+  )
+
   return (
     <section
       ref={containerRef}
@@ -258,9 +399,29 @@ export function HeroSection() {
 
         {/* Dark overlay to ensure background images are always rich and text is legible */}
         <div className="absolute inset-0 bg-black/45 z-10" />
-        
-        {/* Static atmospheric gradient that fades to the theme canvas at the bottom */}
-        <div className="absolute inset-0 bg-linear-to-b from-transparent via-nbac-canvas/5 to-nbac-canvas z-10" />
+
+        {/* ── Ambient Floating Particles ──────────────── */}
+        {particles.map((p) => (
+          <div
+            key={p.id}
+            className="hero-particle"
+            data-base-opacity={p.color.match(/[\d.]+(?=\))/)?.[0] || '0.25'}
+            style={{
+              width: p.size,
+              height: p.size,
+              left: `${p.x}%`,
+              top: `${p.y}%`,
+              backgroundColor: p.color,
+              opacity: 0,
+              boxShadow: `0 0 ${p.size * 2}px ${p.color}`,
+            }}
+          />
+        ))}
+
+        {/* ── Cinematic Light Sweep ───────────────────── */}
+        <div className="hero-light-sweep">
+          <div ref={lightSweepRef} className="hero-light-sweep-beam" />
+        </div>
         
         {/* Scroll-reactive theme-colored overlay — starts transparent */}
         <div className="hero-gradient-scroll absolute inset-0 bg-nbac-canvas z-10 opacity-0" />
@@ -277,13 +438,14 @@ export function HeroSection() {
         {/* Eyebrow */}
         <span
           ref={eyebrowRef}
-          className="font-sans text-xs md:text-sm uppercase tracking-[0.3em] font-semibold text-nbac-emerald-light block opacity-0 select-none"
+          className="font-sans text-xs md:text-sm uppercase tracking-[0.3em] font-semibold text-nbac-gold-light block opacity-0 select-none"
         >
           {phrases[0]}
         </span>
 
         {/* Display Heading — word-by-word reveal with 3D perspective */}
         <h1
+          ref={headingRef}
           className="font-display text-3xl sm:text-4xl md:text-7xl lg:text-8xl font-bold text-white leading-[1.1] tracking-tight"
           style={{ perspective: '600px' }}
         >
@@ -296,38 +458,40 @@ export function HeroSection() {
         </h1>
 
         {/* Venue / Date Metadata */}
-        <p className="hero-meta font-sans text-xs sm:text-sm md:text-lg text-nbac-text tracking-wider font-medium max-w-2xl opacity-0">
-          October 24-26, 2024 • Eko Convention Centre, Lagos, Nigeria
+        <p className="hero-meta font-sans text-xs sm:text-sm md:text-lg text-white/90 tracking-wider font-medium max-w-2xl opacity-0">
+          May 4-5, 2027 • Mariot Hotel Ikeja, Lagos, Nigeria
         </p>
 
         {/* Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-16 py-2 md:py-3 w-full my-2 md:my-3 relative">
+        <div ref={statsRowRef} className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-16 py-2 md:py-3 w-full my-2 md:my-3 relative">
           {/* Top divider — grows from center */}
-          <div className="hero-divider-line absolute top-0 left-0 right-0 h-px bg-nbac-border origin-center opacity-0" />
+          <div className="hero-divider-line absolute top-0 left-0 right-0 h-px bg-white/15 origin-center opacity-0" />
 
           <div className="hero-stat-item opacity-0">
-            <StatCounter value={500} suffix="+" label="Delegates" duration={1.5} numberClassName="text-nbac-text" labelClassName="text-nbac-body" />
+            <StatCounter value={300} suffix="+" label="Delegates" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
           </div>
           <div className="hero-stat-item opacity-0">
-            <StatCounter value={30} suffix="+" label="Exhibitors" duration={1.5} numberClassName="text-nbac-text" labelClassName="text-nbac-body" />
+            <StatCounter value={30} suffix="+" label="AeroLab Finalist Teams" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
           </div>
           <div className="hero-stat-item opacity-0">
-            <StatCounter value={50} suffix="+" label="Speakers" duration={1.5} numberClassName="text-nbac-text" labelClassName="text-nbac-body" />
+            <StatCounter value={8} suffix="+" label="Speakers" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
           </div>
           <div className="hero-stat-item opacity-0">
-            <StatCounter value={15} suffix="+" label="Aircraft on Display" duration={1.5} numberClassName="text-nbac-text" labelClassName="text-nbac-body" />
+            <StatCounter value={15} suffix="+" label="Aircraft on Display" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
           </div>
 
           {/* Bottom divider — grows from center */}
-          <div className="hero-divider-line absolute bottom-0 left-0 right-0 h-px bg-nbac-border origin-center opacity-0" />
+          <div className="hero-divider-line absolute bottom-0 left-0 right-0 h-px bg-white/15 origin-center opacity-0" />
         </div>
 
         {/* CTAs */}
         <div className="hero-buttons flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto opacity-0">
-          <button className="w-full sm:w-auto bg-nbac-emerald hover:bg-nbac-emerald-dark text-nbac-canvas font-sans font-medium px-6 md:px-8 py-2.5 md:py-3 rounded-full transition-colors shadow-lg shadow-nbac-emerald/20 text-sm uppercase tracking-widest">
-            Secure Executive Pass
-          </button>
-          <button className="w-full sm:w-auto border border-nbac-border text-nbac-text hover:bg-nbac-panel font-sans font-medium px-6 md:px-8 py-2.5 md:py-3 rounded-full transition-colors backdrop-blur-sm text-sm uppercase tracking-widest">
+          <Link href="/reservations" className="w-full sm:w-auto">
+            <button className="hero-shimmer w-full bg-gradient-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold hover:from-nbac-gold-light hover:to-nbac-gold text-[#0b0f10] font-sans font-bold px-6 md:px-8 py-2.5 md:py-3 rounded-full transition-all duration-300 shadow-lg shadow-nbac-gold/15 hover:shadow-nbac-gold/30 hover:scale-[1.02] active:scale-[0.98] text-sm uppercase tracking-widest">
+              Secure Executive Pass
+            </button>
+          </Link>
+          <button className="w-full sm:w-auto border border-white/20 text-white hover:bg-white/10 hover:border-white/40 font-sans font-medium px-6 md:px-8 py-2.5 md:py-3 rounded-full transition-colors backdrop-blur-sm text-sm uppercase tracking-widest">
             Download Brochure
           </button>
         </div>

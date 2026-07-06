@@ -21,7 +21,7 @@ export function SponsorsStrip() {
           return (
             <div
               key={`${sponsor.name}-${i}`}
-              className="flex items-center gap-3 px-6 py-3 bg-nbac-panel/40 border border-nbac-border/10 rounded-full text-nbac-muted grayscale opacity-50 hover:opacity-100 hover:grayscale-0 hover:border-nbac-emerald/30 hover:text-nbac-emerald transition-all duration-300 cursor-pointer"
+              className="flex items-center gap-3 px-6 py-3 bg-nbac-panel/40 border border-nbac-border/10 rounded-full text-nbac-muted grayscale opacity-50 hover:opacity-100 hover:grayscale-0 hover:border-nbac-gold/30 hover:text-nbac-gold transition-all duration-300 cursor-pointer"
             >
               <Icon size={18} className="flex-shrink-0" />
               <span className="font-sans text-sm font-semibold tracking-wider uppercase">

@@ -48,7 +48,6 @@ export function ContactInfo() {
 
   const cardHoverConfig = {
     y: -6,
-    borderColor: 'rgba(16, 185, 129, 0.4)',
     boxShadow: '0 12px 40px rgba(16, 185, 129, 0.08)',
   }
 
@@ -71,7 +70,7 @@ export function ContactInfo() {
           return (
             <motion.div
               key={idx}
-              className="bg-nbac-panel/75 border border-nbac-border rounded-xl p-6 md:p-8 flex flex-col justify-between relative overflow-hidden group backdrop-blur-xl"
+              className="bg-nbac-panel/75 border border-nbac-border rounded-xl p-6 md:p-8 flex flex-col justify-between relative overflow-hidden group backdrop-blur-xl transition-colors duration-300 hover:border-nbac-emerald/40"
               whileHover={cardHoverConfig}
               transition={{ duration: 0.3, ease: 'easeOut' }}
             >

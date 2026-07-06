@@ -18,6 +18,11 @@ const cormorant = Cormorant_Garamond({
 export const metadata: Metadata = {
   title: "NBAC | Nigerian Business Aviation Conference",
   description: "West Africa's premier business aviation conference combining elite panels, private aircraft displays, and high-level networking.",
+  icons: {
+    icon: "/images/logo-mark.jpg",
+    shortcut: "/images/logo-mark.jpg",
+    apple: "/images/logo-mark.jpg",
+  },
 };
 
 export default function RootLayout({
@@ -29,7 +34,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={cn(
-        "h-full",
+        "h-full dark",
         "antialiased",
         inter.variable,
         cormorant.variable
@@ -42,14 +47,8 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  const theme = localStorage.getItem('nbac-theme') || 'light';
-                  if (theme === 'dark') {
-                    document.documentElement.classList.add('dark');
-                    document.documentElement.style.colorScheme = 'dark';
-                  } else {
-                    document.documentElement.classList.remove('dark');
-                    document.documentElement.style.colorScheme = 'light';
-                  }
+                  document.documentElement.classList.add('dark');
+                  document.documentElement.style.colorScheme = 'dark';
                 } catch (e) {}
               })()
             `,

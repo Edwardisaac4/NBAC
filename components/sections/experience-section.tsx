@@ -104,13 +104,14 @@ export function ExperienceSection() {
         <div className="reveal-left opacity-0 order-2 lg:order-1 relative w-full aspect-video lg:aspect-[4/3] rounded-xl overflow-hidden border border-nbac-border shadow-2xl shadow-nbac-emerald/5 group">
           {/* Subtle green ambient lighting underneath */}
           <div className="absolute -top-10 -left-10 w-40 h-40 bg-nbac-emerald/5 blur-[85px] rounded-full" />
-          <div ref={imageRef}>
+          <div ref={imageRef} className="w-full h-full absolute inset-0">
             <Image
               src="/images/interior_cabin.jpg"
               alt="Luxury business jet interior"
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-700"
-              sizes="(max-w-720px) 100vw, 50vw"
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              quality={90}
             />
           </div>
         </div>
