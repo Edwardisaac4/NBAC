@@ -20,19 +20,29 @@ export function AboutHistory() {
 
   const events: TimelineEvent[] = [
     {
-      year: '2023',
-      title: 'Policy Leadership',
-      description: 'Influencing the implementation of modernized regulatory frameworks for business jet operators in Lagos and Abuja.',
+      year: '2026/2027',
+      title: 'Connected Ecosystem',
+      description: 'Focusing on "One Sky, Many Stakeholders," coordinating regulatory, operational, and infrastructure layers for unified growth.',
     },
     {
-      year: '2021',
-      title: 'Resilience & Growth',
-      description: 'Surpassing 500+ international delegates and securing key commitments for regional maintenance exchanges.',
+      year: '2017',
+      title: 'Strategic Partnerships',
+      description: 'The themed gala "An Evening of Aviators" fostered critical commercial alliances and modern leasing models for corporate jets.',
     },
     {
-      year: '2018',
+      year: '2016',
+      title: 'Policy & Advocacy',
+      description: 'Steering industry rules on tax incentives, customs, and airspace access to streamline operators\' overheads.',
+    },
+    {
+      year: '2014',
+      title: 'Infrastructure Expansion',
+      description: 'Initiating planning frameworks for FBO terminals, luxury passenger lounges, and dedicated hangar capacity across local airports.',
+    },
+    {
+      year: '2013',
       title: 'The Inaugural Summit',
-      description: 'The first dedicated gathering of aviation elites in West Africa, establishing the groundwork for the annual conference.',
+      description: 'The first dedicated business aviation summit in Nigeria, establishing the annual platform for leaders, operators, and regulators.',
     },
   ]
 

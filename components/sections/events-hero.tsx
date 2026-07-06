@@ -116,7 +116,7 @@ export function EventsHero() {
       <div ref={contentRef} className="relative z-10 max-w-7xl mx-auto px-6 md:px-24 text-center">
         <div className="events-eyebrow opacity-0">
           <SectionEyebrow className="text-center justify-center">
-            October 28 - 29, 2026 • Lagos, Nigeria
+            May 4 - 5, 2027 • Mariot Hotel Ikeja, Lagos, Nigeria
           </SectionEyebrow>
         </div>
 
