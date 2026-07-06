@@ -14,7 +14,7 @@ export default function AdminLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const { role, isAdmin, loading } = useAdminRole();
+  const { isAdmin, loading } = useAdminRole();
 
   const isLoginPage = pathname === '/admin/login';
 

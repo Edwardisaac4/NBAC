@@ -293,7 +293,7 @@ export function SponsorBenefitsModal({ tier, isOpen, onClose }: SponsorBenefitsM
                     "w-full md:w-auto font-sans font-bold px-8 py-4 rounded-full text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 border cursor-pointer",
                     tier.availability === 'sold_out'
                       ? "border-nbac-border text-nbac-muted bg-transparent cursor-not-allowed"
-                      : "bg-gradient-to-r from-nbac-gold to-nbac-gold-light text-[#0b0f10] border-transparent shadow-[0_4px_15px_rgba(197,160,89,0.25)] hover:shadow-[0_6px_20px_rgba(197,160,89,0.45)] hover:scale-[1.01] active:scale-[0.99]"
+                      : "bg-linear-to-r from-nbac-gold to-nbac-gold-light text-[#0b0f10] border-transparent shadow-[0_4px_15px_rgba(197,160,89,0.25)] hover:shadow-[0_6px_20px_rgba(197,160,89,0.45)] hover:scale-[1.01] active:scale-[0.99]"
                   )}
                 >
                   {tier.availability === 'sold_out' ? 'Sold Out' : `Select ${tier.name} Tier`}

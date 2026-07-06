@@ -101,12 +101,12 @@ export function EventsHero() {
       {/* Background Image Layer with Parallax */}
       <div 
         ref={bgRef}
-        className="absolute inset-0 w-full h-[120%] -top-[10%] bg-cover bg-center bg-no-repeat"
+        className="absolute inset-0 w-full h-[120%] top-[-10%] bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: 'url(/images/private_jet_runway_dusk.png)' }}
       />
       
       {/* Dark Luxury Gradient Overlays */}
-      <div className="absolute inset-0 bg-gradient-to-t from-nbac-canvas via-nbac-canvas/80 to-transparent z-0" />
+      <div className="absolute inset-0 bg-linear-to-t from-nbac-canvas via-nbac-canvas/80 to-transparent z-0" />
       <div className="absolute inset-0 bg-black/45 z-0" />
       
       {/* Radial Environmental Light */}
@@ -122,7 +122,7 @@ export function EventsHero() {
 
         <h1 className="events-title opacity-0 font-display text-4xl md:text-6xl lg:text-7xl font-bold text-nbac-text tracking-tight leading-tight md:leading-none max-w-5xl mx-auto mb-6">
           Shaping the Future of <br className="hidden md:inline" />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-nbac-text via-nbac-text to-nbac-emerald dark:from-white dark:via-nbac-text dark:to-nbac-emerald text-glow">
+          <span className="text-transparent bg-clip-text bg-linear-to-r from-nbac-text via-nbac-text to-nbac-emerald dark:from-white dark:via-nbac-text dark:to-nbac-emerald text-glow">
             West African Business Aviation
           </span>
         </h1>

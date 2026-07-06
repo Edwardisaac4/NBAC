@@ -23,7 +23,7 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
-  const { role, isHeadAdmin } = useAdminRole();
+  const { role } = useAdminRole();
 
   const menuItems = [
     {
@@ -66,7 +66,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       {/* Brand Header */}
       <div className="flex items-center justify-between p-6 border-b border-nbac-border h-20">
         <Link href="/admin" className="flex flex-col group">
-          <span className="font-display text-2xl font-bold bg-gradient-to-r from-nbac-emerald via-nbac-gold to-nbac-gold-light bg-clip-text text-transparent tracking-tight">
+          <span className="font-display text-2xl font-bold bg-linear-to-r from-nbac-emerald via-nbac-gold to-nbac-gold-light bg-clip-text text-transparent tracking-tight">
             NBAC
           </span>
           <span className="font-sans text-[10px] uppercase tracking-widest font-semibold text-nbac-muted group-hover:text-nbac-gold transition-colors">
@@ -103,7 +103,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             >
               {/* Active Glow Backdrop */}
               {isActive && (
-                <div className="absolute inset-0 bg-gradient-to-r from-nbac-gold/5 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-linear-to-r from-nbac-gold/5 to-transparent pointer-events-none" />
               )}
               
               <Icon 

@@ -261,7 +261,7 @@ export function EventsSchedule({ sessions, eventId }: EventsScheduleProps) {
       {/* Schedule Timeline Grid */}
       <div className="relative">
         {/* Vertical Timeline Guide Line */}
-        <div className="absolute left-[39px] md:left-[119px] top-4 bottom-4 w-[1px] bg-nbac-border pointer-events-none hidden sm:block" />
+        <div className="absolute left-[39px] md:left-[119px] top-4 bottom-4 w-px bg-nbac-border pointer-events-none hidden sm:block" />
 
         {/* Sessions list */}
         <div ref={listRef} className="flex flex-col gap-6 md:gap-8">

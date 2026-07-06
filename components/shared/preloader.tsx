@@ -42,18 +42,9 @@ export function Preloader() {
 
       const tl = gsap.timeline({
         onComplete: () => {
-          // Fade out the entire preloader container
-          gsap.to(containerRef.current, {
-            opacity: 0,
-            scale: 1.05,
-            duration: 0.6,
-            ease: 'power2.inOut',
-            onComplete: () => {
-              document.body.style.overflow = ''
-              sessionStorage.setItem('nbac-preloader-shown', 'true')
-              setIsVisible(false)
-            },
-          })
+          document.body.style.overflow = ''
+          sessionStorage.setItem('nbac-preloader-shown', 'true')
+          setIsVisible(false)
         },
       })
 
@@ -79,8 +70,19 @@ export function Preloader() {
         { width: '100%', duration: 1.2, ease: 'power1.inOut' },
         '-=0.3'
       )
+
+      // 4. Fade out the entire preloader container
+      tl.to(
+        containerRef.current,
+        {
+          opacity: 0,
+          scale: 1.05,
+          duration: 0.6,
+          ease: 'power2.inOut',
+        }
+      )
     },
-    { scope: containerRef, dependencies: [isAlreadyShown, isVisible] }
+    { dependencies: [isAlreadyShown, isVisible] }
   )
 
   if (isAlreadyShown || !isVisible) return null

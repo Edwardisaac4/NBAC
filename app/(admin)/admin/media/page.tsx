@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Image as ImageIcon, Upload, Trash2, Tag, ArrowUp, ArrowDown } from 'lucide-react';
+import { Image as ImageIcon, Upload, Trash2, Tag } from 'lucide-react';
 import { useAdminRole } from '@/hooks/use-admin-role';
 import { RoleBanner } from '@/components/admin/role-banner';
 
@@ -94,6 +94,7 @@ export default function MediaGalleryPage() {
               <div className="absolute inset-0 flex items-center justify-center text-nbac-border">
                 <ImageIcon size={32} />
               </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img 
                 src={item.url} 
                 alt={item.name} 

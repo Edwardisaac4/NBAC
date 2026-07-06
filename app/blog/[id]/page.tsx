@@ -7,7 +7,7 @@ import Image from 'next/image'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
 import { PageTransition } from '@/components/layout/page-transition'
-import { getStoredPosts, BlogPost } from '@/lib/blog-data'
+import { getDbPosts, BlogPost } from '@/lib/blog-data'
 import { ArrowLeft, User, Clock, Calendar, Share2, Check } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import { MarkdownRenderer } from '@/components/shared/markdown-renderer'
@@ -20,22 +20,28 @@ export default function BlogPostPage({ params }: { params: Promise<{ id: string 
   const [recommendations, setRecommendations] = useState<BlogPost[]>([])
 
   useEffect(() => {
-    const allPosts = getStoredPosts()
-    const foundPost = allPosts.find(p => p.id === resolvedParams.id)
-    
-    if (!foundPost) {
-      router.push('/blog')
-      return
-    }
+    let active = true
+    async function loadPost() {
+      const allPosts = await getDbPosts()
+      if (!active) return
+      
+      const foundPost = allPosts.find(p => p.id === resolvedParams.id)
+      
+      if (!foundPost) {
+        router.push('/blog')
+        return
+      }
 
-    const timer = setTimeout(() => {
       setPost(foundPost)
       
       // Find up to 3 recommendations
       const otherPosts = allPosts.filter(p => p.id !== resolvedParams.id && p.status === 'published')
       setRecommendations(otherPosts.slice(0, 3))
-    }, 0);
-    return () => clearTimeout(timer);
+    }
+    loadPost()
+    return () => {
+      active = false
+    }
   }, [resolvedParams.id, router])
 
   const handleShare = () => {

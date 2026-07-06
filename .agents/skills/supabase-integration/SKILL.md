@@ -44,7 +44,7 @@ Always use the dedicated helper clients instead of instantiating new `createClie
 
 ## 3. Database Operations & Audit Logs
 
-- When querying database tables, ensure results match TypeScript definitions in `src/types/index.ts`.
+- When querying database tables, ensure results match TypeScript definitions in `types/index.ts`.
 - Every admin mutation (insert, update, delete) automatically inserts a security audit log into the `admin_logs` table via a PostgreSQL database trigger. **Do not write manual insertions to `admin_logs` from Next.js server code.**
 
 ---

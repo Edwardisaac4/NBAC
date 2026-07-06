@@ -10,6 +10,7 @@ import { PageTransition } from "@/components/layout/page-transition"
 import { SPONSOR_TIERS, SPONSOR_ADD_ONS } from '@/lib/constants'
 import { SponsorTierDetails } from '@/types'
 import { cn } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
 
 export default function SponsorContactPage() {
   const [selectedTier, setSelectedTier] = useState<SponsorTierDetails | null>(null)
@@ -88,20 +89,46 @@ export default function SponsorContactPage() {
     return tier.price
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedTier) return
-    
-    setSubmittedTier(selectedTier)
-    setSubmittedAddOns([...selectedAddOns])
-    setSubmittedTrackCount(trackCount)
     setIsSubmitting(true)
     
-    // Simulate executive liaison API ingestion and invoice routing
-    setTimeout(() => {
+    try {
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('sponsors')
+        .insert({
+          company_name: formData.companyName,
+          industry: formData.industry,
+          website: formData.website,
+          full_name: formData.fullName,
+          designation: formData.designation,
+          email: formData.email,
+          phone: formData.phone,
+          tier: selectedTier.name,
+          add_ons: selectedAddOns,
+          track_count: trackCount,
+          special_requirements: formData.specialRequirements
+        })
+        
+      if (error) {
+        throw error
+      }
+      
+      // Delay slightly for visual checkout uploader transition
+      setTimeout(() => {
+        setSubmittedTier(selectedTier)
+        setSubmittedAddOns([...selectedAddOns])
+        setSubmittedTrackCount(trackCount)
+        setIsSubmitting(false)
+        setSubmitSuccess(true)
+      }, 1500)
+    } catch (err) {
       setIsSubmitting(false)
-      setSubmitSuccess(true)
-    }, 2000)
+      const msg = err instanceof Error ? err.message : String(err)
+      alert(`Sponsorship Submission Error: ${msg}`)
+    }
   }
 
   const formatPrice = (price: number) => {

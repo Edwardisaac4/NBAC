@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Menu, Bell, Shield, Moon, Sun, Settings } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Menu, Bell, Shield, Settings } from 'lucide-react';
 import { useAdminRole } from '@/hooks/use-admin-role';
 
 interface AdminTopbarProps {
@@ -11,7 +10,7 @@ interface AdminTopbarProps {
 }
 
 export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
-  const { role, isHeadAdmin } = useAdminRole();
+  const { isHeadAdmin } = useAdminRole();
 
   return (
     <header className="sticky top-0 right-0 z-20 flex items-center justify-between px-6 h-20 bg-nbac-canvas/80 backdrop-blur-md border-b border-nbac-border text-nbac-text select-none">
@@ -54,7 +53,7 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
 
         {/* Head Admin Mode / Editor Mode Badge */}
         {isHeadAdmin ? (
-          <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold text-[#0b0f10] border border-nbac-gold-light/25 shadow-lg shadow-nbac-gold/15 rounded-full font-sans text-xs font-semibold uppercase tracking-wider select-none animate-pulse-subtle">
+          <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-linear-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold text-[#0b0f10] border border-nbac-gold-light/25 shadow-lg shadow-nbac-gold/15 rounded-full font-sans text-xs font-semibold uppercase tracking-wider select-none animate-pulse-subtle">
             <Shield size={13} strokeWidth={2.5} />
             <span>Head Admin Mode</span>
           </div>

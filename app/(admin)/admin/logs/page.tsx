@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
-import { ShieldAlert, ShieldX, Key, Terminal, Calendar } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShieldX, Terminal, Calendar } from 'lucide-react';
 import { useAdminRole } from '@/hooks/use-admin-role';
 import { RoleBanner } from '@/components/admin/role-banner';
+import { createClient } from '@/lib/supabase/client';
 
-interface MockLog {
+interface DBLog {
   id: string;
   admin: string;
   role: string;
@@ -15,48 +16,73 @@ interface MockLog {
   date: string;
 }
 
-const mockLogs: MockLog[] = [
-  {
-    id: 'log_1',
-    admin: 'chief.admin@nbac.com.ng',
-    role: 'Head Admin',
-    action: 'login',
-    target: 'Successful admin login credentials session verified',
-    ip: '197.210.64.12',
-    date: '2026-06-29 12:05'
-  },
-  {
-    id: 'log_2',
-    admin: 'staff.editor@nbac.com.ng',
-    role: 'Editor',
-    action: 'edited',
-    target: 'Updated Speaker Committee bios on events page content',
-    ip: '102.89.43.195',
-    date: '2026-06-29 11:15'
-  },
-  {
-    id: 'log_3',
-    admin: 'chief.admin@nbac.com.ng',
-    role: 'Head Admin',
-    action: 'deleted',
-    target: 'Removed duplicate registration: Ref NBAC-2026-VIP-00219',
-    ip: '197.210.64.12',
-    date: '2026-06-29 10:42'
-  },
-  {
-    id: 'log_4',
-    admin: 'chief.admin@nbac.com.ng',
-    role: 'Head Admin',
-    action: 'permission_changed',
-    target: 'Elevated staff.editor@nbac.com.ng write token authorizations',
-    ip: '197.210.64.12',
-    date: '2026-06-28 09:30'
-  }
-];
-
 export default function SecurityLogsPage() {
   const { isHeadAdmin } = useAdminRole();
+  const [logs, setLogs] = useState<DBLog[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filterAction, setFilterAction] = useState<string>('all');
+
+  useEffect(() => {
+    if (!isHeadAdmin) return;
+    
+    let active = true;
+    async function fetchLogs() {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('audit_logs')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Failed to fetch audit logs from Supabase:', error.message);
+          return;
+        }
+
+        if (active && data) {
+          const mapped: DBLog[] = (data as {
+            id: string;
+            admin_email: string;
+            role: string;
+            action: DBLog['action'];
+            target: string;
+            ip_address: string | null;
+            created_at: string;
+          }[]).map((row) => {
+            const dateObj = new Date(row.created_at);
+            const formattedDate = dateObj.toLocaleString('en-US', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+            }).replace(',', '');
+
+            return {
+              id: row.id,
+              admin: row.admin_email,
+              role: row.role,
+              action: row.action,
+              target: row.target,
+              ip: row.ip_address || '127.0.0.1',
+              date: formattedDate
+            };
+          });
+          setLogs(mapped);
+        }
+      } catch (err) {
+        console.error('Failed to load logs:', err);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    fetchLogs();
+    return () => {
+      active = false;
+    };
+  }, [isHeadAdmin]);
 
   // Hard route protection in component layout (preventing editor page manual entries)
   if (!isHeadAdmin) {
@@ -75,9 +101,9 @@ export default function SecurityLogsPage() {
     );
   }
 
-  const filteredLogs = mockLogs.filter(log => filterAction === 'all' || log.action === filterAction);
+  const filteredLogs = logs.filter(log => filterAction === 'all' || log.action === filterAction);
 
-  const getActionBadgeColor = (action: MockLog['action']) => {
+  const getActionBadgeColor = (action: DBLog['action']) => {
     switch (action) {
       case 'login':
         return 'text-nbac-emerald-light border-nbac-emerald/10 bg-nbac-emerald/5';
@@ -85,6 +111,10 @@ export default function SecurityLogsPage() {
         return 'text-nbac-gold-light border-nbac-gold/20 bg-nbac-gold/5';
       case 'deleted':
         return 'text-nbac-danger border-nbac-danger/20 bg-nbac-danger/5';
+      case 'published':
+        return 'text-nbac-emerald-light border-nbac-emerald/20 bg-nbac-emerald/5';
+      case 'edited':
+        return 'text-nbac-gold border-nbac-gold/20 bg-nbac-gold/5';
       default:
         return 'text-nbac-text border-nbac-border bg-nbac-panel';
     }
@@ -136,33 +166,50 @@ export default function SecurityLogsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-nbac-border font-sans text-sm font-light">
-              {filteredLogs.map((log) => (
-                <tr key={log.id} className="hover:bg-nbac-canvas/40 transition-colors">
-                  <td className="p-4 pl-6 font-medium text-nbac-text">
-                    <div className="flex items-center gap-2">
-                      <Terminal size={12} className="text-nbac-gold" />
-                      <span>{log.admin}</span>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span className={`text-[10px] uppercase font-semibold tracking-wider border px-2 py-0.5 rounded ${getActionBadgeColor(log.action)}`}>
-                      {log.action.replace('_', ' ')}
-                    </span>
-                  </td>
-                  <td className="p-4 text-nbac-body">
-                    {log.target}
-                  </td>
-                  <td className="p-4 text-nbac-muted text-xs font-mono">
-                    {log.ip}
-                  </td>
-                  <td className="p-4 pr-6 text-nbac-muted text-xs font-mono">
-                    <div className="flex items-center gap-1.5">
-                      <Calendar size={11} />
-                      <span>{log.date}</span>
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-nbac-muted font-sans font-light">
+                    <div className="flex justify-center items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-nbac-emerald border-t-transparent" />
+                      <span>Syncing operations log...</span>
                     </div>
                   </td>
                 </tr>
-              ))}
+              ) : filteredLogs.length > 0 ? (
+                filteredLogs.map((log) => (
+                  <tr key={log.id} className="hover:bg-nbac-canvas/40 transition-colors">
+                    <td className="p-4 pl-6 font-medium text-nbac-text">
+                      <div className="flex items-center gap-2">
+                        <Terminal size={12} className="text-nbac-gold" />
+                        <span>{log.admin}</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <span className={`text-[10px] uppercase font-semibold tracking-wider border px-2 py-0.5 rounded ${getActionBadgeColor(log.action)}`}>
+                        {log.action.replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td className="p-4 text-nbac-body">
+                      {log.target}
+                    </td>
+                    <td className="p-4 text-nbac-muted text-xs font-mono">
+                      {log.ip}
+                    </td>
+                    <td className="p-4 pr-6 text-nbac-muted text-xs font-mono">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar size={11} />
+                        <span>{log.date}</span>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-nbac-muted font-sans font-light">
+                    No security logs match your filter criteria.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

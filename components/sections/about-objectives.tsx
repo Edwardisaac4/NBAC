@@ -68,8 +68,8 @@ export function AboutObjectives() {
       className="relative py-20 md:py-32 bg-nbac-alt overflow-hidden"
     >
       {/* Background glow */}
-      <div className="absolute top-1/3 left-1/4 w-80 h-80 bg-nbac-emerald/[0.04] blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/6 w-64 h-64 bg-nbac-emerald/[0.03] blur-[100px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/3 left-1/4 w-80 h-80 bg-nbac-emerald/4 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/6 w-64 h-64 bg-nbac-emerald/3 blur-[100px] rounded-full pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 md:px-24">
         {/* Section Header */}
@@ -87,15 +87,15 @@ export function AboutObjectives() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10">
           {/* Conference Objectives Card */}
           <motion.div
-            className="obj-card relative overflow-hidden group rounded-2xl border border-nbac-border/60 bg-gradient-to-br from-nbac-panel via-nbac-panel to-nbac-emerald/[0.03] transition-all duration-500 hover:border-nbac-emerald/30 hover:shadow-[0_8px_40px_rgba(16,185,129,0.08)]"
+            className="obj-card relative overflow-hidden group rounded-2xl border border-nbac-border/60 bg-linear-to-br from-nbac-panel via-nbac-panel to-nbac-emerald/3 transition-all duration-500 hover:border-nbac-emerald/30 hover:shadow-[0_8px_40px_rgba(16,185,129,0.08)]"
             whileHover={cardHover}
             transition={{ duration: 0.35, ease: 'easeOut' }}
           >
             {/* Emerald top accent bar */}
-            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-nbac-emerald/80 via-nbac-emerald to-nbac-emerald/40" />
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-linear-to-r from-nbac-emerald/80 via-nbac-emerald to-nbac-emerald/40" />
 
             {/* Corner glow */}
-            <div className="absolute -top-20 -right-20 w-48 h-48 bg-nbac-emerald/[0.04] blur-[60px] rounded-full pointer-events-none group-hover:bg-nbac-emerald/[0.08] transition-colors duration-700" />
+            <div className="absolute -top-20 -right-20 w-48 h-48 bg-nbac-emerald/4 blur-[60px] rounded-full pointer-events-none group-hover:bg-nbac-emerald/8 transition-colors duration-700" />
 
             <div className="relative z-10 p-7 md:p-9 space-y-6">
               {/* Header */}
@@ -114,14 +114,14 @@ export function AboutObjectives() {
               </div>
 
               {/* Divider */}
-              <div className="h-px bg-gradient-to-r from-nbac-border via-nbac-border/50 to-transparent" />
+              <div className="h-px bg-linear-to-r from-nbac-border via-nbac-border/50 to-transparent" />
 
               {/* Numbered list */}
               <ol className="space-y-0">
                 {CONFERENCE_OBJECTIVES.map((text, i) => (
                   <li
                     key={i}
-                    className="group/item flex items-start gap-4 py-3.5 border-b border-nbac-border/30 last:border-b-0 transition-colors duration-300 hover:bg-nbac-emerald/[0.02] -mx-3 px-3 rounded-lg"
+                    className="group/item flex items-start gap-4 py-3.5 border-b border-nbac-border/30 last:border-b-0 transition-colors duration-300 hover:bg-nbac-emerald/2 -mx-3 px-3 rounded-lg"
                   >
                     <span className="mt-0.5 shrink-0 w-7 h-7 rounded-full bg-nbac-emerald/10 border border-nbac-emerald/20 flex items-center justify-center font-sans text-xs font-semibold text-nbac-emerald tabular-nums group-hover/item:bg-nbac-emerald/20 group-hover/item:border-nbac-emerald/40 transition-all duration-300">
                       {i + 1}
@@ -138,21 +138,21 @@ export function AboutObjectives() {
             <Target
               size={160}
               strokeWidth={0.5}
-              className="absolute -bottom-8 -right-8 text-nbac-emerald/[0.03] group-hover:text-nbac-emerald/[0.06] group-hover:rotate-6 transition-all duration-700 pointer-events-none"
+              className="absolute -bottom-8 -right-8 text-nbac-emerald/3 group-hover:text-nbac-emerald/6 group-hover:rotate-6 transition-all duration-700 pointer-events-none"
             />
           </motion.div>
 
           {/* Target Audience Card */}
           <motion.div
-            className="obj-card relative overflow-hidden group rounded-2xl border border-nbac-border/60 bg-gradient-to-br from-nbac-panel via-nbac-panel to-nbac-emerald/[0.03] transition-all duration-500 hover:border-nbac-emerald/30 hover:shadow-[0_8px_40px_rgba(16,185,129,0.08)]"
+            className="obj-card relative overflow-hidden group rounded-2xl border border-nbac-border/60 bg-linear-to-br from-nbac-panel via-nbac-panel to-nbac-emerald/3 transition-all duration-500 hover:border-nbac-emerald/30 hover:shadow-[0_8px_40px_rgba(16,185,129,0.08)]"
             whileHover={cardHover}
             transition={{ duration: 0.35, ease: 'easeOut' }}
           >
             {/* Emerald top accent bar */}
-            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-nbac-emerald/40 via-nbac-emerald to-nbac-emerald/80" />
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-linear-to-r from-nbac-emerald/40 via-nbac-emerald to-nbac-emerald/80" />
 
             {/* Corner glow */}
-            <div className="absolute -top-20 -right-20 w-48 h-48 bg-nbac-emerald/[0.04] blur-[60px] rounded-full pointer-events-none group-hover:bg-nbac-emerald/[0.08] transition-colors duration-700" />
+            <div className="absolute -top-20 -right-20 w-48 h-48 bg-nbac-emerald/4 blur-[60px] rounded-full pointer-events-none group-hover:bg-nbac-emerald/8 transition-colors duration-700" />
 
             <div className="relative z-10 p-7 md:p-9 space-y-6">
               {/* Header */}
@@ -171,14 +171,14 @@ export function AboutObjectives() {
               </div>
 
               {/* Divider */}
-              <div className="h-px bg-gradient-to-r from-nbac-border via-nbac-border/50 to-transparent" />
+              <div className="h-px bg-linear-to-r from-nbac-border via-nbac-border/50 to-transparent" />
 
               {/* Numbered list */}
               <ol className="space-y-0">
                 {TARGET_AUDIENCE.map((text, i) => (
                   <li
                     key={i}
-                    className="group/item flex items-start gap-4 py-3.5 border-b border-nbac-border/30 last:border-b-0 transition-colors duration-300 hover:bg-nbac-emerald/[0.02] -mx-3 px-3 rounded-lg"
+                    className="group/item flex items-start gap-4 py-3.5 border-b border-nbac-border/30 last:border-b-0 transition-colors duration-300 hover:bg-nbac-emerald/2 -mx-3 px-3 rounded-lg"
                   >
                     <span className="mt-0.5 shrink-0 w-7 h-7 rounded-full bg-nbac-emerald/10 border border-nbac-emerald/20 flex items-center justify-center font-sans text-xs font-semibold text-nbac-emerald tabular-nums group-hover/item:bg-nbac-emerald/20 group-hover/item:border-nbac-emerald/40 transition-all duration-300">
                       {i + 1}
@@ -195,7 +195,7 @@ export function AboutObjectives() {
             <Users
               size={160}
               strokeWidth={0.5}
-              className="absolute -bottom-8 -right-8 text-nbac-emerald/[0.03] group-hover:text-nbac-emerald/[0.06] group-hover:rotate-6 transition-all duration-700 pointer-events-none"
+              className="absolute -bottom-8 -right-8 text-nbac-emerald/3 group-hover:text-nbac-emerald/6 group-hover:rotate-6 transition-all duration-700 pointer-events-none"
             />
           </motion.div>
         </div>

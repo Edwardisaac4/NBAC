@@ -7,7 +7,7 @@ import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
 import { PageTransition } from '@/components/layout/page-transition'
 import { SectionEyebrow } from '@/components/shared/section-eyebrow'
-import { getStoredPosts, BlogPost } from '@/lib/blog-data'
+import { getDbPosts, BlogPost } from '@/lib/blog-data'
 import { Calendar, User, Clock, ArrowRight, Mail, Sparkles } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { formatDate } from '@/lib/utils'
@@ -19,20 +19,16 @@ export default function BlogOverviewPage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    // Load posts from localStorage (reactive to admin changes)
-    const timeoutId = setTimeout(() => {
-      setPosts(getStoredPosts())
-    }, 0)
-
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'nbac-blog-posts') {
-        setPosts(getStoredPosts())
+    let active = true
+    async function loadPosts() {
+      const dbPosts = await getDbPosts()
+      if (active) {
+        setPosts(dbPosts)
       }
     }
-    window.addEventListener('storage', handleStorage)
+    loadPosts()
     return () => {
-      clearTimeout(timeoutId)
-      window.removeEventListener('storage', handleStorage)
+      active = false
     }
   }, [])
 
@@ -190,7 +186,14 @@ export default function BlogOverviewPage() {
                             {post.title}
                           </h3>
                           <p className="font-sans text-xs font-light text-nbac-body leading-relaxed mb-6 line-clamp-3">
-                            {post.body ? post.body.replace(/[#*`>]/g, '').trim().substring(0, 140) + '...' : ''}
+                            {post.body ? (() => {
+                              const bodyText = post.body.trim();
+                              const isHtml = bodyText.startsWith('<');
+                              const cleanText = isHtml
+                                ? bodyText.replace(/<[^>]*>/g, '')
+                                : bodyText.replace(/[#*`>]/g, '');
+                              return cleanText.trim().substring(0, 140) + (cleanText.trim().length > 140 ? '...' : '');
+                            })() : ''}
                           </p>
                         </div>
 

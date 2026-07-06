@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useMemo, useEffect } from 'react'
+import { useRef, useState, useMemo } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -151,7 +151,7 @@ export function Navbar() {
                   <Link
                     href={link.href}
                     aria-expanded={aboutDropdownOpen}
-                    aria-haspopup="menu"
+                    aria-haspopup="true"
                     className={cn(
                       "flex items-center gap-1 font-sans text-xs uppercase tracking-wider transition-colors px-1",
                       activeLink === link.label ? "text-nbac-emerald font-medium" : "text-nbac-body hover:text-nbac-emerald"
@@ -219,7 +219,7 @@ export function Navbar() {
                   <Link
                     href={link.href}
                     aria-expanded={galleryDropdownOpen}
-                    aria-haspopup="menu"
+                    aria-haspopup="true"
                     className={cn(
                       "flex items-center gap-1 font-sans text-xs uppercase tracking-wider transition-colors px-1",
                       activeLink === link.label ? "text-nbac-emerald font-medium" : "text-nbac-body hover:text-nbac-emerald"
@@ -286,7 +286,7 @@ export function Navbar() {
             href="/reservations"
             className={cn(
               mobileMenuOpen ? "hidden lg:inline-block" : "hidden md:inline-block",
-              "bg-gradient-to-r from-nbac-gold to-nbac-gold-dark hover:from-nbac-gold-light hover:to-nbac-gold text-[#0b0f10] font-sans font-bold px-6 py-2 rounded-full text-xs uppercase tracking-wider transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_4px_15px_rgba(197,160,89,0.25)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),0_6px_20px_rgba(197,160,89,0.45)] active:scale-95"
+              "bg-linear-to-r from-nbac-gold to-nbac-gold-dark hover:from-nbac-gold-light hover:to-nbac-gold text-[#0b0f10] font-sans font-bold px-6 py-2 rounded-full text-xs uppercase tracking-wider transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_4px_15px_rgba(197,160,89,0.25)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),0_6px_20px_rgba(197,160,89,0.45)] active:scale-95"
             )}
           >
             REGISTER
@@ -478,7 +478,7 @@ export function Navbar() {
                 <Link 
                   href="/reservations"
                   onClick={toggleMobileMenu}
-                  className="w-full text-center bg-gradient-to-r from-nbac-gold to-nbac-gold-dark hover:from-nbac-gold-light hover:to-nbac-gold text-[#0b0f10] font-sans font-bold py-3 rounded-full text-sm uppercase tracking-widest transition-colors shadow-lg shadow-nbac-gold/20"
+                  className="w-full text-center bg-linear-to-r from-nbac-gold to-nbac-gold-dark hover:from-nbac-gold-light hover:to-nbac-gold text-[#0b0f10] font-sans font-bold py-3 rounded-full text-sm uppercase tracking-widest transition-colors shadow-lg shadow-nbac-gold/20"
                 >
                   REGISTER
                 </Link>
@@ -630,7 +630,7 @@ export function Navbar() {
                 <Link 
                   href="/reservations"
                   onClick={toggleMobileMenu}
-                  className="w-full max-w-md text-center bg-gradient-to-r from-nbac-gold to-nbac-gold-dark hover:from-nbac-gold-light hover:to-nbac-gold text-[#0b0f10] font-sans font-bold py-3 rounded-full text-sm uppercase tracking-widest transition-colors shadow-lg shadow-nbac-gold/20"
+                  className="w-full max-w-md text-center bg-linear-to-r from-nbac-gold to-nbac-gold-dark hover:from-nbac-gold-light hover:to-nbac-gold text-[#0b0f10] font-sans font-bold py-3 rounded-full text-sm uppercase tracking-widest transition-colors shadow-lg shadow-nbac-gold/20"
                 >
                   REGISTER
                 </Link>

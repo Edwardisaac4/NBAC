@@ -42,8 +42,11 @@ export function PostEditor({ template, initialContent, onChange, onEditorCreated
   const starterContent = initialContent ?? EDITOR_TEMPLATES[template]?.body ?? '';
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        link: false,
+      }),
       Placeholder.configure({
         placeholder: 'Start writing your post here...',
       }),

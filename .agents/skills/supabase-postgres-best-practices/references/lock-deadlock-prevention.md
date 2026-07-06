@@ -39,10 +39,10 @@ update accounts set balance = balance + 100 where id = 2;
 commit;
 ```
 
-Alternative: use a single statement to update atomically:
+Alternative: use a single statement to update atomically and reduce lock coordination. While the statement is atomic, PostgreSQL still acquires row locks as it processes rows, and deadlocks are still possible depending on row access order:
 
 ```sql
--- Single statement acquires all locks atomically
+-- Single statement reduces lock coordination; row locks are still acquired as rows are processed
 begin;
 update accounts
 set balance = balance + case id

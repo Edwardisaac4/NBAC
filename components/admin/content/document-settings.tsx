@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Upload, X, Check, Lock, Globe, AlertTriangle } from 'lucide-react';
+import { Upload, X, Lock, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { PostTemplate, PostVisibility } from '@/types';
 import { useAdminRole } from '@/hooks/use-admin-role';
@@ -116,6 +116,7 @@ export function DocumentSettings({
 
         {coverImageUrl ? (
           <div className="relative rounded-lg overflow-hidden border border-nbac-border bg-nbac-panel group">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={coverImageUrl}
               alt="Cover preview"
@@ -181,6 +182,7 @@ export function DocumentSettings({
                     onClick={() => onCoverImageUrlChange(img.url)}
                     className="relative h-14 rounded overflow-hidden border border-nbac-border cursor-pointer hover:border-nbac-emerald/55 transition-all group bg-nbac-panel"
                   >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={img.url}
                       alt={img.name}

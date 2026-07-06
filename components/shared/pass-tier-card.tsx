@@ -98,7 +98,7 @@ export function PassTierCard({ tier, isSelected, onSelect }: PassTierCardProps) 
       {isSelected && (
         <div className={cn(
           "absolute -right-24 -top-24 w-48 h-48 blur-[80px] rounded-full pointer-events-none",
-          tier.id === 'vip' ? "bg-nbac-gold/[0.04]" : "bg-nbac-emerald/[0.04]"
+          tier.id === 'vip' ? "bg-nbac-gold/4" : "bg-nbac-emerald/4"
         )} />
       )}
 
@@ -142,7 +142,7 @@ export function PassTierCard({ tier, isSelected, onSelect }: PassTierCardProps) 
           {tier.privileges.map((privilege, index) => (
             <li key={index} className="flex items-start gap-3">
               <Check size={16} className={cn("shrink-0 mt-0.5", tier.id === 'vip' ? "text-nbac-gold" : "text-nbac-emerald")} />
-              <span className="font-sans text-xs text-nbac-body leading-relaxed font-light font-sans">
+              <span className="font-sans text-xs text-nbac-body leading-relaxed font-light">
                 {privilege}
               </span>
             </li>
@@ -158,7 +158,7 @@ export function PassTierCard({ tier, isSelected, onSelect }: PassTierCardProps) 
             "w-full font-sans font-bold py-3.5 rounded-full text-[10px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2",
             isSelected
               ? (tier.id === 'vip'
-                  ? "bg-gradient-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold text-[#0b0f10] shadow-lg shadow-nbac-gold/15"
+                  ? "bg-linear-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold text-[#0b0f10] shadow-lg shadow-nbac-gold/15"
                   : "bg-nbac-emerald text-white shadow-lg shadow-nbac-emerald/10")
               : "border border-nbac-border text-nbac-body hover:text-nbac-text hover:bg-nbac-panel/80",
             isSoldOut && "border-nbac-border text-nbac-muted bg-transparent hover:bg-transparent"

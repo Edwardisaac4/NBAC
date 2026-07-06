@@ -5,38 +5,37 @@ import Link from 'next/link';
 import { Plus, Edit, Trash2, Globe, FileEdit, Image as ImageIcon } from 'lucide-react';
 import { useAdminRole } from '@/hooks/use-admin-role';
 import { RoleBanner } from '@/components/admin/role-banner';
-import { getStoredPosts, saveStoredPosts, type BlogPost } from '@/lib/blog-data';
-import type { ContentPost } from '@/types';
+import { getDbPosts, deleteDbPost, logAdminActivity, type BlogPost } from '@/lib/blog-data';
 
 export default function ContentManagerPage() {
   const { isHeadAdmin } = useAdminRole();
-  const [posts, setPosts] = useState<ContentPost[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
 
   // Load posts on mount
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setPosts(getStoredPosts() as ContentPost[]);
-      setLoaded(true);
-    }, 0);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Save posts to localStorage when changed
-  useEffect(() => {
-    if (loaded) {
-      try {
-        saveStoredPosts(posts as unknown as BlogPost[]);
-      } catch (err) {
-        console.error('Failed to save posts to localStorage:', err);
+    let active = true;
+    async function loadPosts() {
+      const dbPosts = await getDbPosts();
+      if (active) {
+        setPosts(dbPosts);
       }
     }
-  }, [posts, loaded]);
+    loadPosts();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Delete handler (Head Admin only)
-  const handleDelete = (id: string, title: string) => {
+  const handleDelete = async (id: string, title: string) => {
     if (confirm(`Are you sure you want to delete: "${title}"?\nThis action cannot be undone.`)) {
-      setPosts(posts.filter((post) => post.id !== id));
+      const success = await deleteDbPost(id);
+      if (success) {
+        setPosts(posts.filter((post) => post.id !== id));
+        await logAdminActivity('deleted', `Deleted article: "${title}" (ID: ${id})`);
+      } else {
+        alert('Failed to delete article from the database.');
+      }
     }
   };
 
@@ -100,6 +99,7 @@ export default function ContentManagerPage() {
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-7 rounded bg-[#0b0f10] border border-nbac-border overflow-hidden shrink-0 flex items-center justify-center relative">
                           {post.cover_image_url || post.featured_image ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
                             <img
                               src={post.cover_image_url || post.featured_image}
                               alt={post.title}

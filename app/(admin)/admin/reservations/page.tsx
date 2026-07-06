@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Users, FileDown, Search, ArrowUpRight, CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { FileDown, Search, ArrowUpRight, CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
 import { useAdminRole } from '@/hooks/use-admin-role';
 import { RoleBanner } from '@/components/admin/role-banner';
+import { createClient } from '@/lib/supabase/client';
 
-interface MockRegistration {
+interface DBRegistration {
   id: string;
   name: string;
   email: string;
@@ -15,93 +16,92 @@ interface MockRegistration {
   reference: string;
   date: string;
   amount: string;
+  specialRequirements: string;
+  delegateCount: number;
 }
 
-const initialRegistrations: MockRegistration[] = [
-  {
-    id: 'reg_1',
-    name: 'Dr. Akin Adewale',
-    email: 'akin.adewale@horizonair.ng',
-    company: 'Horizon Aviation Services',
-    tier: 'VIP Pass',
-    status: 'paid',
-    reference: 'NBAC-2026-VIP-00431',
-    date: '2026-06-29 12:00',
-    amount: '₦500,000'
-  },
-  {
-    id: 'reg_2',
-    name: 'Engr. Chukwuemeka Obi',
-    email: 'c.obi@obi-jets.com',
-    company: 'Obi Corporate Charters',
-    tier: 'Jet Display',
-    status: 'paid',
-    reference: 'NBAC-2026-JET-00104',
-    date: '2026-06-29 11:51',
-    amount: '₦1,200,000'
-  },
-  {
-    id: 'reg_5',
-    name: 'Tariq Al-Mansoor',
-    email: 'tariq@skyline-fbo.ae',
-    company: 'Skyline FBO Services',
-    tier: 'Platinum Sponsor',
-    status: 'paid',
-    reference: 'NBAC-2026-SPN-PLAT-002',
-    date: '2026-06-27 18:22',
-    amount: '$40,000'
-  },
-  {
-    id: 'reg_3',
-    name: 'Amina Bello',
-    email: 'amina.bello@regulator.gov.ng',
-    company: 'NCAA Aviation Board',
-    tier: 'Exhibitor Pass',
-    status: 'pending',
-    reference: 'NBAC-2026-EXH-00085',
-    date: '2026-06-29 08:30',
-    amount: '₦350,000'
-  },
-  {
-    id: 'reg_6',
-    name: 'Finance Desk',
-    email: 'finance@aerologistics.co.uk',
-    company: 'Aero Logistics Ltd',
-    tier: 'Gold Sponsor',
-    status: 'pending',
-    reference: 'NBAC-2026-SPN-GOLD-014',
-    date: '2026-06-27 14:15',
-    amount: '$33,000'
-  },
-  {
-    id: 'reg_4',
-    name: 'Marcus Vance',
-    email: 'vance@gulfstream-brokerage.com',
-    company: 'Gulfstream Aero Brokerage',
-    tier: 'VIP Pass',
-    status: 'cancelled',
-    reference: 'NBAC-2026-VIP-00389',
-    date: '2026-06-28 15:45',
-    amount: '₦500,000'
-  },
-  {
-    id: 'reg_7',
-    name: 'Kofi Mensah',
-    email: 'k.mensah@ghana-wings.com',
-    company: 'West Africa Jet Connect',
-    tier: 'Title Sponsor',
-    status: 'paid',
-    reference: 'NBAC-2026-SPN-TITLE-001',
-    date: '2026-06-26 09:12',
-    amount: '$65,000'
-  }
-];
+const getCsvFilename = () => `nbac_reservations_${Date.now()}.csv`;
 
 export default function ReservationsPage() {
-  const { isHeadAdmin } = useAdminRole();
-  const [registrations, setRegistrations] = useState<MockRegistration[]>(initialRegistrations);
+  useAdminRole();
+  const [registrations, setRegistrations] = useState<DBRegistration[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedTier, setSelectedTier] = useState<string>('all');
+
+  useEffect(() => {
+    let active = true;
+    async function fetchReservations() {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('reservations')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Failed to fetch reservations from Supabase:', error.message);
+          return;
+        }
+
+        if (active && data) {
+          const mapped: DBRegistration[] = (data as {
+            id: string;
+            name: string;
+            email: string;
+            company: string;
+            tier: string;
+            status: DBRegistration['status'];
+            reference: string;
+            created_at: string;
+            amount: number;
+            special_requirements?: string;
+            delegate_count?: number;
+          }[]).map((row) => {
+            const formattedAmount = new Intl.NumberFormat('en-NG', {
+              style: 'currency',
+              currency: 'NGN',
+              maximumFractionDigits: 0
+            }).format(row.amount);
+            
+            const dateObj = new Date(row.created_at);
+            const formattedDate = dateObj.toLocaleString('en-US', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+            }).replace(',', '');
+
+            return {
+              id: row.id,
+              name: row.name,
+              email: row.email,
+              company: row.company,
+              tier: row.tier,
+              status: row.status,
+              reference: row.reference,
+              date: formattedDate,
+              amount: formattedAmount,
+              specialRequirements: row.special_requirements || '',
+              delegateCount: row.delegate_count || 1
+            };
+          });
+          setRegistrations(mapped);
+        }
+      } catch (err) {
+        console.error('Failed to load reservations:', err);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    fetchReservations();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const filteredRegistrations = registrations.filter((reg) => {
     const matchesSearch = reg.name.toLowerCase().includes(search.toLowerCase()) || 
@@ -114,10 +114,47 @@ export default function ReservationsPage() {
   });
 
   const handleExport = (format: 'xlsx' | 'csv') => {
-    alert(`Exporting ${filteredRegistrations.length} registrations as .${format}...\nRoute triggered: /api/admin/export/registrations?format=${format}`);
+    if (filteredRegistrations.length === 0) {
+      alert('No data available to export.');
+      return;
+    }
+
+    if (format === 'csv') {
+      const headers = ['Name', 'Email', 'Company', 'Tier', 'Status', 'Reference', 'Amount', 'Date', 'Delegate Count', 'Special Requirements'];
+      const csvRows = [headers.join(',')];
+      
+      for (const reg of filteredRegistrations) {
+        const row = [
+          `"${reg.name.replace(/"/g, '""')}"`,
+          `"${reg.email.replace(/"/g, '""')}"`,
+          `"${reg.company.replace(/"/g, '""')}"`,
+          `"${reg.tier.replace(/"/g, '""')}"`,
+          `"${reg.status}"`,
+          `"${reg.reference}"`,
+          `"${reg.amount.replace(/"/g, '""')}"`,
+          `"${reg.date}"`,
+          reg.delegateCount,
+          `"${reg.specialRequirements.replace(/"/g, '""')}"`
+        ];
+        csvRows.push(row.join(','));
+      }
+
+      const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', getCsvFilename());
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      alert('Excel (.xlsx) format requires external server-side workbook libraries. Reverting to local CSV download.');
+      handleExport('csv');
+    }
   };
 
-  const getStatusBadge = (status: MockRegistration['status']) => {
+  const getStatusBadge = (status: DBRegistration['status']) => {
     switch (status) {
       case 'paid':
         return (
@@ -150,8 +187,10 @@ export default function ReservationsPage() {
       return 'text-nbac-gold-light border-nbac-gold/30 bg-nbac-gold/10';
     }
     switch (tier) {
+      case 'VIP Delegate Pass':
       case 'VIP Pass':
         return 'text-nbac-gold-light border-nbac-gold/20 bg-nbac-gold/5';
+      case 'Jet Display Pass':
       case 'Jet Display':
         return 'text-nbac-emerald-light border-nbac-emerald/20 bg-nbac-emerald/5';
       default:
@@ -201,7 +240,7 @@ export default function ReservationsPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search delegates, email, or aircraft company..."
+            placeholder="Search delegates, email, or company..."
             className="w-full bg-[#0b0f10]/60 border border-nbac-border rounded-lg pl-10 pr-4 py-2.5 text-nbac-text placeholder:text-nbac-muted font-sans text-sm focus:outline-none focus:border-nbac-gold focus:ring-1 focus:ring-nbac-gold transition-colors"
           />
           <Search className="absolute left-3.5 top-3 text-nbac-muted" size={16} />
@@ -238,7 +277,16 @@ export default function ReservationsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-nbac-border font-sans text-sm">
-              {filteredRegistrations.length > 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-nbac-muted font-sans font-light">
+                    <div className="flex justify-center items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-nbac-emerald border-t-transparent" />
+                      <span>Syncing vault records...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredRegistrations.length > 0 ? (
                 filteredRegistrations.map((reg) => (
                   <tr key={reg.id} className="hover:bg-nbac-canvas/40 transition-colors">
                     <td className="p-4 pl-6">
@@ -261,8 +309,8 @@ export default function ReservationsPage() {
                     </td>
                     <td className="p-4 pr-6 text-right">
                       <button
-                        onClick={() => alert(`Showing details for booking ${reg.reference}\nSpecial Requirements: None`)}
-                        className="text-nbac-gold-light hover:text-white border border-nbac-border hover:bg-nbac-gold/10 font-sans font-medium px-3.5 py-1.5 rounded-lg transition-colors text-xs flex items-center gap-1.5 ml-auto"
+                        onClick={() => alert(`Booking Details: ${reg.reference}\n--------------------\nDelegate: ${reg.name}\nEmail: ${reg.email}\nCompany: ${reg.company}\nDelegate Count: ${reg.delegateCount}\nSpecial Requirements: ${reg.specialRequirements || 'None'}\nDate: ${reg.date}`)}
+                        className="text-nbac-gold-light hover:text-white border border-nbac-border hover:bg-nbac-gold/10 font-sans font-medium px-3.5 py-1.5 rounded-lg transition-colors text-xs flex items-center gap-1.5 ml-auto cursor-pointer"
                       >
                         <span>Details</span>
                         <ArrowUpRight size={12} />

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Mail, Shield, User, Landmark, Phone, Plus, Minus, CreditCard, Lock, CheckCircle2 } from 'lucide-react'
 import { PassTierDetails } from '@/types'
 import { cn } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
 
 interface RegistrationFormUIProps {
   selectedTier: PassTierDetails | null
@@ -25,6 +26,13 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
   const [paymentSuccess, setPaymentSuccess] = useState(false)
   const [submittedTier, setSubmittedTier] = useState<PassTierDetails | null>(null)
   const [submittedDelegateCount, setSubmittedDelegateCount] = useState<number>(1)
+  const [submittedReference, setSubmittedReference] = useState<string>('')
+
+  const generateReference = (tierId: string) => {
+    const prefix = `NBAC-2026-${tierId.toUpperCase()}`;
+    const random = Math.floor(10000 + Math.random() * 90000);
+    return `${prefix}-${random}`;
+  }
 
   const calculateTotal = (tier: PassTierDetails | null, count: number) => {
     if (!tier) return 0
@@ -47,18 +55,49 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
     if (delegateCount > 1) setDelegateCount(prev => prev - 1)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedTier) return
-    setSubmittedTier(selectedTier)
-    setSubmittedDelegateCount(delegateCount)
     setIsSubmitting(true)
     
-    // Simulate premium payment transition and success
-    setTimeout(() => {
+    const reference = generateReference(selectedTier.id)
+    const amount = calculateTotal(selectedTier, delegateCount)
+    
+    try {
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('reservations')
+        .insert({
+          name: formData.fullName,
+          email: formData.email,
+          company: formData.company,
+          phone: formData.phone,
+          tier: selectedTier.name,
+          status: 'paid',
+          reference: reference,
+          amount: amount,
+          currency: 'NGN',
+          special_requirements: formData.specialRequirements,
+          delegate_count: delegateCount
+        })
+
+      if (error) {
+        throw error
+      }
+
+      // Simulate payment processing delay on uploader
+      setTimeout(() => {
+        setSubmittedTier(selectedTier)
+        setSubmittedDelegateCount(delegateCount)
+        setSubmittedReference(reference)
+        setIsSubmitting(false)
+        setPaymentSuccess(true)
+      }, 2000)
+    } catch (err) {
       setIsSubmitting(false)
-      setPaymentSuccess(true)
-    }, 2500)
+      const msg = err instanceof Error ? err.message : String(err)
+      alert(`Registration Error: ${msg}`)
+    }
   }
 
   const formatPrice = (price: number) => {
@@ -120,8 +159,8 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
               className="bg-nbac-panel/80 border border-nbac-border rounded-xl p-8 backdrop-blur-xl flex flex-col items-center justify-center text-center space-y-6 z-30 min-h-[550px] shadow-2xl relative overflow-hidden"
             >
               {/* Luxury gold/emerald glow particles */}
-              <div className="absolute -top-24 -left-24 w-48 h-48 blur-[80px] rounded-full pointer-events-none bg-nbac-emerald/[0.08]" />
-              <div className="absolute -bottom-24 -right-24 w-48 h-48 blur-[80px] rounded-full pointer-events-none bg-nbac-emerald/[0.05]" />
+              <div className="absolute -top-24 -left-24 w-48 h-48 blur-[80px] rounded-full pointer-events-none bg-nbac-emerald/8" />
+              <div className="absolute -bottom-24 -right-24 w-48 h-48 blur-[80px] rounded-full pointer-events-none bg-nbac-emerald/5" />
 
               <motion.div 
                 initial={{ scale: 0 }}
@@ -155,7 +194,13 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
                 </p>
               </div>
 
-              <div className="bg-nbac-canvas/80 border border-nbac-border rounded-lg p-5 w-full max-w-sm text-left space-y-3.5 shadow-inner">
+               <div className="bg-nbac-canvas/80 border border-nbac-border rounded-lg p-5 w-full max-w-sm text-left space-y-3.5 shadow-inner">
+                {submittedReference && (
+                  <div className="flex justify-between items-center text-xs border-b border-nbac-border/60 pb-2">
+                    <span className="text-nbac-muted uppercase tracking-wider">Booking Ref</span>
+                    <span className="font-mono font-bold text-nbac-emerald-light">{submittedReference}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center text-xs border-b border-nbac-border/60 pb-2">
                   <span className="text-nbac-muted uppercase tracking-wider">Package</span>
                   <span className="font-bold text-nbac-text uppercase">{submittedTier.name}</span>
@@ -205,9 +250,9 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
               className="animated-glowing-border rounded-xl p-6 md:p-8 backdrop-blur-xl shadow-2xl relative overflow-hidden group"
             >
               {/* Subtle accent glow inside card */}
-              <div className={cn(
+               <div className={cn(
                 "absolute -bottom-24 -left-24 w-48 h-48 blur-[80px] rounded-full pointer-events-none",
-                selectedTier?.id === 'vip' ? "bg-nbac-gold/[0.03]" : "bg-nbac-emerald/[0.03]"
+                selectedTier?.id === 'vip' ? "bg-nbac-gold/3" : "bg-nbac-emerald/3"
               )} />
 
               <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
@@ -396,9 +441,9 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
                   disabled={isSubmitting}
                   className={cn(
                     "w-full font-sans font-bold py-4 rounded-full text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2.5 disabled:opacity-75 disabled:cursor-not-allowed active:scale-[0.98]",
-                    selectedTier?.id === 'vip'
-                      ? "bg-gradient-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold text-[#0b0f10] shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_4px_15px_rgba(197,160,89,0.25)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),0_6px_20px_rgba(197,160,89,0.45)]"
-                      : "bg-gradient-to-r from-nbac-emerald to-[#059669] hover:from-[#059669] hover:to-[#047857] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_4px_15px_rgba(16,185,129,0.2)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_6px_20px_rgba(16,185,129,0.4)]"
+                     selectedTier?.id === 'vip'
+                      ? "bg-linear-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold text-[#0b0f10] shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_4px_15px_rgba(197,160,89,0.25)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),0_6px_20px_rgba(197,160,89,0.45)]"
+                      : "bg-linear-to-r from-nbac-emerald to-[#059669] hover:from-[#059669] hover:to-[#047857] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_4px_15px_rgba(16,185,129,0.2)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.35),0_6px_20px_rgba(16,185,129,0.4)]"
                   )}
                 >
                   {isSubmitting ? (

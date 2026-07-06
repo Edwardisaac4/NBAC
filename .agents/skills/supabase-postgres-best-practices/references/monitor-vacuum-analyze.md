@@ -48,7 +48,7 @@ alter table orders set (
   autovacuum_analyze_scale_factor = 0.02     -- Analyze at 2% changes (default 10%)
 );
 
--- Check autovacuum status
+-- Check active vacuum progress
 select * from pg_stat_progress_vacuum;
 ```
 

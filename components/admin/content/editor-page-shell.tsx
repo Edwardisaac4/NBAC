@@ -3,9 +3,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { type Editor } from '@tiptap/react';
-import { getStoredPosts, saveStoredPosts, type BlogPost } from '@/lib/blog-data';
+import { getDbPosts, saveDbPost, deleteDbPost, logAdminActivity, type BlogPost } from '@/lib/blog-data';
 import { EDITOR_TEMPLATES } from '@/lib/editor-templates';
-import type { PostTemplate, PostVisibility, ContentPost } from '@/types';
+import type { PostTemplate, PostVisibility } from '@/types';
 import { useAdminRole } from '@/hooks/use-admin-role';
 import { PublishBar } from './publish-bar';
 import { EditorToolbar } from './editor-toolbar';
@@ -63,54 +63,68 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
     setSaveStatus('saving');
 
     try {
-      const posts = getStoredPosts();
+      const posts = await getDbPosts();
       const now = new Date();
-      const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const nowIso = now.toISOString();
+      let targetPostId = currentPostId;
+      let newPostObj: BlogPost;
 
       if (currentMode === 'edit' && currentPostId) {
         // Update existing post
-        const updatedPosts = posts.map((post) => {
-          if (post.id === currentPostId) {
-            return {
-              ...post,
-              title,
-              type: postType,
-              status: targetVisibility,
-              author: authorName, // back-compat
-              author_name: authorName,
-              body,
-              cover_image_url: coverImageUrl,
-              featured_image: coverImageUrl, // back-compat
-              updated_at: formattedDate,
-            };
-          }
-          return post;
-        });
-        saveStoredPosts(updatedPosts as unknown as BlogPost[]);
+        newPostObj = {
+          id: currentPostId,
+          title,
+          type: postType,
+          status: targetVisibility,
+          author_id: 'user_admin',
+          author: authorName, // back-compat
+          author_name: authorName,
+          body,
+          cover_image_url: coverImageUrl,
+          featured_image: coverImageUrl, // back-compat
+          created_at: nowIso, // fallback
+          updated_at: nowIso,
+        };
+        const existingPost = posts.find((p) => p.id === currentPostId);
+        if (existingPost) {
+          newPostObj.created_at = existingPost.created_at;
+        }
       } else {
         // Create new post - generate a robust unique ID with random suffix to avoid collisions
         const newPostId = `post_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-        const newPost: ContentPost = {
+        targetPostId = newPostId;
+        newPostObj = {
           id: newPostId,
           title,
           type: postType,
           status: targetVisibility,
           author_id: 'user_admin',
+          author: authorName, // legacy field populated
           author_name: authorName,
           body,
           cover_image_url: coverImageUrl,
           featured_image: coverImageUrl, // back-compat
-          created_at: now.toISOString(),
-          updated_at: formattedDate,
+          created_at: nowIso,
+          updated_at: nowIso,
         };
-        saveStoredPosts([newPost as unknown as BlogPost, ...posts]);
-        
+      }
+
+      const success = await saveDbPost(newPostObj);
+      if (!success) {
+        throw new Error('Database save failed');
+      }
+
+      // Log admin activity
+      const logAction = currentMode === 'edit' ? 'edited' : 'published';
+      await logAdminActivity(logAction, `${logAction === 'published' ? 'Published' : 'Edited'} article: "${title}" (ID: ${targetPostId})`);
+
+      if (currentMode !== 'edit') {
         // Transition state to edit mode so subsequent updates edit this post
-        setCurrentPostId(newPostId);
+        setCurrentPostId(targetPostId);
         setCurrentMode('edit');
         
         // Update the browser URL without full reload so refresh loads the edit page
-        window.history.replaceState(null, '', `/admin/content/${newPostId}/edit`);
+        window.history.replaceState(null, '', `/admin/content/${targetPostId}/edit`);
       }
 
       setSaveStatus('saved');
@@ -124,35 +138,52 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
     }
   }, [title, body, postType, authorName, coverImageUrl, currentMode, currentPostId, router]);
 
+  // Keep refs of latest values for executeSave to be accessed safely on unmount
+  const executeSaveRef = useRef(executeSave);
+  const visibilityRef = useRef(visibility);
+
+  useEffect(() => {
+    executeSaveRef.current = executeSave;
+  }, [executeSave]);
+
+  useEffect(() => {
+    visibilityRef.current = visibility;
+  }, [visibility]);
+
   // Set initial default author name from user role if available
   useEffect(() => {
-    if (role) {
+    if (role && mode === 'create') {
       const timer = setTimeout(() => {
         setAuthorName(role === 'head_admin' ? 'Chief Coordinator' : 'Staff Editor');
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [role]);
+  }, [role, mode]);
 
   // Load existing post in Edit Mode
   useEffect(() => {
     if (mode === 'edit' && postId) {
-      const posts = getStoredPosts();
-      const post = posts.find((p) => p.id === postId);
-      if (post) {
-        const timer = setTimeout(() => {
+      let active = true;
+      async function loadPost() {
+        const posts = await getDbPosts();
+        if (!active) return;
+        const post = posts.find((p) => p.id === postId);
+        if (post) {
           setTitle(post.title);
           setBody(post.body);
           setPostType(post.type);
           setVisibility(post.status);
           setAuthorName(post.author_name || post.author || 'Staff Editor');
           setCoverImageUrl(post.cover_image_url || post.featured_image || '');
-        }, 0);
-        return () => clearTimeout(timer);
-      } else {
-        alert('Post not found.');
-        router.push('/admin/content');
+        } else {
+          alert('Post not found.');
+          router.push('/admin/content');
+        }
       }
+      loadPost();
+      return () => {
+        active = false;
+      };
     } else if (mode === 'create') {
       // In create mode, pre-fill title and body based on template
       const defaultTpl = EDITOR_TEMPLATES[template];
@@ -166,10 +197,13 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
     }
   }, [mode, postId, template, router]);
 
-  // Clean up timers on unmount
+  // Clean up timers on unmount - flush any pending debounced save
   useEffect(() => {
     return () => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+        executeSaveRef.current(visibilityRef.current, false);
+      }
       if (autoSaveTimerRef.current) clearInterval(autoSaveTimerRef.current);
     };
   }, []);
@@ -223,12 +257,17 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
   };
 
   // Delete handler (Danger Zone)
-  const handleDeletePost = () => {
+  const handleDeletePost = async () => {
     if (currentMode === 'edit' && currentPostId) {
-      const posts = getStoredPosts();
-      const filtered = posts.filter((p) => p.id !== currentPostId);
-      saveStoredPosts(filtered);
-      router.push('/admin/content');
+      if (confirm('Are you sure you want to permanently delete this article?\nThis action cannot be undone.')) {
+        const success = await deleteDbPost(currentPostId);
+        if (success) {
+          await logAdminActivity('deleted', `Deleted article: "${title}" (ID: ${currentPostId})`);
+          router.push('/admin/content');
+        } else {
+          alert('Failed to delete article from the database.');
+        }
+      }
     }
   };
 

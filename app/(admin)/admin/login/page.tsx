@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Shield, Lock, Mail, KeyRound } from 'lucide-react';
 import { useAdminRole } from '@/hooks/use-admin-role';
+import { createClient } from '@/lib/supabase/client';
+import { logAdminActivity } from '@/lib/blog-data';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -12,7 +14,7 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent, roleType?: 'head_admin' | 'editor') => {
+  const handleLogin = async (e: React.FormEvent, roleType?: 'head_admin' | 'editor') => {
     e.preventDefault();
 
     if (roleType && process.env.NODE_ENV === 'production') {
@@ -22,28 +24,44 @@ export default function AdminLoginPage() {
 
     setIsLoading(true);
 
-    // Simulate authenticating
-    setTimeout(() => {
-      if (roleType) {
+    if (roleType) {
+      // Simulate authenticating
+      setTimeout(async () => {
         setRole(roleType);
         setIsLoading(false);
+        await logAdminActivity('login', `Administrator logged in (Demo Mode): ${roleType === 'head_admin' ? 'chief.admin@nbac.com.ng' : 'staff.editor@nbac.com.ng'}`);
         router.push('/admin');
-      } else {
-        // Strict mock check for admin credentials
-        if (email === 'admin@nbac.com.ng' && password === 'admin123') {
-          setRole('head_admin');
+      }, 800);
+    } else {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) {
           setIsLoading(false);
-          router.push('/admin');
-        } else if (email === 'editor@nbac.com.ng' && password === 'editor123') {
-          setRole('editor');
+          alert(`Access Denied: ${error.message}`);
+          return;
+        }
+
+        const userRole = data.user?.user_metadata?.role;
+        if (userRole === 'head_admin' || userRole === 'editor') {
+          setRole(userRole);
+          await logAdminActivity('login', `Administrator logged in: ${data.user?.email}`);
           setIsLoading(false);
           router.push('/admin');
         } else {
           setIsLoading(false);
-          alert('Access Denied: Invalid email or security key.');
+          alert('Access Denied: Authorized role not found on user profile.');
+          await supabase.auth.signOut();
         }
+      } catch {
+        setIsLoading(false);
+        alert('An unexpected error occurred during login.');
       }
-    }, 800);
+    }
   };
 
   return (
@@ -104,7 +122,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-nbac-emerald to-nbac-emerald-dark hover:from-nbac-emerald-dark hover:to-nbac-emerald-dark text-white font-sans font-medium py-3 rounded-lg transition-all duration-300 shadow-md hover:shadow-nbac-emerald/10 text-sm mt-2 flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full bg-linear-to-r from-nbac-emerald to-nbac-emerald-dark hover:from-nbac-emerald-dark hover:to-nbac-emerald-dark text-white font-sans font-medium py-3 rounded-lg transition-all duration-300 shadow-md hover:shadow-nbac-emerald/10 text-sm mt-2 flex items-center justify-center gap-2 cursor-pointer"
           >
             {isLoading ? 'Decrypting credentials...' : 'Enter Admin Control Board'}
           </button>

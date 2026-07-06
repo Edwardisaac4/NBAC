@@ -2,53 +2,79 @@
 
 import { useState, useEffect } from 'react';
 import { AdminRole } from '@/types';
+import { createClient } from '@/lib/supabase/client';
 
 export function useAdminRole() {
-  const [role, setRole] = useState<AdminRole | null>(null);
+  const [role, setRoleState] = useState<AdminRole | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      let targetRole: AdminRole | null = null;
+      const supabase = createClient();
+      let active = true;
 
       // In UI development mode, allow toggling the role using a query param (e.g. ?role=editor)
       if (process.env.NODE_ENV !== 'production') {
         const params = new URLSearchParams(window.location.search);
         const roleParam = params.get('role');
         if (roleParam === 'editor' || roleParam === 'head_admin') {
-          targetRole = roleParam;
           localStorage.setItem('nbac_admin_role', roleParam);
-          document.cookie = `nbac_session=${roleParam}; path=/; max-age=3600; SameSite=Strict`;
+          const isSecure = window.location.protocol === 'https:' || (process.env.NODE_ENV as string) === 'production';
+          document.cookie = `nbac_session=${roleParam}; path=/; max-age=3600; SameSite=Strict${isSecure ? '; Secure' : ''}`;
         }
       }
 
-      // Check session-backed cookie
-      let sessionRole: AdminRole | null = null;
-      if (typeof document !== 'undefined') {
-        const cookies = document.cookie.split('; ');
-        const sessionCookie = cookies.find(row => row.startsWith('nbac_session='));
-        if (sessionCookie) {
-          const val = sessionCookie.split('=')[1];
-          if (val === 'head_admin' || val === 'editor') {
-            sessionRole = val as AdminRole;
+      async function checkUser() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!active) return;
+
+        let targetRole: AdminRole | null = null;
+        if (user) {
+          const userRole = user.user_metadata?.role;
+          if (userRole === 'head_admin' || userRole === 'editor') {
+            targetRole = userRole as AdminRole;
           }
         }
-      }
 
-      // In production, rely exclusively on session cookie. In development, fallback to localStorage if no cookie is set.
-      if (sessionRole) {
-        targetRole = sessionRole;
-      } else if (process.env.NODE_ENV !== 'production') {
-        const storedRole = localStorage.getItem('nbac_admin_role');
-        if (storedRole === 'editor' || storedRole === 'head_admin') {
-          targetRole = storedRole as AdminRole;
+        // In non-production, fallback to localStorage if no server session is found
+        if (!targetRole && process.env.NODE_ENV !== 'production') {
+          const storedRole = localStorage.getItem('nbac_admin_role');
+          if (storedRole === 'editor' || storedRole === 'head_admin') {
+            targetRole = storedRole as AdminRole;
+          }
         }
+
+        setRoleState(targetRole);
+        setLoading(false);
       }
 
-      setTimeout(() => {
-        setRole(targetRole);
+      checkUser();
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (!active) return;
+        let targetRole: AdminRole | null = null;
+        if (session?.user) {
+          const userRole = session.user.user_metadata?.role;
+          if (userRole === 'head_admin' || userRole === 'editor') {
+            targetRole = userRole as AdminRole;
+          }
+        }
+
+        if (!targetRole && process.env.NODE_ENV !== 'production') {
+          const storedRole = localStorage.getItem('nbac_admin_role');
+          if (storedRole === 'editor' || storedRole === 'head_admin') {
+            targetRole = storedRole as AdminRole;
+          }
+        }
+
+        setRoleState(targetRole);
         setLoading(false);
-      }, 0);
+      });
+
+      return () => {
+        active = false;
+        subscription.unsubscribe();
+      };
     }
   }, []);
 
@@ -58,11 +84,12 @@ export function useAdminRole() {
     isHeadAdmin: role === 'head_admin',
     loading,
     setRole: (newRole: AdminRole | null) => {
-      setRole(newRole);
+      setRoleState(newRole);
       if (typeof window !== 'undefined') {
         if (newRole) {
           localStorage.setItem('nbac_admin_role', newRole);
-          document.cookie = `nbac_session=${newRole}; path=/; max-age=3600; SameSite=Strict`;
+          const isSecure = window.location.protocol === 'https:' || (process.env.NODE_ENV as string) === 'production';
+          document.cookie = `nbac_session=${newRole}; path=/; max-age=3600; SameSite=Strict${isSecure ? '; Secure' : ''}`;
         } else {
           localStorage.removeItem('nbac_admin_role');
           document.cookie = `nbac_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;

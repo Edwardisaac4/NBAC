@@ -19,12 +19,13 @@ select email, name, created_at from users where email = 'user@example.com';
 ```
 
 **Correct (index-only scan with INCLUDE):**
+Using `INCLUDE` can reduce or avoid heap fetches by enabling index-only scans, provided PostgreSQL selects an index-only scan and the visibility map indicates all tuples on the page are visible.
 
 ```sql
 -- Include non-searchable columns in the index
 create index users_email_idx on users (email) include (name, created_at);
 
--- All columns served from index, no table access needed
+-- Serves columns from the index, avoiding heap fetches if visibility map allows
 select email, name, created_at from users where email = 'user@example.com';
 ```
 

@@ -33,21 +33,46 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const pathname = request.nextUrl.pathname
+  const userRole = user?.user_metadata?.role
+  let isAdmin = userRole === 'head_admin' || userRole === 'editor'
+
+  // Gated fallback for development mode
+  if (process.env.NODE_ENV !== 'production' && !isAdmin) {
+    const sessionCookie = request.cookies.get('nbac_session')?.value
+    if (sessionCookie === 'head_admin' || sessionCookie === 'editor') {
+      isAdmin = true
+    }
+  }
+
+  // Helper to redirect and preserve cookies
+  const redirectWithCookies = (toPath: string) => {
+    const url = request.nextUrl.clone()
+    url.pathname = toPath
+    const redirectResponse = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach((c) => {
+      redirectResponse.cookies.set(c.name, c.value, {
+        path: c.path,
+        domain: c.domain,
+        maxAge: c.maxAge,
+        expires: c.expires,
+        secure: c.secure,
+        httpOnly: c.httpOnly,
+        sameSite: c.sameSite,
+      })
+    })
+    return redirectResponse
+  }
 
   // Protect admin routes
   if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
-    if (!user) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/admin/login'
-      return NextResponse.redirect(url)
+    if (!isAdmin) {
+      return redirectWithCookies('/admin/login')
     }
   }
 
   // Redirect logged-in admin away from login page
-  if (pathname === '/admin/login' && user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/admin'
-    return NextResponse.redirect(url)
+  if (pathname === '/admin/login' && user && isAdmin) {
+    return redirectWithCookies('/admin')
   }
 
   return supabaseResponse

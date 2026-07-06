@@ -190,7 +190,7 @@ export function SponsorRegistrationFormUI({ selectedTier }: SponsorRegistrationF
                           <span className="text-nbac-body font-light">
                             + {addon.name} {isTrack ? `(x${submittedTrackCount})` : ''}
                           </span>
-                          <span className="text-nbac-text font-medium text-nbac-muted italic">
+                          <span className="font-medium text-nbac-muted italic">
                             Price TBD
                           </span>
                         </div>

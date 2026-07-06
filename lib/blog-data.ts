@@ -235,6 +235,8 @@ Please note that all **exhibitor booths and hangar display slots** for the NBAC 
 ]
 
 
+import { createClient } from './supabase/client'
+
 // Safely get posts on client side (to support localStorage in Next.js CSR)
 export function getStoredPosts(): BlogPost[] {
   if (typeof window === 'undefined') {
@@ -282,3 +284,109 @@ export function saveStoredPosts(posts: BlogPost[]): void {
     localStorage.setItem('nbac-blog-posts', JSON.stringify(posts))
   }
 }
+
+// Asynchronous database-driven blog helpers
+export async function getDbPosts(): Promise<BlogPost[]> {
+  try {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching posts from Supabase:', error.message)
+      return DEFAULT_POSTS
+    }
+
+    // Seed default posts if database is empty
+    if (!data || data.length === 0) {
+      console.log('Database posts table is empty, seeding defaults...')
+      const { error: seedError } = await supabase
+        .from('posts')
+        .insert(DEFAULT_POSTS)
+      if (seedError) {
+        console.error('Failed to seed default posts:', seedError.message)
+      }
+      return DEFAULT_POSTS
+    }
+
+    return data as BlogPost[]
+  } catch (err) {
+    console.error('Failed to read from Supabase posts table:', err)
+    return DEFAULT_POSTS
+  }
+}
+
+export async function saveDbPost(post: BlogPost): Promise<boolean> {
+  try {
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('posts')
+      .upsert(post)
+
+    if (error) {
+      console.error('Error saving post to Supabase:', error.message)
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Failed to save to Supabase posts table:', err)
+    return false;
+  }
+}
+
+export async function deleteDbPost(id: string): Promise<boolean> {
+  try {
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('posts')
+      .delete()
+      .eq('id', id)
+
+    if (error) {
+      console.error('Error deleting post from Supabase:', error.message)
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Failed to delete from Supabase posts table:', err)
+    return false;
+  }
+}
+
+export async function logAdminActivity(
+  action: 'login' | 'published' | 'edited' | 'deleted' | 'permission_changed',
+  target: string
+): Promise<void> {
+  try {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    const adminEmail = user?.email || 'developer@nbac.com.ng'
+    const role = user?.user_metadata?.role || 'head_admin'
+    
+    let ipAddress = '127.0.0.1'
+    if (typeof window !== 'undefined') {
+      ipAddress = window.location.hostname === 'localhost' ? '127.0.0.1' : window.location.hostname
+    }
+
+    const { error } = await supabase
+      .from('audit_logs')
+      .insert({
+        admin_email: adminEmail,
+        role: role === 'head_admin' ? 'Head Admin' : 'Editor',
+        action,
+        target,
+        ip_address: ipAddress
+      })
+      
+    if (error) {
+      console.error('Failed to write audit log:', error.message)
+    }
+  } catch (err) {
+    console.error('Audit logger failed:', err)
+  }
+}
+
+
