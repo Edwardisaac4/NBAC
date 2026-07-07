@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { NAV_LINKS } from '@/lib/constants'
 
 export function Footer() {
   return (
@@ -35,15 +36,15 @@ export function Footer() {
         </div>
         <div className="flex flex-wrap gap-12 md:gap-24">
           <div className="space-y-4">
-            <h4 className="font-sans text-xs uppercase tracking-widest text-nbac-gold-light font-medium">Connect</h4>
+            <h4 className="font-sans text-xs uppercase tracking-widest text-nbac-gold-light font-medium">Explore</h4>
             <ul className="text-nbac-body space-y-2 text-sm font-light">
-              <li>
-                <Link href="/reservations?type=sponsor" className="hover:text-nbac-emerald transition-colors cursor-pointer block">
-                  Sponsorships
-                </Link>
-              </li>
-              <li className="hover:text-nbac-emerald transition-colors cursor-pointer">Exhibitor Kit</li>
-              <li className="hover:text-nbac-emerald transition-colors cursor-pointer">Media Center</li>
+              {NAV_LINKS.map((link) => (
+                <li key={link.label}>
+                  <Link href={link.href} className="hover:text-nbac-emerald transition-colors cursor-pointer block">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
           <div className="space-y-4">
@@ -59,7 +60,6 @@ export function Footer() {
                   Terms of Service
                 </Link>
               </li>
-              <li className="hover:text-nbac-emerald transition-colors cursor-pointer">Safety Guidelines</li>
             </ul>
           </div>
         </div>

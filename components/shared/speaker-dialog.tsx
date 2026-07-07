@@ -46,7 +46,7 @@ export function SpeakerDialog({ speaker, sessions, isOpen, onClose }: SpeakerDia
   )
 
   const formatDayName = (day: string) => {
-    return day === 'day_1' ? 'Day 1 (Wednesday, Oct 28)' : 'Day 2 (Thursday, Oct 29)'
+    return day === 'day_1' ? 'Day 1 (Tuesday, May 4)' : 'Day 2 (Wednesday, May 5)'
   }
 
   return (

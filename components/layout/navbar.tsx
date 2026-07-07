@@ -26,9 +26,7 @@ export function Navbar() {
   const [programDropdownOpen, setProgramDropdownOpen] = useState(false)
   const [mobileProgramOpen, setMobileProgramOpen] = useState(false)
   const [tabletProgramOpen, setTabletProgramOpen] = useState(false)
-  const [galleryDropdownOpen, setGalleryDropdownOpen] = useState(false)
-  const [mobileGalleryOpen, setMobileGalleryOpen] = useState(false)
-  const [tabletGalleryOpen, setTabletGalleryOpen] = useState(false)
+
 
   const activeLink = useMemo(() => {
     if (pathname === '/about' || pathname === '/blog' || pathname?.startsWith('/blog/') || pathname === '/privacy' || pathname === '/terms') return 'About Us'
@@ -104,8 +102,7 @@ export function Navbar() {
       setTabletAboutOpen(false)
       setMobileProgramOpen(false)
       setTabletProgramOpen(false)
-      setMobileGalleryOpen(false)
-      setTabletGalleryOpen(false)
+
     }
   }
 
@@ -278,61 +275,7 @@ export function Navbar() {
               )
             }
 
-            if (link.label === 'Gallery') {
-              return (
-                <div
-                  key={link.label}
-                  className="relative py-4"
-                  onMouseEnter={() => setGalleryDropdownOpen(true)}
-                  onMouseLeave={() => setGalleryDropdownOpen(false)}
-                  onFocus={() => setGalleryDropdownOpen(true)}
-                  onBlur={(e) => {
-                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                      setGalleryDropdownOpen(false);
-                    }
-                  }}
-                >
-                  <Link
-                    href={link.href}
-                    aria-expanded={galleryDropdownOpen}
-                    aria-haspopup="true"
-                    className={cn(
-                      "flex items-center gap-1 font-sans text-xs uppercase tracking-wider transition-colors px-1",
-                      activeLink === link.label ? "text-nbac-emerald font-medium" : "text-nbac-body hover:text-nbac-emerald"
-                    )}
-                  >
-                    {link.label}
-                    <ChevronDown size={12} className={cn("transition-transform duration-200", galleryDropdownOpen && "rotate-180")} />
-                    {activeLink === link.label && (
-                      <motion.div
-                        layoutId="activeNavIndicator"
-                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-nbac-emerald rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)]"
-                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                      />
-                    )}
-                  </Link>
 
-                  <AnimatePresence>
-                    {galleryDropdownOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                        transition={{ duration: 0.15, ease: 'easeOut' }}
-                        className="absolute left-1/2 -translate-x-1/2 top-full mt-1.5 w-48 rounded-xl bg-nbac-panel/95 border border-nbac-border backdrop-blur-md p-2 shadow-xl z-50 flex flex-col gap-0.5"
-                      >
-                        <Link
-                          href="/gallery/archives"
-                          className="px-4 py-2 font-sans text-[11px] uppercase tracking-wider text-nbac-body hover:text-nbac-emerald hover:bg-nbac-emerald/5 rounded-lg transition-all duration-200"
-                        >
-                          Archives
-                        </Link>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              )
-            }
 
             return (
               <Link
@@ -541,50 +484,7 @@ export function Navbar() {
                       )
                     }
 
-                    if (link.label === 'Gallery') {
-                      return (
-                        <div key={link.label} className="flex flex-col">
-                          <div className="flex items-center justify-between">
-                            <Link
-                              href={link.href}
-                              onClick={toggleMobileMenu}
-                              className={cn(
-                                "text-sm font-sans uppercase tracking-wide transition-colors",
-                                activeLink === link.label ? "text-[#10b981] font-semibold" : "text-nbac-text hover:text-nbac-emerald"
-                              )}
-                            >
-                              {link.label}
-                            </Link>
-                            <button
-                              onClick={() => setMobileGalleryOpen(!mobileGalleryOpen)}
-                              className="p-1 text-nbac-muted hover:text-nbac-text"
-                            >
-                              <ChevronDown size={14} className={cn("transition-transform duration-250", mobileGalleryOpen && "rotate-180")} />
-                            </button>
-                          </div>
-                          
-                          <AnimatePresence initial={false}>
-                            {mobileGalleryOpen && (
-                              <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                transition={{ duration: 0.2 }}
-                                className="overflow-hidden flex flex-col pl-4 mt-2 gap-3 border-l border-nbac-border"
-                              >
-                                <Link
-                                  href="/gallery/archives"
-                                  onClick={toggleMobileMenu}
-                                  className="text-xs font-sans uppercase tracking-wider text-nbac-muted hover:text-nbac-emerald py-1 transition-colors text-left"
-                                >
-                                  Archives
-                                </Link>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
-                      )
-                    }
+
 
                     return (
                       <Link
@@ -746,56 +646,7 @@ export function Navbar() {
                     )
                   }
 
-                  if (link.label === 'Gallery') {
-                    return (
-                      <div
-                        key={link.label}
-                        className={cn(
-                          "flex flex-col gap-3 p-4 rounded-xl border transition-all duration-300",
-                          activeLink === link.label ? "border-nbac-emerald/40 bg-nbac-emerald/5" : "border-nbac-border bg-nbac-canvas/40"
-                        )}
-                      >
-                        <div className="flex items-center justify-between">
-                          <Link
-                            href={link.href}
-                            onClick={toggleMobileMenu}
-                            className={cn(
-                              "text-sm font-sans uppercase tracking-widest font-semibold",
-                              activeLink === link.label ? "text-[#10b981]" : "text-nbac-text"
-                            )}
-                          >
-                            {link.label}
-                          </Link>
-                          <button
-                            onClick={() => setTabletGalleryOpen(!tabletGalleryOpen)}
-                            className="p-1 text-nbac-muted hover:text-nbac-text"
-                          >
-                            <ChevronDown size={14} className={cn("transition-transform duration-250", tabletGalleryOpen && "rotate-180")} />
-                          </button>
-                        </div>
-                        
-                        <AnimatePresence initial={false}>
-                          {tabletGalleryOpen && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: 'auto', opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.2 }}
-                              className="overflow-hidden flex flex-col gap-2 border-t border-nbac-border/50 pt-2"
-                            >
-                              <Link
-                                href="/gallery/archives"
-                                onClick={toggleMobileMenu}
-                                className="text-xs font-sans uppercase tracking-wider text-nbac-muted hover:text-nbac-emerald py-1 transition-colors text-left"
-                              >
-                                Archives
-                              </Link>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    )
-                  }
+
 
                   return (
                     <Link

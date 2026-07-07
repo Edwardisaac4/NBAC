@@ -29,7 +29,7 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
   const [submittedReference, setSubmittedReference] = useState<string>('')
 
   const generateReference = (tierId: string) => {
-    const prefix = `NBAC-2026-${tierId.toUpperCase()}`;
+    const prefix = `NBAC-2027-${tierId.toUpperCase()}`;
     const random = Math.floor(10000 + Math.random() * 90000);
     return `${prefix}-${random}`;
   }

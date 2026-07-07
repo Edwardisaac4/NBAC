@@ -23,7 +23,10 @@ import {
   Flame,
   Cpu,
   GraduationCap,
-  Users2
+  Users2,
+  CheckCircle2,
+  Activity,
+  TrendingUp
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -39,7 +42,7 @@ export default function AeroLabPage() {
       ).matches
 
       if (prefersReduced) {
-        gsap.set(['.hero-eyebrow', '.hero-title', '.hero-subtitle', '.hero-desc', '.hero-cta', '.track-card', '.participate-card', '.prize-card'], {
+        gsap.set(['.hero-eyebrow', '.hero-title', '.hero-subtitle', '.hero-desc', '.hero-cta', '.track-card', '.participate-card', '.timeline-step', '.criteria-card', '.prize-card'], {
           opacity: 1,
           y: 0,
           scale: 1
@@ -106,6 +109,53 @@ export default function AeroLabPage() {
           scrollTrigger: {
             trigger: '.eligibility-section',
             start: 'top 85%',
+          }
+        }
+      )
+
+      // Scroll trigger for Timeline
+      gsap.fromTo('.timeline-progress-line',
+        { width: '0%' },
+        {
+          width: '90%',
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '.timeline-section',
+            start: 'top 70%',
+            end: 'bottom 60%',
+            scrub: true
+          }
+        }
+      )
+
+      gsap.fromTo('.timeline-step',
+        { opacity: 0, y: 30 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          stagger: 0.15,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '.timeline-section',
+            start: 'top 75%',
+          }
+        }
+      )
+
+      // Scroll trigger for Judging Criteria
+      gsap.fromTo('.criteria-card',
+        { opacity: 0, y: 40, scale: 0.95 },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.8,
+          stagger: 0.12,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '.criteria-section',
+            start: 'top 80%',
           }
         }
       )
@@ -195,6 +245,67 @@ export default function AeroLabPage() {
     }
   ]
 
+  const timelineSteps = [
+    {
+      phase: "8 Weeks Before",
+      title: "Applications Open",
+      desc: "Online application goes live. Teams submit a one-page concept note covering the problem, approach and team composition."
+    },
+    {
+      phase: "6 Weeks Before",
+      title: "Teams Selected",
+      desc: "Up to 30 teams selected across all five tracks. Each team receives a briefing pack and is assigned an industry mentor."
+    },
+    {
+      phase: "4 Weeks Before",
+      title: "Mentor Sessions",
+      desc: "Two virtual sessions per team with an assigned industry mentor drawn from the NBAC steering committee and speaker pool."
+    },
+    {
+      phase: "1 Week Before",
+      title: "Submissions Due",
+      desc: "Working prototype or solution deck submitted. Up to 10 finalists selected — a maximum of 2 per track."
+    },
+    {
+      phase: "Conference Day 1",
+      title: "Finalist Showcase",
+      desc: "Finalists given dedicated exhibition space. Delegates visit during luncheon and coffee breaks for live demos and pitches."
+    },
+    {
+      phase: "Conference Day 2",
+      title: "Final Pitches & Awards",
+      desc: "10 finalists deliver 5-minute pitches to the full conference. Winners announced and celebrated at the Gala Dinner."
+    }
+  ]
+
+  const judgingCriteria = [
+    {
+      percentage: "25%",
+      title: "Relevance",
+      desc: "Does it directly address a real and current problem in Nigerian or African business aviation?"
+    },
+    {
+      percentage: "25%",
+      title: "Feasibility",
+      desc: "Can it realistically be built, funded and deployed within the Nigerian context?"
+    },
+    {
+      percentage: "20%",
+      title: "Innovation",
+      desc: "Does it bring a genuinely new approach, or meaningfully improve on what already exists?"
+    },
+    {
+      percentage: "20%",
+      title: "Impact",
+      desc: "If adopted, what is the scale and depth of change it would create?"
+    },
+    {
+      percentage: "10%",
+      title: "Presentation",
+      desc: "Is the pitch clear, confident and compelling to a non-technical audience?"
+    }
+  ]
+
   return (
     <>
       <Navbar />
@@ -260,41 +371,193 @@ export default function AeroLabPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {tracks.map((track) => {
                 const IconComponent = track.icon
+                
+                // Determine responsive spans for the bento layout
+                let spanClass = "col-span-1"
+                if (track.id === 1) {
+                  spanClass = "lg:col-span-2 md:col-span-2 col-span-1"
+                } else if (track.id === 2) {
+                  spanClass = "lg:col-span-1 lg:row-span-2 md:col-span-1 col-span-1"
+                } else if (track.id === 5) {
+                  spanClass = "lg:col-span-3 md:col-span-2 col-span-1"
+                }
+
+                // Determine flex direction for wide cards on desktop
+                const isWide = track.id === 1 || track.id === 5
+
                 return (
                   <motion.div
                     key={track.id}
                     whileHover={{ y: -6, borderColor: 'var(--nbac-gold)' }}
                     transition={{ duration: 0.25, ease: 'easeOut' }}
-                    className="track-card opacity-0 flex flex-col bg-nbac-panel/40 border border-nbac-border/80 rounded-xl overflow-hidden glass-card p-6 md:p-8"
+                    className={`track-card opacity-0 flex flex-col ${
+                      isWide ? "lg:flex-row lg:items-stretch" : ""
+                    } bg-nbac-panel/40 border border-nbac-border/80 rounded-2xl overflow-hidden glass-card p-6 md:p-8 justify-between gap-6 md:gap-8 ${spanClass}`}
                     style={{
                       boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)'
                     }}
                   >
-                    <div className="flex items-start justify-between mb-6">
-                      <div className={`p-3 rounded-lg bg-linear-to-br ${track.color} shrink-0`}>
-                        <IconComponent className="w-6 h-6" />
+                    <div className="flex-1 flex flex-col h-full justify-between">
+                      <div>
+                        <div className="flex items-center justify-between mb-6">
+                          <div className={`p-3 rounded-lg bg-linear-to-br ${track.color} shrink-0`}>
+                            <IconComponent className="w-6 h-6" />
+                          </div>
+                          <span className="font-sans text-[10px] font-bold uppercase tracking-widest text-nbac-gold px-2.5 py-1 bg-nbac-gold/5 border border-nbac-gold/10 rounded-full">
+                            Track {track.id}
+                          </span>
+                        </div>
+
+                        <div>
+                          <span className="font-sans text-[11px] uppercase tracking-wider font-semibold text-nbac-emerald mb-2 block">
+                            {track.obj}
+                          </span>
+                          <h3 className="font-sans text-lg md:text-xl font-bold text-nbac-text mb-4 leading-tight">
+                            {track.title}
+                          </h3>
+                          <p className="font-sans text-sm font-light text-nbac-body leading-relaxed">
+                            {track.desc}
+                          </p>
+                        </div>
                       </div>
-                      <span className="font-sans text-[10px] font-bold uppercase tracking-widest text-nbac-gold px-2.5 py-1 bg-nbac-gold/5 border border-nbac-gold/10 rounded-full">
-                        Track {track.id}
-                      </span>
+
+                      {/* Small widgets inline for smaller layouts */}
+                      {track.id === 3 && (
+                        <div className="mt-6 flex flex-wrap gap-2 pt-2 border-t border-nbac-border/40">
+                          <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded text-[10px] font-medium font-sans flex items-center gap-1">
+                            <span>⚡</span> Solar Array (80kW)
+                          </span>
+                          <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded text-[10px] font-medium font-sans flex items-center gap-1">
+                            <span>♻️</span> SAF Off-take
+                          </span>
+                          <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded text-[10px] font-medium font-sans flex items-center gap-1">
+                            <span>🔋</span> Off-Grid HVAC
+                          </span>
+                        </div>
+                      )}
+
+                      {track.id === 4 && (
+                        <div className="mt-6 pt-3 flex items-center justify-between border-t border-nbac-border/40">
+                          <div className="flex -space-x-1.5 overflow-hidden">
+                            <div className="inline-block h-6 w-6 rounded-full ring-2 ring-[#0b0f10] bg-nbac-gold text-[#0b0f10] text-[9px] font-bold font-sans flex items-center justify-center">
+                              FD
+                            </div>
+                            <div className="inline-block h-6 w-6 rounded-full ring-2 ring-[#0b0f10] bg-nbac-gold-light text-[#0b0f10] text-[9px] font-bold font-sans flex items-center justify-center">
+                              AO
+                            </div>
+                            <div className="inline-block h-6 w-6 rounded-full ring-2 ring-[#0b0f10] bg-[#8a5cf5] text-white text-[9px] font-bold font-sans flex items-center justify-center">
+                              CN
+                            </div>
+                          </div>
+                          <span className="text-[9px] font-bold text-nbac-gold font-sans bg-nbac-gold/10 px-2 py-0.5 rounded border border-nbac-gold/25">
+                            +35% representation
+                          </span>
+                        </div>
+                      )}
                     </div>
 
-                    <div className="flex-1 flex flex-col justify-between">
-                      <div>
-                        <span className="font-sans text-[11px] uppercase tracking-wider font-semibold text-nbac-emerald mb-2 block">
-                          {track.obj}
-                        </span>
-                        <h3 className="font-sans text-lg md:text-xl font-bold text-nbac-text mb-4 leading-tight">
-                          {track.title}
-                        </h3>
-                        <p className="font-sans text-sm font-light text-nbac-body leading-relaxed">
-                          {track.desc}
-                        </p>
+                    {/* Right / Bottom custom widgets for larger layouts */}
+                    {track.id === 1 && (
+                      <div className="w-full lg:w-[280px] bg-[#0b0f10]/60 border border-nbac-border/60 rounded-xl p-4 flex flex-col justify-between font-sans text-xs shrink-0 self-center">
+                        <div className="flex justify-between items-center mb-3">
+                          <span className="font-semibold text-nbac-text uppercase tracking-wider text-[9px]">Permit Request</span>
+                          <span className="text-nbac-emerald bg-nbac-emerald/10 border border-nbac-emerald/20 px-2 py-0.5 rounded-full font-bold text-[9px] uppercase tracking-wider">
+                            Approved
+                          </span>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-nbac-emerald" />
+                            <span className="text-nbac-body text-[11px]">NCAA Flight Permit</span>
+                            <span className="ml-auto text-nbac-muted text-[10px]">1m ago</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-nbac-emerald" />
+                            <span className="text-nbac-body text-[11px]">NAMA Flight Plan</span>
+                            <span className="ml-auto text-nbac-muted text-[10px]">2m ago</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-nbac-emerald" />
+                            <span className="text-nbac-body text-[11px]">Customs Pre-Clearance</span>
+                            <span className="ml-auto text-nbac-muted text-[10px]">4m ago</span>
+                          </div>
+                        </div>
+                        <div className="mt-3 pt-3 border-t border-nbac-border/60 flex items-center justify-between text-[10px]">
+                          <span className="text-nbac-muted font-medium">Processing Time</span>
+                          <span className="text-nbac-emerald-light font-bold flex items-center gap-1">
+                            <Activity className="w-3 h-3 animate-pulse" /> 4.8 Minutes
+                          </span>
+                        </div>
                       </div>
-                    </div>
+                    )}
+
+                    {track.id === 2 && (
+                      <div className="w-full bg-[#0b0f10]/60 border border-nbac-border/60 rounded-xl p-4 font-sans text-xs space-y-3 mt-6">
+                        <div className="flex justify-between items-center text-[9px] uppercase tracking-wider text-nbac-muted border-b border-nbac-border/60 pb-1.5 font-bold">
+                          <span>Lease Term Sheet</span>
+                          <span className="text-nbac-emerald-light">Proposed</span>
+                        </div>
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between text-[11px]">
+                            <span className="text-nbac-body">Asset Value</span>
+                            <span className="text-nbac-text font-medium">$12,500,000</span>
+                          </div>
+                          <div className="flex justify-between text-[11px]">
+                            <span className="text-nbac-body">LTV Limit</span>
+                            <span className="text-nbac-text font-medium">75% Max</span>
+                          </div>
+                          <div className="flex justify-between text-[11px]">
+                            <span className="text-nbac-body">FX Hedge Rate</span>
+                            <span className="text-nbac-emerald font-semibold">₦/$ Collar Cap</span>
+                          </div>
+                          <div className="flex justify-between text-[11px]">
+                            <span className="text-nbac-body">Amortization</span>
+                            <span className="text-nbac-text font-medium">15 Years</span>
+                          </div>
+                        </div>
+                        <div className="pt-2 border-t border-nbac-border/60 flex items-center justify-between text-[10px] text-nbac-muted">
+                          <span>Acquisition Access</span>
+                          <span className="text-nbac-emerald font-bold flex items-center gap-1">
+                            <TrendingUp className="w-3.5 h-3.5 text-nbac-emerald" /> +45% YoY
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {track.id === 5 && (
+                      <div className="w-full lg:w-[350px] bg-[#0b0f10]/60 border border-nbac-border/60 rounded-xl p-4 font-sans text-xs shrink-0 self-center">
+                        <div className="flex justify-between items-center mb-3 pb-2 border-b border-nbac-border/60">
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-nbac-gold animate-pulse" />
+                            <span className="font-bold text-nbac-text text-[9px] uppercase tracking-wider">Flight Dispatcher</span>
+                          </div>
+                          <span className="text-nbac-muted text-[9px] uppercase tracking-widest font-semibold">LOS ➔ ABV</span>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                          <div className="bg-[#0b0f10]/80 border border-nbac-border/40 rounded p-1.5 text-left">
+                            <span className="text-[9px] text-nbac-muted uppercase block">Origin</span>
+                            <span className="text-nbac-text font-bold text-[11px] block">Lagos (LOS)</span>
+                          </div>
+                          <div className="bg-[#0b0f10]/80 border border-nbac-border/40 rounded p-1.5 text-left">
+                            <span className="text-[9px] text-nbac-muted uppercase block">Destination</span>
+                            <span className="text-nbac-text font-bold text-[11px] block">Abuja (ABV)</span>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between items-center text-[10px] bg-[#0b0f10]/50 border border-nbac-border/40 rounded p-2 mb-3">
+                          <span className="text-nbac-body">Aircraft: <strong className="text-nbac-text font-semibold">Challenger 605</strong></span>
+                          <span className="text-nbac-emerald font-bold">$18,500 Est.</span>
+                        </div>
+
+                        <div className="w-full py-2 bg-nbac-emerald hover:bg-nbac-emerald-dark text-white rounded text-center font-bold text-[9px] uppercase tracking-widest transition-colors cursor-pointer">
+                          Confirm Reservation
+                        </div>
+                      </div>
+                    )}
                   </motion.div>
                 )
               })}
@@ -344,6 +607,163 @@ export default function AeroLabPage() {
                   Solo entries are not accepted. Teams must consist of <strong>3 to 6 members</strong>. Since collaboration is a core judging criterion, cross-functional teams combining developers, designers, and aviation experts are highly recommended.
                 </p>
               </div>
+            </div>
+          </section>
+        </SectionBlur>
+
+        {/* Hackathon Timeline Section */}
+        <SectionBlur>
+          <section className="timeline-section relative z-10 px-6 md:px-24 max-w-7xl mx-auto py-16 md:py-24 border-t border-nbac-border/30">
+            <div className="text-center mb-16">
+              <SectionEyebrow className="text-center justify-center">THE JOURNEY</SectionEyebrow>
+              <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight">
+                Hackathon <span className="italic text-nbac-emerald font-semibold">Timeline</span>
+              </h2>
+              <p className="font-sans text-sm md:text-base font-light text-nbac-muted max-w-2xl mx-auto mt-4 font-serif italic">
+                From application to award ceremony — an 8-week journey
+              </p>
+            </div>
+
+            {/* Desktop Horizontal Timeline */}
+            <div className="hidden lg:block relative py-12 mt-10">
+              {/* Horizontal line running across the center */}
+              <div className="absolute top-1/2 left-[5%] right-[5%] h-0.5 bg-nbac-border -translate-y-1/2" />
+              <div className="absolute top-1/2 left-[5%] h-0.5 bg-nbac-emerald -translate-y-1/2 timeline-progress-line" style={{ width: '0%', maxWidth: '90%' }} />
+
+              <div className="grid grid-cols-6 gap-6 relative">
+                {timelineSteps.map((step, idx) => {
+                  const isTop = idx % 2 === 0;
+                  return (
+                    <div key={idx} className="timeline-step opacity-0 flex flex-col items-center relative">
+                      {/* Top Card Box */}
+                      {isTop ? (
+                        <div className="h-44 flex flex-col justify-end w-full mb-6">
+                          <div className="bg-nbac-panel/40 border border-nbac-emerald/30 hover:border-nbac-emerald/60 p-5 rounded-lg glass-card text-left transition-colors duration-300">
+                            <h4 className="font-sans font-bold text-sm text-nbac-text mb-2">{step.title}</h4>
+                            <p className="font-sans font-light text-xs text-nbac-body leading-relaxed">{step.desc}</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="h-44" />
+                      )}
+
+                      {/* Dot, Connectors, Phase Labels */}
+                      <div className="relative z-10 flex flex-col items-center">
+                        {isTop ? (
+                          <>
+                            {/* Phase Label below the card, above the line */}
+                            <span className="font-sans text-[10px] font-bold text-nbac-emerald uppercase tracking-wider mb-2">
+                              {step.phase}
+                            </span>
+                            {/* Vertical Line going down to the dot */}
+                            <div className="w-px h-6 bg-nbac-emerald/40" />
+                          </>
+                        ) : null}
+
+                        {/* Outer Dot */}
+                        <div className="w-5 h-5 rounded-full bg-[#101415] border-2 border-nbac-emerald flex items-center justify-center shadow-[0_0_10px_rgba(16,185,129,0.3)]">
+                          {/* Inner Dot */}
+                          <div className="w-2 h-2 rounded-full bg-nbac-emerald" />
+                        </div>
+
+                        {!isTop ? (
+                          <>
+                            {/* Vertical Line going down to the card */}
+                            <div className="w-px h-6 bg-nbac-emerald/40" />
+                            {/* Phase Label above the card, below the line */}
+                            <span className="font-sans text-[10px] font-bold text-nbac-emerald uppercase tracking-wider mt-2">
+                              {step.phase}
+                            </span>
+                          </>
+                        ) : null}
+                      </div>
+
+                      {/* Bottom Card Box */}
+                      {!isTop ? (
+                        <div className="h-44 flex flex-col justify-start w-full mt-6">
+                          <div className="bg-nbac-panel/40 border border-nbac-emerald/30 hover:border-nbac-emerald/60 p-5 rounded-lg glass-card text-left transition-colors duration-300">
+                            <h4 className="font-sans font-bold text-sm text-nbac-text mb-2">{step.title}</h4>
+                            <p className="font-sans font-light text-xs text-nbac-body leading-relaxed">{step.desc}</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="h-44" />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Mobile Vertical Timeline */}
+            <div className="lg:hidden relative pl-6 mt-10">
+              {/* Vertical line track */}
+              <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-nbac-border" />
+              
+              <div className="space-y-8">
+                {timelineSteps.map((step, idx) => (
+                  <div key={idx} className="timeline-step opacity-0 relative flex items-start gap-6">
+                    {/* Node Dot */}
+                    <div className="absolute left-[-21px] top-1.5 w-5 h-5 rounded-full bg-[#101415] border-2 border-nbac-emerald flex items-center justify-center z-10 shadow-[0_0_10px_rgba(16,185,129,0.3)]">
+                      <div className="w-2 h-2 rounded-full bg-nbac-emerald" />
+                    </div>
+
+                    <div className="flex-1">
+                      <span className="font-sans text-[10px] font-bold text-nbac-emerald uppercase tracking-wider block mb-1">
+                        {step.phase}
+                      </span>
+                      <div className="bg-nbac-panel/40 border border-nbac-emerald/30 p-5 rounded-lg glass-card text-left">
+                        <h4 className="font-sans font-bold text-sm text-nbac-text mb-2">{step.title}</h4>
+                        <p className="font-sans font-light text-xs text-nbac-body leading-relaxed">{step.desc}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        </SectionBlur>
+
+        {/* Judging Criteria Section */}
+        <SectionBlur>
+          <section className="criteria-section relative z-10 px-6 md:px-24 max-w-7xl mx-auto py-16 md:py-24 border-t border-nbac-border/30">
+            <div className="text-center mb-16">
+              <SectionEyebrow className="text-center justify-center">EVALUATION</SectionEyebrow>
+              <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight">
+                Judging <span className="italic text-nbac-emerald font-semibold">Criteria</span>
+              </h2>
+              <p className="font-sans text-sm md:text-base font-light text-nbac-muted max-w-2xl mx-auto mt-4 font-serif italic">
+                Five dimensions, independently scored by a panel of five industry judges
+              </p>
+            </div>
+
+            {/* Grid layout for 5 cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 max-w-6xl mx-auto">
+              {judgingCriteria.map((item, idx) => (
+                <div key={idx} className="criteria-card opacity-0 flex flex-col group">
+                  {/* Green Percentage Box */}
+                  <div className="bg-nbac-emerald text-white py-4 rounded-t-xl text-center font-display text-2xl font-bold tracking-tight shadow-md z-10 relative">
+                    {item.percentage}
+                  </div>
+
+                  {/* Criteria details card */}
+                  <div className="flex-1 bg-nbac-panel/40 border border-nbac-emerald/30 group-hover:border-nbac-emerald/60 p-6 rounded-b-xl glass-card text-center flex flex-col justify-start transition-all duration-300 pt-8 -mt-2">
+                    <h3 className="font-sans text-base font-bold text-nbac-text mb-3 tracking-wide">
+                      {item.title}
+                    </h3>
+                    <p className="font-sans text-xs font-light text-nbac-body leading-relaxed">
+                      {item.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Judges Footer Note */}
+            <div className="text-center mt-12">
+              <p className="font-sans text-[11px] md:text-xs font-light text-nbac-muted font-serif italic leading-relaxed">
+                Judges: NCAA/FAAN representative • Active Nigerian operator • Tech/startup investor • OEM or MRO representative • NBAC steering committee member
+              </p>
             </div>
           </section>
         </SectionBlur>
@@ -409,7 +829,7 @@ export default function AeroLabPage() {
                   borderColor: '#c5a059'
                 }}
               >
-                {/* Popular Badge */}
+                {/* Grand Prize Badge */}
                 <div className="absolute top-0 right-1/2 translate-x-1/2 -translate-y-1/2 bg-linear-to-r from-nbac-gold to-nbac-gold-dark text-[#0b0f10] font-sans font-bold text-[9px] uppercase tracking-widest px-4 py-1.5 rounded-full shadow-md">
                   GRAND PRIZE
                 </div>

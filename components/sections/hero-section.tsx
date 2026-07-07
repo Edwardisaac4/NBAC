@@ -1,12 +1,12 @@
 'use client'
 
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState } from 'react'
 import { useGSAP } from '@gsap/react'
 import Link from 'next/link'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { StatCounter } from '../shared/stat-counter'
-import { motion, AnimatePresence } from 'framer-motion'
+
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -76,14 +76,6 @@ export function HeroSection() {
   const headingRef = useRef<HTMLHeadingElement>(null)
 
   const [particles] = useState<ReturnType<typeof generateParticles>>(() => generateParticles())
-  const [showTheme, setShowTheme] = useState(false)
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setShowTheme((prev) => !prev)
-    }, 5000)
-    return () => clearInterval(timer)
-  }, [])
 
   useGSAP(
     () => {
@@ -467,36 +459,11 @@ export function HeroSection() {
           ))}
         </h1>
 
-        {/* Venue / Date & Theme Metadata Carousel */}
+        {/* Venue / Date Metadata */}
         <div className="hero-meta relative w-full h-14 sm:h-10 md:h-8 flex items-center justify-center opacity-0 select-none overflow-hidden">
-          <AnimatePresence mode="wait">
-            {!showTheme ? (
-              <motion.p
-                key="venue"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.6, ease: 'easeInOut' }}
-                className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-center font-sans text-xs sm:text-sm md:text-lg text-white/90 tracking-wider font-medium max-w-2xl mx-auto text-center"
-              >
-                May 4-5, 2027 • Mariot Hotel Ikeja, Lagos, Nigeria
-              </motion.p>
-            ) : (
-              <motion.p
-                key="theme"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.6, ease: 'easeInOut' }}
-                className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-center font-sans text-xs sm:text-sm md:text-lg text-nbac-gold-light tracking-wider font-medium max-w-3xl mx-auto text-center px-4"
-              >
-                <span>
-                  <span className="text-white/60 font-light mr-1.5">Theme:</span>
-                  One Sky, Many Stakeholders: Building a Connected Business Aviation Ecosystem
-                </span>
-              </motion.p>
-            )}
-          </AnimatePresence>
+          <p className="font-sans text-xs sm:text-sm md:text-lg text-white/90 tracking-wider font-medium max-w-2xl mx-auto text-center">
+            May 4-5, 2027 • Mariot Hotel Ikeja, Lagos, Nigeria
+          </p>
         </div>
 
         {/* Stats Row */}
