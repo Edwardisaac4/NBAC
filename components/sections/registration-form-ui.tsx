@@ -76,7 +76,7 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
           status: 'pending',
           reference: reference,
           amount: amount,
-          currency: 'NGN',
+          currency: 'USD',
           special_requirements: formData.specialRequirements,
           delegate_count: delegateCount
         })
@@ -101,9 +101,9 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
   }
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-NG', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'NGN',
+      currency: 'USD',
       maximumFractionDigits: 0
     }).format(price)
   }

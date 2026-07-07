@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS public.reservations (
     status text NOT NULL DEFAULT 'pending',
     reference text UNIQUE NOT NULL,
     amount numeric NOT NULL,
-    currency text NOT NULL DEFAULT 'NGN',
+    currency text NOT NULL DEFAULT 'USD',
     special_requirements text,
     delegate_count integer NOT NULL DEFAULT 1,
     created_at timestamptz DEFAULT now()

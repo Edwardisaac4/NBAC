@@ -511,7 +511,7 @@ export default function AeroLabPage() {
                           </div>
                           <div className="flex justify-between text-[11px]">
                             <span className="text-nbac-body">FX Hedge Rate</span>
-                            <span className="text-nbac-emerald font-semibold">₦/$ Collar Cap</span>
+                            <span className="text-nbac-emerald font-semibold">FX Collar Cap</span>
                           </div>
                           <div className="flex justify-between text-[11px]">
                             <span className="text-nbac-body">Amortization</span>
@@ -794,7 +794,7 @@ export default function AeroLabPage() {
                   </div>
                   
                   <div className="mb-6">
-                    <span className="font-display text-3xl md:text-4xl font-extrabold text-nbac-text">₦1,500,000</span>
+                    <span className="font-display text-3xl md:text-4xl font-extrabold text-nbac-text">$1,000</span>
                     <span className="text-sm font-sans text-nbac-muted font-medium ml-1">each</span>
                   </div>
 
@@ -843,8 +843,7 @@ export default function AeroLabPage() {
                   </div>
                   
                   <div className="mb-6">
-                    <span className="font-display text-4xl md:text-5xl font-extrabold text-nbac-text">₦5,000,000</span>
-                    <span className="text-xs font-sans text-nbac-muted font-medium block mt-1">(or USD equivalent)</span>
+                    <span className="font-display text-4xl md:text-5xl font-extrabold text-nbac-text">$3,500</span>
                   </div>
 
                   <p className="font-sans text-sm font-light text-nbac-body leading-relaxed mb-6">

@@ -58,9 +58,9 @@ export default function ReservationsPage() {
             special_requirements?: string;
             delegate_count?: number;
           }[]).map((row) => {
-            const formattedAmount = new Intl.NumberFormat('en-NG', {
+            const formattedAmount = new Intl.NumberFormat('en-US', {
               style: 'currency',
-              currency: 'NGN',
+              currency: 'USD',
               maximumFractionDigits: 0
             }).format(row.amount);
             

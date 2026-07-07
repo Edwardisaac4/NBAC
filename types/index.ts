@@ -91,7 +91,7 @@ export interface PassTierDetails {
   id: PassTier;
   name: string;
   price: number;
-  currency: 'NGN' | 'USD';
+  currency: 'USD';
   privileges: string[];
   availability: 'available' | 'limited' | 'sold_out';
   badge?: string;

@@ -28,7 +28,7 @@ export default function AdminDashboardPage() {
     totalRegistrations: 0,
     confirmedBookings: 0,
     pendingPayments: 0,
-    revenue: '₦0'
+    revenue: '$0'
   });
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -93,9 +93,9 @@ export default function AdminDashboardPage() {
           });
         }
 
-        const formattedRev = new Intl.NumberFormat('en-NG', {
+        const formattedRev = new Intl.NumberFormat('en-US', {
           style: 'currency',
-          currency: 'NGN',
+          currency: 'USD',
           maximumFractionDigits: 0
         }).format(revenueSum);
 
@@ -187,7 +187,7 @@ export default function AdminDashboardPage() {
           title="Revenue to Date"
           value={loading ? '...' : stats.revenue}
           icon={CreditCard}
-          trend={{ value: "Gross NGN", isPositive: true }}
+          trend={{ value: "Gross USD", isPositive: true }}
           highlight={true} // Apply luxury gold theme
         />
       </div>
