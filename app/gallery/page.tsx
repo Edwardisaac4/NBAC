@@ -16,7 +16,7 @@ export default function GalleryPage() {
           <div className="space-y-4 max-w-3xl">
             <SectionEyebrow>Visual Archive</SectionEyebrow>
             <h1 className="font-display text-4xl md:text-6xl font-bold tracking-tight text-nbac-text leading-tight">
-              Capturing the Momentum of <br className="hidden sm:inline" />
+              Capturing the Moments of <br className="hidden sm:inline" />
               <span className="text-glow text-nbac-emerald">West African Aviation</span>
             </h1>
             <p className="font-sans text-base md:text-lg font-light text-nbac-body leading-relaxed pt-2">

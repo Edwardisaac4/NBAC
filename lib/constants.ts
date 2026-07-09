@@ -1,4 +1,4 @@
-import { CommitteeMember, SponsorTierDetails } from '@/types'
+import { CommitteeMember, SponsorTierDetails, PassTierDetails } from '@/types'
 
 export interface SponsorAddOn {
   id: string;
@@ -290,6 +290,60 @@ export const SPONSOR_ADD_ONS: SponsorAddOn[] = [
     name: 'AeroLab Prize Fund',
     isNegotiable: true,
     description: 'Underwrite the AeroLab cash prizes in exchange for prominent recognition at the Gala Dinner award ceremony — the single highest-visibility moment of the conference programme.'
+  }
+]
+
+export const PASS_TIERS: PassTierDetails[] = [
+  {
+    id: 'vip',
+    name: 'VIP Delegate Pass',
+    badge: 'Executive Delegate',
+    price: 250,
+    currency: 'USD',
+    availability: 'available',
+    billingModel: 'per_delegate',
+    includedDelegates: 1,
+    privileges: [
+      'Admission to all keynote speeches, panel debates, and workshops',
+      'Exclusive access to the aircraft static display ramp',
+      'Daily networking gourmet lunch buffet & premium coffee lounges',
+      'Official NBAC delegate gift package and conference materials',
+      'Access to digital networking app & private matchmaking portal'
+    ]
+  },
+  {
+    id: 'exhibitor',
+    name: 'Exhibitor Pass',
+    badge: 'Corporate Exhibitor',
+    price: 750,
+    currency: 'USD',
+    availability: 'limited',
+    billingModel: 'package',
+    includedDelegates: 2,
+    privileges: [
+      'Premium 3m x 3m designated exhibition space in main hall',
+      'Two (2) full delegate access passes for company representatives',
+      'Corporate profile listing in the official conference program',
+      'Double-sided profile display on digital exhibition pillars',
+      'Priority access to corporate press release desk & media lounge'
+    ]
+  },
+  {
+    id: 'jet_display',
+    name: 'Jet Display Pass',
+    badge: 'Aircraft Operator',
+    price: 1800,
+    currency: 'USD',
+    availability: 'available',
+    billingModel: 'package',
+    includedDelegates: 4,
+    privileges: [
+      'Reserved ramp parking slot for one (1) display aircraft',
+      'Four (4) VIP All-Access delegate passes for company executives',
+      'Complimentary corporate chalet / hosting lounge privilege',
+      'Full-page feature advertisement in the official event digest',
+      'Fast-track VIP diplomatic clearance & customs coordination'
+    ]
   }
 ]
 
