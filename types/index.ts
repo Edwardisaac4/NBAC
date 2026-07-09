@@ -138,7 +138,7 @@ export interface ContentPostFormData {
 }
 
 // Inquiries
-export type InquiryType = 'general' | 'hotel' | 'charter' | 'sponsorship' | 'media' | 'vip';
+export type InquiryType = 'general' | 'aerolabs' | 'sponsorship' | 'registration' | 'aircraft_display' | 'others';
 export type InquiryStatus = 'open' | 'in_progress' | 'resolved';
 
 export interface Inquiry {

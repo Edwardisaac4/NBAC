@@ -3,16 +3,15 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, Mail, CheckCircle2 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 
 export function ContactFormUI() {
   const inquiryTypes = [
     { value: 'general', label: 'General Inquiry' },
-    { value: 'hotel', label: 'Hotel & Accommodation' },
-    { value: 'charter', label: 'Charter Flight Coordination' },
-    { value: 'sponsorship', label: 'Sponsorship & Exhibitions' },
-    { value: 'media', label: 'Media Relations' },
-    { value: 'vip', label: 'VIP Delegation Handling' }
+    { value: 'aerolabs', label: 'AeroLabs' },
+    { value: 'sponsorship', label: 'Sponsorships' },
+    { value: 'registration', label: 'Event Registration' },
+    { value: 'aircraft_display', label: 'Aircraft Display' },
+    { value: 'others', label: 'Others' }
   ]
 
   const [formData, setFormData] = useState({
@@ -40,20 +39,24 @@ export function ContactFormUI() {
     setIsSubmitting(true)
 
     try {
-      const supabase = createClient()
-      const { error } = await supabase
-        .from('contacts')
-        .insert({
-          full_name: formData.fullName,
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: formData.fullName,
           email: formData.email,
           company: formData.company || null,
           phone: formData.phone || null,
-          inquiry_type: formData.inquiryType,
+          inquiryType: formData.inquiryType,
           message: formData.message
-        })
+        }),
+      })
 
-      if (error) {
-        throw error
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || `HTTP error! Status: ${response.status}`)
       }
 
       setTimeout(() => {

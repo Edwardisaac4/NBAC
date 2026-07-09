@@ -4,68 +4,11 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
-import { PassTierCard } from "@/components/shared/pass-tier-card"
-import { RegistrationFormUI } from "@/components/sections/registration-form-ui"
+import { DelegateBentoGrid } from "@/components/sections/delegate-bento-grid"
 import { SponsorBentoGrid } from "@/components/sections/sponsor-bento-grid"
-import { PassTierDetails } from "@/types"
-
-const passTiers: PassTierDetails[] = [
-  {
-    id: 'vip',
-    name: 'VIP Delegate Pass',
-    badge: 'Executive Delegate',
-    price: 250,
-    currency: 'USD',
-    availability: 'available',
-    billingModel: 'per_delegate',
-    includedDelegates: 1,
-    privileges: [
-      'Admission to all keynote speeches, panel debates, and workshops',
-      'Exclusive access to the aircraft static display ramp',
-      'Daily networking gourmet lunch buffet & premium coffee lounges',
-      'Official NBAC delegate gift package and conference materials',
-      'Access to digital networking app & private matchmaking portal'
-    ]
-  },
-  {
-    id: 'exhibitor',
-    name: 'Exhibitor Pass',
-    badge: 'Corporate Exhibitor',
-    price: 750,
-    currency: 'USD',
-    availability: 'limited',
-    billingModel: 'package',
-    includedDelegates: 2,
-    privileges: [
-      'Premium 3m x 3m designated exhibition space in main hall',
-      'Two (2) full delegate access passes for company representatives',
-      'Corporate profile listing in the official conference program',
-      'Double-sided profile display on digital exhibition pillars',
-      'Priority access to corporate press release desk & media lounge'
-    ]
-  },
-  {
-    id: 'jet_display',
-    name: 'Jet Display Pass',
-    badge: 'Aircraft Operator',
-    price: 1800,
-    currency: 'USD',
-    availability: 'available',
-    billingModel: 'package',
-    includedDelegates: 4,
-    privileges: [
-      'Reserved ramp parking slot for one (1) display aircraft',
-      'Four (4) VIP All-Access delegate passes for company executives',
-      'Complimentary corporate chalet / hosting lounge privilege',
-      'Full-page feature advertisement in the official event digest',
-      'Fast-track VIP diplomatic clearance & customs coordination'
-    ]
-  }
-]
 
 export default function ReservationsPage() {
   const [activeTab, setActiveTab] = useState<'delegate' | 'sponsor'>('delegate')
-  const [selectedTier, setSelectedTier] = useState<PassTierDetails | null>(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -80,16 +23,11 @@ export default function ReservationsPage() {
 
   const handleTabChange = (tab: 'delegate' | 'sponsor') => {
     setActiveTab(tab)
-    setSelectedTier(null)
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href)
       url.searchParams.set('type', tab)
       window.history.pushState({}, '', url.toString())
     }
-  }
-
-  const handleSelectTier = (tier: PassTierDetails) => {
-    setSelectedTier(tier)
   }
 
   return (
@@ -153,23 +91,8 @@ export default function ReservationsPage() {
 
         {/* Form and Selection Split Grid / Full Width Bento */}
         {activeTab === 'delegate' ? (
-          <section className="max-w-7xl mx-auto px-6 md:px-12 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-            {/* Left side: Package Cards Stack/Grid */}
-            <div className="lg:col-span-6 xl:col-span-7 flex flex-col gap-6 md:grid md:grid-cols-3 lg:flex lg:flex-col lg:gap-6">
-              {passTiers.map((tier) => (
-                <PassTierCard
-                  key={tier.id}
-                  tier={tier}
-                  isSelected={selectedTier?.id === tier.id}
-                  onSelect={() => handleSelectTier(tier)}
-                />
-              ))}
-            </div>
-
-            {/* Right side: Credentials Form Box */}
-            <div className="lg:col-span-6 xl:col-span-5 h-full">
-              <RegistrationFormUI selectedTier={selectedTier} />
-            </div>
+          <section className="max-w-7xl mx-auto px-6 md:px-12 w-full">
+            <DelegateBentoGrid />
           </section>
         ) : (
           <section className="max-w-7xl mx-auto px-6 md:px-12 w-full">
@@ -183,3 +106,4 @@ export default function ReservationsPage() {
     </>
   )
 }
+
