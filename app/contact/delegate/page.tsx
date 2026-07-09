@@ -23,15 +23,15 @@ export default function DelegateRegistrationPage() {
     const timer = setTimeout(() => {
       if (foundTier) {
         setSelectedTier(foundTier)
-      }
-      if (tierParam) {
-        setIsTierLocked(true)
+        if (tierParam) {
+          setIsTierLocked(true)
+        }
       }
     }, 0)
 
     return () => clearTimeout(timer)
   }, [])
-  
+
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -39,7 +39,7 @@ export default function DelegateRegistrationPage() {
     phone: '',
     specialRequirements: ''
   })
-  
+
   const [delegateCount, setDelegateCount] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
@@ -86,10 +86,10 @@ export default function DelegateRegistrationPage() {
     e.preventDefault()
     if (!selectedTier) return
     setIsSubmitting(true)
-    
+
     const reference = generateReference(selectedTier.id)
     const amount = calculateTotal(selectedTier, delegateCount)
-    
+
     try {
       const supabase = createClient()
       const { error } = await supabase
@@ -107,11 +107,11 @@ export default function DelegateRegistrationPage() {
           special_requirements: formData.specialRequirements,
           delegate_count: delegateCount
         })
-        
+
       if (error) {
         throw error
       }
-      
+
       // Delay slightly for visual checkout transition
       setTimeout(() => {
         setSubmittedTier(selectedTier)
@@ -141,14 +141,14 @@ export default function DelegateRegistrationPage() {
   return (
     <>
       <Navbar />
-      
+
       <main className="flex flex-col min-h-screen bg-nbac-canvas text-nbac-text pt-24 md:pt-28 pb-16 md:pb-24">
-        
+
         {/* Header Hero Section */}
         <section className="max-w-4xl mx-auto px-6 w-full text-center pt-6 pb-10">
           {/* Back Button */}
           <div className="mb-6 flex justify-center">
-            <Link 
+            <Link
               href="/reservations?type=delegate"
               className="inline-flex items-center gap-2 text-xs uppercase tracking-widest font-semibold text-nbac-muted hover:text-nbac-emerald transition-colors cursor-pointer group"
             >
@@ -192,14 +192,14 @@ export default function DelegateRegistrationPage() {
                     isVipSubmitted ? "bg-nbac-gold/4" : "bg-nbac-emerald/4"
                   )} />
 
-                  <motion.div 
+                  <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 15 }}
                     className={cn(
                       "p-4 rounded-full border",
-                      isVipSubmitted 
-                        ? "bg-nbac-gold/10 border-nbac-gold/30 shadow-[0_0_30px_rgba(197,160,89,0.25)]" 
+                      isVipSubmitted
+                        ? "bg-nbac-gold/10 border-nbac-gold/30 shadow-[0_0_30px_rgba(197,160,89,0.25)]"
                         : "bg-nbac-emerald/10 border-nbac-emerald/30 shadow-[0_0_30px_rgba(16,185,129,0.25)]"
                     )}
                   >
@@ -290,7 +290,7 @@ export default function DelegateRegistrationPage() {
                   className="sponsor-animated-border rounded-2xl p-6 md:p-10 backdrop-blur-xl shadow-2xl relative"
                 >
                   <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
-                    
+
                     {/* Header Intro inside form */}
                     <div className="flex flex-col space-y-2 border-b border-nbac-border pb-4">
                       <span className={cn(
@@ -570,7 +570,7 @@ export default function DelegateRegistrationPage() {
                       disabled={isSubmitting}
                       className={cn(
                         "w-full font-sans font-bold py-4 rounded-full text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2.5 disabled:opacity-75 disabled:cursor-not-allowed active:scale-[0.98] cursor-pointer",
-                        isVipSelected 
+                        isVipSelected
                           ? "bg-linear-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold text-[#0b0f10] shadow-[0_4px_15px_rgba(197,160,89,0.25)] hover:shadow-[0_6px_20px_rgba(197,160,89,0.45)]"
                           : "bg-linear-to-r from-nbac-emerald via-[#10b981] to-nbac-emerald text-white shadow-[0_4px_15px_rgba(16,185,129,0.25)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.45)]"
                       )}
