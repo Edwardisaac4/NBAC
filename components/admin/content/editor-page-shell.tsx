@@ -11,6 +11,8 @@ import { PublishBar } from './publish-bar';
 import { EditorToolbar } from './editor-toolbar';
 import { PostEditor } from './post-editor';
 import { DocumentSettings } from './document-settings';
+import { useToast } from '@/components/shared/toast';
+import { AlertDialog } from '@/components/shared/alert-dialog';
 
 interface EditorPageShellProps {
   mode: 'create' | 'edit';
@@ -21,7 +23,9 @@ interface EditorPageShellProps {
 export function EditorPageShell({ mode, template = 'blank', postId }: EditorPageShellProps) {
   const router = useRouter();
   const { role } = useAdminRole();
+  const toast = useToast();
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Dynamic mode and post ID tracking to convert create to edit after first save
   const [currentPostId, setCurrentPostId] = useState<string | undefined>(postId);
@@ -56,7 +60,7 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
     if (!title.trim()) {
       // Skip auto-saves without title to avoid user annoyance, only alert on manual clicks
       if (navigateBackAfterSave) {
-        alert('Please enter a title before saving.');
+        toast.error('Please enter a title before saving.');
       }
       return;
     }
@@ -183,7 +187,7 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
           setAuthorName(post.author_name || post.author || 'Staff Editor');
           setCoverImageUrl(post.cover_image_url || post.featured_image || '');
         } else {
-          alert('Post not found.');
+          toast.error('Post not found.');
           router.push('/admin/content');
         }
       }
@@ -266,17 +270,9 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
   };
 
   // Delete handler (Danger Zone)
-  const handleDeletePost = async () => {
+  const handleDeletePost = () => {
     if (currentMode === 'edit' && currentPostId) {
-      if (confirm('Are you sure you want to permanently delete this article?\nThis action cannot be undone.')) {
-        const success = await deleteDbPost(currentPostId);
-        if (success) {
-          await logAdminActivity('deleted', `Deleted article: "${title}" (ID: ${currentPostId})`);
-          router.push('/admin/content');
-        } else {
-          alert('Failed to delete article from the database.');
-        }
-      }
+      setShowDeleteConfirm(true);
     }
   };
 
@@ -289,6 +285,26 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
 
   return (
     <div className="min-h-screen bg-nbac-canvas text-nbac-text flex flex-col select-none">
+      <AlertDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={async () => {
+          if (currentMode === 'edit' && currentPostId) {
+            const success = await deleteDbPost(currentPostId);
+            if (success) {
+              await logAdminActivity('deleted', `Deleted article: "${title}" (ID: ${currentPostId})`);
+              toast.success('Article deleted successfully');
+              router.push('/admin/content');
+            } else {
+              toast.error('Failed to delete article from the database.');
+            }
+          }
+        }}
+        title="Delete Article"
+        description="Are you sure you want to permanently delete this article? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
       {/* Sticky Publish Bar (Top) */}
       <PublishBar
         template={postType}

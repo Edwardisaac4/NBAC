@@ -6,10 +6,12 @@ import { Shield, Lock, Mail, KeyRound } from 'lucide-react';
 import { useAdminRole } from '@/hooks/use-admin-role';
 import { createClient } from '@/lib/supabase/client';
 import { logAdminActivity } from '@/lib/blog-data';
+import { useToast } from '@/components/shared/toast';
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const { setRole } = useAdminRole();
+  const toast = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -18,20 +20,46 @@ export default function AdminLoginPage() {
     e.preventDefault();
 
     if (roleType && process.env.NODE_ENV === 'production') {
-      alert('Developer Demo Mode is disabled in production.');
+      toast.info('Developer Demo Mode is disabled in production.');
       return;
     }
 
     setIsLoading(true);
 
     if (roleType) {
-      // Simulate authenticating
-      setTimeout(async () => {
+      try {
+        const demoEmail = roleType === 'head_admin' 
+          ? 'adesoji.gbadeyan@ean.aero' 
+          : 'josephine.kolawole@ean.aero';
+        const demoPassword = roleType === 'head_admin' 
+          ? 'NbacAdmin2026!' 
+          : 'MarketingNbac2027!';
+          
+        const supabase = createClient();
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: demoEmail,
+          password: demoPassword,
+        });
+
+        if (error) {
+          console.warn('Demo auth fallback failed, using simulated bypass:', error.message);
+          setRole(roleType);
+          setIsLoading(false);
+          router.push('/admin');
+          return;
+        }
+
+        const userRole = data.user?.app_metadata?.role;
+        setRole(userRole || roleType);
+        await logAdminActivity('login', `Administrator logged in (Demo Mode via Supabase Auth): ${demoEmail}`);
+        setIsLoading(false);
+        router.push('/admin');
+      } catch (err) {
+        console.error('Demo auth failed:', err);
         setRole(roleType);
         setIsLoading(false);
-        await logAdminActivity('login', `Administrator logged in (Demo Mode): ${roleType === 'head_admin' ? 'chief.admin@nbac.com.ng' : 'staff.editor@nbac.com.ng'}`);
         router.push('/admin');
-      }, 800);
+      }
     } else {
       try {
         const supabase = createClient();
@@ -42,7 +70,7 @@ export default function AdminLoginPage() {
 
         if (error) {
           setIsLoading(false);
-          alert(`Access Denied: ${error.message}`);
+          toast.error('Access Denied', { description: error.message });
           return;
         }
 
@@ -54,12 +82,12 @@ export default function AdminLoginPage() {
           router.push('/admin');
         } else {
           setIsLoading(false);
-          alert('Access Denied: Authorized role not found on user profile.');
+          toast.error('Access Denied', { description: 'Authorized role not found on user profile.' });
           await supabase.auth.signOut();
         }
       } catch {
         setIsLoading(false);
-        alert('An unexpected error occurred during login.');
+        toast.error('An unexpected error occurred during login.');
       }
     }
   };

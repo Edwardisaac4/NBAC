@@ -10,8 +10,10 @@ import { SPONSOR_TIERS, SPONSOR_ADD_ONS } from '@/lib/constants'
 import { SponsorTierDetails } from '@/types'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/shared/toast'
 
 export default function SponsorContactPage() {
+  const toast = useToast()
   const [selectedTier, setSelectedTier] = useState<SponsorTierDetails | null>(null)
   const [isTierLocked, setIsTierLocked] = useState(false)
 
@@ -126,7 +128,7 @@ export default function SponsorContactPage() {
     } catch (err) {
       setIsSubmitting(false)
       const msg = err instanceof Error ? err.message : String(err)
-      alert(`Sponsorship Submission Error: ${msg}`)
+      toast.error('Sponsorship Submission Error', { description: msg })
     }
   }
 

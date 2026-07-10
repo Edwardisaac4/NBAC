@@ -10,8 +10,10 @@ import { PASS_TIERS } from '@/lib/constants'
 import { PassTierDetails } from '@/types'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/shared/toast'
 
 export default function DelegateRegistrationPage() {
+  const toast = useToast()
   const [selectedTier, setSelectedTier] = useState<PassTierDetails | null>(null)
   const [isTierLocked, setIsTierLocked] = useState(false)
 
@@ -123,7 +125,7 @@ export default function DelegateRegistrationPage() {
     } catch (err) {
       setIsSubmitting(false)
       const msg = err instanceof Error ? err.message : String(err)
-      alert(`Registration Error: ${msg}`)
+      toast.error('Registration Error', { description: msg })
     }
   }
 

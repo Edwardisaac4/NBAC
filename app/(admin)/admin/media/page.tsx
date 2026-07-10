@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Image as ImageIcon, Upload, Trash2, Tag, Loader2, FileText, Search, X } from 'lucide-react';
+import { Image as ImageIcon, Upload, Trash2, Tag, Loader2, FileText, Search, X, Calendar } from 'lucide-react';
 import { useAdminRole } from '@/hooks/use-admin-role';
 import { RoleBanner } from '@/components/admin/role-banner';
 import { createClient } from '@/lib/supabase/client';
 import { logAdminActivity } from '@/lib/blog-data';
+import { useToast } from '@/components/shared/toast';
+import { AlertDialog } from '@/components/shared/alert-dialog';
 
 interface MediaAsset {
   id: string;
@@ -16,6 +18,8 @@ interface MediaAsset {
   uploaded_by: string;
   file_size?: string;
   created_at: string;
+  category: 'Conference' | 'Exhibition' | 'Gala Dinner' | 'Networking';
+  year: '2026' | '2017' | '2016' | '2014' | '2013';
 }
 
 const supabase = createClient();
@@ -27,13 +31,20 @@ function generateUniquePath(fileName: string): string {
 
 export default function MediaGalleryPage() {
   const { isHeadAdmin } = useAdminRole();
+  const toast = useToast();
   const [mediaItems, setMediaItems] = useState<MediaAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [stagedFiles, setStagedFiles] = useState<File[]>([]);
+  const [uploadStatus, setUploadStatus] = useState<{ [key: string]: 'idle' | 'uploading' | 'completed' | 'failed' }>({});
+  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
   const [tagInput, setTagInput] = useState('');
+  const [categoryInput, setCategoryInput] = useState<'Conference' | 'Exhibition' | 'Gala Dinner' | 'Networking'>('Conference');
+  const [yearInput, setYearInput] = useState<'2026' | '2017' | '2016' | '2014' | '2013'>('2026');
   const [searchQuery, setSearchQuery] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; storagePath: string } | null>(null);
 
   const fetchMedia = useCallback(async () => {
     try {
@@ -81,8 +92,21 @@ export default function MediaGalleryPage() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   };
 
-  const handleFiles = async (files: FileList) => {
-    if (files.length === 0) return;
+  const handleFilesSelection = (files: FileList) => {
+    const validFiles: File[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File Size Limit Exceeded', { description: `File "${file.name}" exceeds the 5MB size limit.` });
+        continue;
+      }
+      validFiles.push(file);
+    }
+    setStagedFiles(prev => [...prev, ...validFiles]);
+  };
+
+  const startUpload = async () => {
+    if (stagedFiles.length === 0) return;
     setUploading(true);
 
     try {
@@ -94,58 +118,97 @@ export default function MediaGalleryPage() {
         .map(t => t.trim())
         .filter(t => t.length > 0);
 
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        if (file.size > 5 * 1024 * 1024) {
-          alert(`File "${file.name}" exceeds the 5MB size limit.`);
-          continue;
-        }
+      // Initialize status
+      const initialStatus: { [key: string]: 'idle' | 'uploading' | 'completed' | 'failed' } = {};
+      stagedFiles.forEach(file => {
+        initialStatus[file.name] = 'idle';
+      });
+      setUploadStatus(initialStatus);
 
-        const uniquePath = generateUniquePath(file.name);
-
-        const { error: uploadError } = await supabase.storage
-          .from('media')
-          .upload(uniquePath, file, {
-            cacheControl: '3600',
-            upsert: false,
+      for (let i = 0; i < stagedFiles.length; i++) {
+        const file = stagedFiles[i];
+        
+        // Mark file as uploading
+        setUploadStatus(prev => ({ ...prev, [file.name]: 'uploading' }));
+        setUploadProgress(prev => ({ ...prev, [file.name]: 0 }));
+        
+        // Simulate progress increment while upload is in progress (since standard upload lacks callback)
+        const progressInterval = setInterval(() => {
+          setUploadProgress(prev => {
+            const current = prev[file.name] || 0;
+            if (current >= 90) return prev;
+            return { ...prev, [file.name]: current + 10 };
           });
+        }, 150);
 
-        if (uploadError) {
-          console.error('Storage upload error:', uploadError.message);
-          alert(`Failed to upload ${file.name}: ${uploadError.message}`);
-          continue;
+        try {
+          const uniquePath = generateUniquePath(file.name);
+
+          const { error: uploadError } = await supabase.storage
+            .from('media')
+            .upload(uniquePath, file, {
+              cacheControl: '3600',
+              upsert: false,
+            });
+
+          clearInterval(progressInterval);
+
+          if (uploadError) {
+            console.error('Storage upload error:', uploadError.message);
+            setUploadStatus(prev => ({ ...prev, [file.name]: 'failed' }));
+            toast.error(`Failed to upload ${file.name}`, { description: uploadError.message });
+            continue;
+          }
+
+          setUploadProgress(prev => ({ ...prev, [file.name]: 100 }));
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('media')
+            .getPublicUrl(uniquePath);
+
+          const { error: dbError } = await supabase
+            .from('media_assets')
+            .insert({
+              file_name: file.name,
+              file_url: publicUrl,
+              storage_path: uniquePath,
+              tags,
+              uploaded_by: email,
+              file_size: formatBytes(file.size),
+              category: categoryInput,
+              year: yearInput,
+            });
+
+          if (dbError) {
+            console.error('Database save error:', dbError.message);
+            await supabase.storage.from('media').remove([uniquePath]);
+            setUploadStatus(prev => ({ ...prev, [file.name]: 'failed' }));
+            toast.error(`Failed to save metadata for ${file.name}`, { description: dbError.message });
+            continue;
+          }
+
+          setUploadStatus(prev => ({ ...prev, [file.name]: 'completed' }));
+          await logAdminActivity('edited', `Uploaded media asset: ${file.name}`);
+          toast.success('Picture Uploaded', { description: `${file.name} uploaded successfully.`, image: publicUrl });
+        } catch (err) {
+          clearInterval(progressInterval);
+          console.error(`Error uploading ${file.name}:`, err);
+          setUploadStatus(prev => ({ ...prev, [file.name]: 'failed' }));
         }
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('media')
-          .getPublicUrl(uniquePath);
-
-        const { error: dbError } = await supabase
-          .from('media_assets')
-          .insert({
-            file_name: file.name,
-            file_url: publicUrl,
-            storage_path: uniquePath,
-            tags,
-            uploaded_by: email,
-            file_size: formatBytes(file.size),
-          });
-
-        if (dbError) {
-          console.error('Database save error:', dbError.message);
-          await supabase.storage.from('media').remove([uniquePath]);
-          alert(`Failed to save metadata for ${file.name}: ${dbError.message}`);
-          continue;
-        }
-
-        await logAdminActivity('edited', `Uploaded media asset: ${file.name}`);
       }
 
-      setTagInput('');
-      fetchMedia();
+      // Clear staged files and inputs upon successful completion
+      setTimeout(() => {
+        setStagedFiles([]);
+        setUploadStatus({});
+        setUploadProgress({});
+        setTagInput('');
+        fetchMedia();
+      }, 1000);
+
     } catch (err) {
       console.error('Upload process failed:', err);
-      alert('An unexpected error occurred during upload.');
+      toast.error('An unexpected error occurred during upload.');
     } finally {
       setUploading(false);
     }
@@ -166,47 +229,45 @@ export default function MediaGalleryPage() {
     e.stopPropagation();
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFiles(e.dataTransfer.files);
+      handleFilesSelection(e.dataTransfer.files);
     }
   };
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      handleFiles(e.target.files);
+      handleFilesSelection(e.target.files);
       e.target.value = '';
     }
   };
 
   const handleDelete = async (id: string, name: string, storagePath: string) => {
-    if (!confirm(`Are you sure you want to permanently delete "${name}" from storage?`)) {
-      return;
-    }
-
     try {
       const { error: storageError } = await supabase.storage
         .from('media')
         .remove([storagePath]);
-
+ 
       if (storageError) {
         console.error('Failed to delete file from storage:', storageError.message);
       }
-
+ 
       const { error: dbError } = await supabase
         .from('media_assets')
         .delete()
         .eq('id', id);
-
+ 
       if (dbError) {
         console.error('Failed to delete metadata from DB:', dbError.message);
-        alert(`Failed to delete record: ${dbError.message}`);
+        toast.error(`Failed to delete record: ${dbError.message}`);
         return;
       }
-
+ 
       await logAdminActivity('deleted', `Deleted media asset: ${name}`);
       setMediaItems(prev => prev.filter(item => item.id !== id));
+      toast.success('Picture Deleted', { description: `${name} has been permanently deleted.` });
+      setDeleteTarget(null);
     } catch (err) {
       console.error('Delete process failed:', err);
-      alert('An unexpected error occurred during deletion.');
+      toast.error('An unexpected error occurred during deletion.');
     }
   };
 
@@ -248,25 +309,67 @@ export default function MediaGalleryPage() {
         </div>
       </div>
 
-      {/* Upload Zone & Optional Tags Input */}
+      {/* Upload Zone & Optional Tags/Category/Year Inputs */}
       <div className="bg-nbac-panel border border-nbac-border rounded-xl p-5 md:p-6 space-y-4">
-        <div className="flex flex-col md:flex-row gap-4 items-end">
-          <div className="w-full md:w-1/3 space-y-1.5">
-            <label className="font-sans text-xs font-semibold text-nbac-text flex items-center gap-1.5">
-              <Tag size={12} className="text-nbac-gold-light" />
-              <span>Tags for next upload (optional)</span>
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. Day 1, Keynote, Sponsors"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              className="w-full bg-[#070b0c] border border-nbac-border text-nbac-text placeholder:text-nbac-muted/40 text-xs rounded-lg px-3 py-2.5 focus:outline-none focus:border-nbac-gold/45 font-sans"
-              disabled={uploading}
-            />
+        <div className="flex flex-col lg:flex-row gap-4 items-end">
+          <div className="w-full lg:w-3/5 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Category Select */}
+            <div className="space-y-1.5">
+              <label className="font-sans text-xs font-semibold text-nbac-text flex items-center gap-1.5">
+                <Tag size={12} className="text-nbac-gold-light" />
+                <span>Category</span>
+              </label>
+              <select
+                value={categoryInput}
+                onChange={(e) => setCategoryInput(e.target.value as typeof categoryInput)}
+                className="w-full bg-[#070b0c] border border-nbac-border text-nbac-text text-xs rounded-lg px-3 py-2.5 focus:outline-none focus:border-nbac-gold/45 font-sans"
+                disabled={uploading}
+              >
+                <option value="Conference">Conference</option>
+                <option value="Exhibition">Exhibition</option>
+                <option value="Gala Dinner">Gala Dinner</option>
+                <option value="Networking">Networking</option>
+              </select>
+            </div>
+
+            {/* Year Select */}
+            <div className="space-y-1.5">
+              <label className="font-sans text-xs font-semibold text-nbac-text flex items-center gap-1.5">
+                <Calendar size={12} className="text-nbac-gold-light" />
+                <span>Year</span>
+              </label>
+              <select
+                value={yearInput}
+                onChange={(e) => setYearInput(e.target.value as typeof yearInput)}
+                className="w-full bg-[#070b0c] border border-nbac-border text-nbac-text text-xs rounded-lg px-3 py-2.5 focus:outline-none focus:border-nbac-gold/45 font-sans"
+                disabled={uploading}
+              >
+                <option value="2026">2026</option>
+                <option value="2017">2017</option>
+                <option value="2016">2016</option>
+                <option value="2014">2014</option>
+                <option value="2013">2013</option>
+              </select>
+            </div>
+
+            {/* Tags Input */}
+            <div className="space-y-1.5">
+              <label className="font-sans text-xs font-semibold text-nbac-text flex items-center gap-1.5">
+                <Tag size={12} className="text-nbac-gold-light" />
+                <span>Tags (optional)</span>
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Day 1, Keynote"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                className="w-full bg-[#070b0c] border border-nbac-border text-nbac-text placeholder:text-nbac-muted/40 text-xs rounded-lg px-3 py-2.5 focus:outline-none focus:border-nbac-gold/45 font-sans"
+                disabled={uploading}
+              />
+            </div>
           </div>
 
-          <div className="w-full md:w-2/3">
+          <div className="w-full lg:w-2/5">
             <input
               type="file"
               ref={fileInputRef}
@@ -298,7 +401,7 @@ export default function MediaGalleryPage() {
                 </div>
                 <div className="space-y-0.5">
                   <p className="font-sans text-xs font-semibold text-nbac-text">
-                    {uploading ? 'Uploading assets...' : 'Select or Drop New Assets'}
+                    {uploading ? 'Staging assets...' : 'Select or Drop New Assets'}
                   </p>
                   <p className="font-sans text-[10px] text-nbac-muted font-light">
                     PNG, JPG, WEBP, GIF, or PDF (Max 5MB each).
@@ -309,6 +412,133 @@ export default function MediaGalleryPage() {
           </div>
         </div>
       </div>
+
+      {/* Staged Files and Progress Section */}
+      {stagedFiles.length > 0 && (
+        <div className="bg-nbac-panel border border-nbac-border rounded-xl p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-nbac-border pb-3">
+            <h3 className="font-display text-sm font-semibold text-nbac-text flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-nbac-gold animate-pulse" />
+              Staged Assets ({stagedFiles.length})
+            </h3>
+            <button
+              onClick={() => {
+                if (!uploading) {
+                  setStagedFiles([]);
+                  setUploadStatus({});
+                  setUploadProgress({});
+                }
+              }}
+              disabled={uploading}
+              className="text-xs text-nbac-muted hover:text-white transition-colors disabled:opacity-50 font-sans"
+            >
+              Clear All
+            </button>
+          </div>
+
+          <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+            {stagedFiles.map((file, idx) => {
+              const status = uploadStatus[file.name] || 'idle';
+              const progress = uploadProgress[file.name] || 0;
+              return (
+                <div
+                  key={idx}
+                  className="bg-[#0b0f10]/40 border border-nbac-border/60 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                >
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-sans text-xs text-nbac-text font-semibold truncate block max-w-md">
+                        {file.name}
+                      </span>
+                      <span className="font-sans text-[10px] text-nbac-muted">
+                        ({formatBytes(file.size)})
+                      </span>
+                    </div>
+
+                    {/* Progress Bar */}
+                    {status === 'uploading' && (
+                      <div className="w-full bg-nbac-canvas rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className="bg-nbac-gold h-1.5 rounded-full transition-all duration-300 animate-pulse"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    )}
+                    {status === 'completed' && (
+                      <div className="w-full bg-nbac-canvas rounded-full h-1.5 overflow-hidden">
+                        <div className="bg-nbac-emerald h-1.5 rounded-full" style={{ width: '100%' }} />
+                      </div>
+                    )}
+                    {status === 'failed' && (
+                      <div className="w-full bg-nbac-canvas rounded-full h-1.5 overflow-hidden">
+                        <div className="bg-nbac-danger h-1.5 rounded-full" style={{ width: '100%' }} />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3 shrink-0">
+                    {/* Status Badge */}
+                    {status === 'idle' && (
+                      <span className="text-[10px] text-nbac-muted font-sans border border-nbac-border px-2 py-0.5 rounded">
+                        Ready
+                      </span>
+                    )}
+                    {status === 'uploading' && (
+                      <span className="text-[10px] text-nbac-gold font-sans border border-nbac-gold/30 px-2 py-0.5 rounded flex items-center gap-1.5">
+                        <Loader2 size={10} className="animate-spin" />
+                        Uploading {progress}%
+                      </span>
+                    )}
+                    {status === 'completed' && (
+                      <span className="text-[10px] text-nbac-emerald font-sans border border-nbac-emerald/30 px-2 py-0.5 rounded">
+                        Success
+                      </span>
+                    )}
+                    {status === 'failed' && (
+                      <span className="text-[10px] text-nbac-danger font-sans border border-nbac-danger/30 px-2 py-0.5 rounded">
+                        Failed
+                      </span>
+                    )}
+
+                    {/* Remove button */}
+                    {status === 'idle' && (
+                      <button
+                        onClick={() => {
+                          setStagedFiles(prev => prev.filter((_, i) => i !== idx));
+                        }}
+                        className="text-nbac-muted hover:text-nbac-danger transition-colors"
+                        title="Remove file"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <button
+              onClick={startUpload}
+              disabled={uploading}
+              className="bg-linear-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold text-[#0b0f10] font-sans font-bold px-6 py-2.5 rounded-lg transition-all duration-300 shadow-md hover:shadow-nbac-gold/10 text-xs flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              {uploading ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  <span>Uploading Assets...</span>
+                </>
+              ) : (
+                <>
+                  <Upload size={14} />
+                  <span>Post {stagedFiles.length} {stagedFiles.length === 1 ? 'Asset' : 'Assets'}</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Loader/Empty State */}
       {loading ? (
@@ -381,9 +611,19 @@ export default function MediaGalleryPage() {
                   </div>
                 </div>
 
+                {/* Category and Year Badges */}
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  <span className="bg-nbac-emerald/10 text-nbac-emerald-light border border-nbac-emerald/20 px-2 py-0.5 rounded-[4px] text-[9px] font-semibold uppercase tracking-wider">
+                    {item.year}
+                  </span>
+                  <span className="bg-nbac-gold/10 text-nbac-gold-light border border-nbac-gold/20 px-2 py-0.5 rounded-[4px] text-[9px] font-semibold uppercase tracking-wider">
+                    {item.category}
+                  </span>
+                </div>
+
                 {/* Tags */}
                 {item.tags && item.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 pt-1">
+                  <div className="flex flex-wrap gap-1 pt-0.5">
                     {item.tags.map((tag, i) => (
                       <span
                         key={i}
@@ -400,7 +640,7 @@ export default function MediaGalleryPage() {
                 {isHeadAdmin && (
                   <div className="pt-2 border-t border-nbac-border flex justify-end">
                     <button
-                      onClick={() => handleDelete(item.id, item.file_name, item.storage_path)}
+                      onClick={() => setDeleteTarget({ id: item.id, name: item.file_name, storagePath: item.storage_path })}
                       className="text-nbac-danger/80 hover:text-nbac-danger hover:bg-nbac-danger/10 border border-nbac-border hover:border-nbac-danger/35 p-1.5 rounded-lg transition-colors cursor-pointer"
                       title="Delete asset"
                     >
@@ -413,6 +653,20 @@ export default function MediaGalleryPage() {
           ))}
         </div>
       )}
+ 
+      <AlertDialog
+        isOpen={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) {
+            handleDelete(deleteTarget.id, deleteTarget.name, deleteTarget.storagePath);
+          }
+        }}
+        title="Delete Media Asset"
+        description={`Are you sure you want to permanently delete "${deleteTarget?.name || 'this asset'}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
   );
 }
