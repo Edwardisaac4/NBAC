@@ -3,6 +3,7 @@ import { Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { PageAnimatePresence } from "@/components/layout/page-animate-presence";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -60,6 +61,7 @@ export default function RootLayout({
         <PageAnimatePresence>
           {children}
         </PageAnimatePresence>
+        <Analytics />
       </body>
     </html>
   );
