@@ -93,25 +93,26 @@ export default function DelegateRegistrationPage() {
     const amount = calculateTotal(selectedTier, delegateCount)
 
     try {
-      const supabase = createClient()
-      const { error } = await supabase
-        .from('reservations')
-        .insert({
+      const response = await fetch('/api/register/delegate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           name: formData.fullName,
           email: formData.email,
           company: formData.company,
           phone: formData.phone,
           tier: selectedTier.name,
-          status: 'pending',
           reference: reference,
           amount: amount,
           currency: 'USD',
-          special_requirements: formData.specialRequirements,
-          delegate_count: delegateCount
+          specialRequirements: formData.specialRequirements,
+          delegateCount: delegateCount
         })
+      });
 
-      if (error) {
-        throw error
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Registration failed');
       }
 
       // Delay slightly for visual checkout transition
