@@ -80,7 +80,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
 function ToastContainer({ toasts, onRemove }: { toasts: ToastItem[]; onRemove: (id: string) => void }) {
   return (
-    <div className="fixed top-5 right-5 z-[9999] flex flex-col gap-3 w-full max-w-sm pointer-events-none">
+    <div className="fixed top-5 left-4 right-4 sm:left-auto sm:right-5 z-[9999] flex flex-col gap-3 max-w-sm pointer-events-none">
       <AnimatePresence>
         {toasts.map((toast) => (
           <ToastCard key={toast.id} toast={toast} onRemove={onRemove} />
@@ -133,6 +133,8 @@ function ToastCard({ toast, onRemove }: { toast: ToastItem; onRemove: (id: strin
   return (
     <motion.div
       layout
+      role="status"
+      aria-live="polite"
       initial={{ opacity: 0, y: -20, x: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: 50, scale: 0.95, transition: { duration: 0.2 } }}
@@ -165,6 +167,7 @@ function ToastCard({ toast, onRemove }: { toast: ToastItem; onRemove: (id: strin
       {/* Close button */}
       <button
         onClick={() => onRemove(id)}
+        aria-label="Dismiss notification"
         className="text-nbac-muted hover:text-white transition-colors cursor-pointer shrink-0 absolute top-3 right-3"
       >
         <X size={14} />

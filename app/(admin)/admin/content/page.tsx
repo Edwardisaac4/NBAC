@@ -172,13 +172,23 @@ export default function ContentManagerPage() {
         onConfirm={async () => {
           if (deleteTarget) {
             const { id, title } = deleteTarget;
-            const success = await deleteDbPost(id);
-            if (success) {
-              setPosts(posts.filter((post) => post.id !== id));
-              await logAdminActivity('deleted', `Deleted article: "${title}" (ID: ${id})`);
-              toast.success('Article deleted successfully');
-            } else {
-              toast.error('Failed to delete article from the database.');
+            try {
+              const success = await deleteDbPost(id);
+              if (success) {
+                setPosts(posts.filter((post) => post.id !== id));
+                toast.success('Article deleted successfully');
+                try {
+                  await logAdminActivity('deleted', `Deleted article: "${title}" (ID: ${id})`);
+                } catch (logErr) {
+                  console.error('Failed to log admin activity:', logErr);
+                  toast.error('Article deleted, but audit log could not be recorded.');
+                }
+              } else {
+                toast.error('Failed to delete article from the database.');
+              }
+            } catch (err) {
+              console.error('Delete request failed:', err);
+              toast.error('An unexpected error occurred while deleting the article.');
             }
           }
         }}

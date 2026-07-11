@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, useId } from 'react';
 import { Image as ImageIcon, Upload, Trash2, Tag, Loader2, FileText, Search, X, Calendar } from 'lucide-react';
 import { useAdminRole } from '@/hooks/use-admin-role';
 import { RoleBanner } from '@/components/admin/role-banner';
@@ -22,6 +22,19 @@ interface MediaAsset {
   year: '2026' | '2017' | '2016' | '2014' | '2013';
 }
 
+interface StagedFile {
+  id: string;
+  file: File;
+}
+
+const ALLOWED_MIME_TYPES = new Set([
+  'image/png',
+  'image/jpeg',
+  'image/webp',
+  'image/gif',
+  'application/pdf',
+]);
+
 const supabase = createClient();
 
 function generateUniquePath(fileName: string): string {
@@ -35,9 +48,12 @@ export default function MediaGalleryPage() {
   const [mediaItems, setMediaItems] = useState<MediaAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [stagedFiles, setStagedFiles] = useState<File[]>([]);
+  const [stagedFiles, setStagedFiles] = useState<StagedFile[]>([]);
   const [uploadStatus, setUploadStatus] = useState<{ [key: string]: 'idle' | 'uploading' | 'completed' | 'failed' }>({});
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
+  const uploadStatusRef = useRef(uploadStatus);
+  uploadStatusRef.current = uploadStatus;
+  const stagedFileIdCounter = useRef(0);
   const [tagInput, setTagInput] = useState('');
   const [categoryInput, setCategoryInput] = useState<'Conference' | 'Exhibition' | 'Gala Dinner' | 'Networking'>('Conference');
   const [yearInput, setYearInput] = useState<'2026' | '2017' | '2016' | '2014' | '2013'>('2026');
@@ -93,14 +109,19 @@ export default function MediaGalleryPage() {
   };
 
   const handleFilesSelection = (files: FileList) => {
-    const validFiles: File[] = [];
+    const validFiles: StagedFile[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
+      if (!ALLOWED_MIME_TYPES.has(file.type)) {
+        toast.error('Unsupported File Type', { description: `File "${file.name}" is not a supported format. Use PNG, JPG, WEBP, GIF, or PDF.` });
+        continue;
+      }
       if (file.size > 5 * 1024 * 1024) {
         toast.error('File Size Limit Exceeded', { description: `File "${file.name}" exceeds the 5MB size limit.` });
         continue;
       }
-      validFiles.push(file);
+      stagedFileIdCounter.current += 1;
+      validFiles.push({ id: `staged_${Date.now()}_${stagedFileIdCounter.current}`, file });
     }
     setStagedFiles(prev => [...prev, ...validFiles]);
   };
@@ -120,24 +141,26 @@ export default function MediaGalleryPage() {
 
       // Initialize status
       const initialStatus: { [key: string]: 'idle' | 'uploading' | 'completed' | 'failed' } = {};
-      stagedFiles.forEach(file => {
-        initialStatus[file.name] = 'idle';
+      stagedFiles.forEach(sf => {
+        initialStatus[sf.id] = 'idle';
       });
       setUploadStatus(initialStatus);
 
       for (let i = 0; i < stagedFiles.length; i++) {
-        const file = stagedFiles[i];
+        const sf = stagedFiles[i];
+        const file = sf.file;
+        const fileId = sf.id;
         
         // Mark file as uploading
-        setUploadStatus(prev => ({ ...prev, [file.name]: 'uploading' }));
-        setUploadProgress(prev => ({ ...prev, [file.name]: 0 }));
+        setUploadStatus(prev => ({ ...prev, [fileId]: 'uploading' }));
+        setUploadProgress(prev => ({ ...prev, [fileId]: 0 }));
         
         // Simulate progress increment while upload is in progress (since standard upload lacks callback)
         const progressInterval = setInterval(() => {
           setUploadProgress(prev => {
-            const current = prev[file.name] || 0;
+            const current = prev[fileId] || 0;
             if (current >= 90) return prev;
-            return { ...prev, [file.name]: current + 10 };
+            return { ...prev, [fileId]: current + 10 };
           });
         }, 150);
 
@@ -155,12 +178,12 @@ export default function MediaGalleryPage() {
 
           if (uploadError) {
             console.error('Storage upload error:', uploadError.message);
-            setUploadStatus(prev => ({ ...prev, [file.name]: 'failed' }));
+            setUploadStatus(prev => ({ ...prev, [fileId]: 'failed' }));
             toast.error(`Failed to upload ${file.name}`, { description: uploadError.message });
             continue;
           }
 
-          setUploadProgress(prev => ({ ...prev, [file.name]: 100 }));
+          setUploadProgress(prev => ({ ...prev, [fileId]: 100 }));
 
           const { data: { publicUrl } } = supabase.storage
             .from('media')
@@ -182,34 +205,51 @@ export default function MediaGalleryPage() {
           if (dbError) {
             console.error('Database save error:', dbError.message);
             await supabase.storage.from('media').remove([uniquePath]);
-            setUploadStatus(prev => ({ ...prev, [file.name]: 'failed' }));
+            setUploadStatus(prev => ({ ...prev, [fileId]: 'failed' }));
             toast.error(`Failed to save metadata for ${file.name}`, { description: dbError.message });
             continue;
           }
 
-          setUploadStatus(prev => ({ ...prev, [file.name]: 'completed' }));
+          setUploadStatus(prev => ({ ...prev, [fileId]: 'completed' }));
           await logAdminActivity('edited', `Uploaded media asset: ${file.name}`);
           toast.success('Picture Uploaded', { description: `${file.name} uploaded successfully.`, image: publicUrl });
         } catch (err) {
           clearInterval(progressInterval);
           console.error(`Error uploading ${file.name}:`, err);
-          setUploadStatus(prev => ({ ...prev, [file.name]: 'failed' }));
+          setUploadStatus(prev => ({ ...prev, [fileId]: 'failed' }));
         }
       }
 
-      // Clear staged files and inputs upon successful completion
+      // Clear only completed files after a brief delay; preserve failed files for retry
       setTimeout(() => {
-        setStagedFiles([]);
-        setUploadStatus({});
-        setUploadProgress({});
-        setTagInput('');
+        const currentStatus = uploadStatusRef.current;
+        const hasFailed = Object.values(currentStatus).some(s => s === 'failed');
+
+        setStagedFiles(prev => prev.filter(sf => currentStatus[sf.id] === 'failed'));
+        setUploadStatus(prev => {
+          const kept: typeof prev = {};
+          for (const [key, val] of Object.entries(prev)) {
+            if (val === 'failed') kept[key] = val;
+          }
+          return kept;
+        });
+        setUploadProgress(prev => {
+          const kept: typeof prev = {};
+          for (const [key] of Object.entries(prev)) {
+            if (currentStatus[key] === 'failed') kept[key] = prev[key];
+          }
+          return kept;
+        });
+        if (!hasFailed) {
+          setTagInput('');
+        }
+        setUploading(false);
         fetchMedia();
       }, 1000);
 
     } catch (err) {
       console.error('Upload process failed:', err);
       toast.error('An unexpected error occurred during upload.');
-    } finally {
       setUploading(false);
     }
   };
@@ -437,12 +477,13 @@ export default function MediaGalleryPage() {
           </div>
 
           <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
-            {stagedFiles.map((file, idx) => {
-              const status = uploadStatus[file.name] || 'idle';
-              const progress = uploadProgress[file.name] || 0;
+            {stagedFiles.map((sf) => {
+              const file = sf.file;
+              const status = uploadStatus[sf.id] || 'idle';
+              const progress = uploadProgress[sf.id] || 0;
               return (
                 <div
-                  key={idx}
+                  key={sf.id}
                   className="bg-[#0b0f10]/40 border border-nbac-border/60 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                 >
                   <div className="min-w-0 flex-1 space-y-1">
@@ -504,7 +545,7 @@ export default function MediaGalleryPage() {
                     {status === 'idle' && (
                       <button
                         onClick={() => {
-                          setStagedFiles(prev => prev.filter((_, i) => i !== idx));
+                          setStagedFiles(prev => prev.filter(s => s.id !== sf.id));
                         }}
                         className="text-nbac-muted hover:text-nbac-danger transition-colors"
                         title="Remove file"
@@ -614,10 +655,10 @@ export default function MediaGalleryPage() {
                 {/* Category and Year Badges */}
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   <span className="bg-nbac-emerald/10 text-nbac-emerald-light border border-nbac-emerald/20 px-2 py-0.5 rounded-[4px] text-[9px] font-semibold uppercase tracking-wider">
-                    {item.year}
+                    {item.year || '2026'}
                   </span>
                   <span className="bg-nbac-gold/10 text-nbac-gold-light border border-nbac-gold/20 px-2 py-0.5 rounded-[4px] text-[9px] font-semibold uppercase tracking-wider">
-                    {item.category}
+                    {item.category || 'Conference'}
                   </span>
                 </div>
 

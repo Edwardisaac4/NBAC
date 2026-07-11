@@ -97,8 +97,8 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
       }, 2000)
     } catch (err) {
       setIsSubmitting(false)
-      const msg = err instanceof Error ? err.message : String(err)
-      toast.error('Registration Error', { description: msg })
+      console.error('Registration submission failure:', err)
+      toast.error('Registration Error', { description: 'An error occurred while creating your registration. Please check your network and try again.' })
     }
   }
 

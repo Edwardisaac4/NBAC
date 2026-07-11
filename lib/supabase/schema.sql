@@ -11,7 +11,8 @@ RETURNS text AS $$
     (auth.jwt() -> 'app_metadata' ->> 'role'),
     ''
   );
-$$ LANGUAGE sql STABLE SECURITY DEFINER;
+$$ LANGUAGE sql STABLE SECURITY INVOKER
+   SET search_path = '';
 
 -- -------------------------------------------------------------
 -- TABLE: posts
@@ -68,8 +69,8 @@ CREATE TABLE IF NOT EXISTS public.reservations (
 ALTER TABLE public.reservations ENABLE ROW LEVEL SECURITY;
 
 -- Policies for public.reservations
-CREATE POLICY "Allow anyone to insert reservations" ON public.reservations
-    FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow anon to insert reservations" ON public.reservations
+    FOR INSERT TO anon WITH CHECK (true);
 
 CREATE POLICY "Allow admins to read, update, delete reservations" ON public.reservations
     FOR ALL USING (public.user_role() IN ('head_admin', 'editor'))
@@ -99,8 +100,8 @@ CREATE TABLE IF NOT EXISTS public.sponsors (
 ALTER TABLE public.sponsors ENABLE ROW LEVEL SECURITY;
 
 -- Policies for public.sponsors
-CREATE POLICY "Allow anyone to insert sponsor applications" ON public.sponsors
-    FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow anon to insert sponsor applications" ON public.sponsors
+    FOR INSERT TO anon WITH CHECK (true);
 
 CREATE POLICY "Allow admins to read, update, delete sponsors" ON public.sponsors
     FOR ALL USING (public.user_role() IN ('head_admin', 'editor'))
@@ -125,12 +126,62 @@ CREATE TABLE IF NOT EXISTS public.contacts (
 ALTER TABLE public.contacts ENABLE ROW LEVEL SECURITY;
 
 -- Policies for public.contacts
-CREATE POLICY "Allow anyone to insert contact inquiries" ON public.contacts
-    FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow anon to insert contact inquiries" ON public.contacts
+    FOR INSERT TO anon WITH CHECK (true);
 
 CREATE POLICY "Allow admins to read, update, delete contacts" ON public.contacts
     FOR ALL USING (public.user_role() IN ('head_admin', 'editor'))
     WITH CHECK (public.user_role() IN ('head_admin', 'editor'));
+
+-- -------------------------------------------------------------
+-- TABLE: profiles
+-- Stores non-sensitive user metadata like department and full name
+-- -------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.profiles (
+    id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    email text NOT NULL,
+    full_name text,
+    job_title text,
+    role text,
+    department text,
+    avatar_url text,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+
+-- Enable RLS
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+-- Policies for public.profiles
+CREATE POLICY "Allow users to read their own profile" ON public.profiles
+    FOR SELECT USING (auth.uid() = id);
+
+CREATE POLICY "Allow users to update their own profile" ON public.profiles
+    FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "Allow admins to read all profiles" ON public.profiles
+    FOR SELECT USING (public.user_role() IN ('head_admin', 'editor'));
+
+-- Profile creation trigger
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, full_name, role, department)
+  VALUES (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
+    coalesce(new.raw_app_meta_data->>'role', 'editor'),
+    coalesce(new.raw_user_meta_data->>'department', 'Aviation Operations')
+  )
+  ON CONFLICT (id) DO NOTHING;
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+CREATE OR REPLACE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- -------------------------------------------------------------
 -- TABLE: audit_logs

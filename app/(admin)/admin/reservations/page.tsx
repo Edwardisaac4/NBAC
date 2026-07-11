@@ -339,7 +339,15 @@ export default function ReservationsPage() {
       {/* Details Modal Overlay */}
       <AnimatePresence>
         {selectedBooking && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Reservation details for ${selectedBooking.reference}`}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setSelectedBooking(null);
+            }}
+          >
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -356,6 +364,12 @@ export default function ReservationsPage() {
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ type: 'spring', duration: 0.3 }}
               className="relative w-full max-w-lg bg-nbac-panel border border-nbac-border rounded-xl p-6 shadow-2xl z-10 space-y-6 text-left"
+              ref={(node) => {
+                if (node) {
+                  const focusable = node.querySelector<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                  focusable?.focus();
+                }
+              }}
             >
               {/* Header */}
               <div className="flex items-center justify-between border-b border-nbac-border pb-4">
@@ -369,6 +383,7 @@ export default function ReservationsPage() {
                 </div>
                 <button
                   onClick={() => setSelectedBooking(null)}
+                  aria-label="Close dialog"
                   className="bg-nbac-canvas border border-nbac-border hover:border-white p-1.5 rounded-full text-nbac-muted hover:text-white transition-colors cursor-pointer"
                 >
                   <X size={16} />

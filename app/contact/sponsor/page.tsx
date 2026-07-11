@@ -127,8 +127,8 @@ export default function SponsorContactPage() {
       }, 1500)
     } catch (err) {
       setIsSubmitting(false)
-      const msg = err instanceof Error ? err.message : String(err)
-      toast.error('Sponsorship Submission Error', { description: msg })
+      console.error('Sponsorship database persistence failure:', err)
+      toast.error('Sponsorship Submission Error', { description: 'We were unable to process your sponsorship application. Please check your network connection and try again.' })
     }
   }
 

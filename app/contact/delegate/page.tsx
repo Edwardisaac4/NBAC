@@ -124,8 +124,8 @@ export default function DelegateRegistrationPage() {
       }, 1500)
     } catch (err) {
       setIsSubmitting(false)
-      const msg = err instanceof Error ? err.message : String(err)
-      toast.error('Registration Error', { description: msg })
+      console.error('Registration database persistence failure:', err)
+      toast.error('Registration Error', { description: 'We were unable to process your registration. Please check your network connection and try again.' })
     }
   }
 
