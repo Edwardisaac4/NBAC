@@ -211,8 +211,12 @@ export default function MediaGalleryPage() {
           }
 
           setUploadStatus(prev => ({ ...prev, [fileId]: 'completed' }));
-          await logAdminActivity('edited', `Uploaded media asset: ${file.name}`);
           toast.success('Picture Uploaded', { description: `${file.name} uploaded successfully.`, image: publicUrl });
+          try {
+            await logAdminActivity('edited', `Uploaded media asset: ${file.name}`);
+          } catch (logErr) {
+            console.error('Failed to log admin activity for upload:', logErr);
+          }
         } catch (err) {
           clearInterval(progressInterval);
           console.error(`Error uploading ${file.name}:`, err);

@@ -72,6 +72,7 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
       setSaveStatus('saving');
     }
 
+    const promiseHolder = { promise: null as Promise<void> | null };
     const savePromise = (async () => {
       try {
         const posts = await getDbPosts();
@@ -157,9 +158,13 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
           setSaveStatus('unsaved');
         }
       } finally {
-        inFlightSaveRef.current = null;
+        if (inFlightSaveRef.current === promiseHolder.promise) {
+          inFlightSaveRef.current = null;
+        }
       }
     })();
+
+    promiseHolder.promise = savePromise;
 
     inFlightSaveRef.current = savePromise;
     await savePromise;
@@ -336,11 +341,29 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
                 }
                 router.push('/admin/content');
               } else {
+                isDeletedRef.current = false;
                 toast.error('Failed to delete article from the database.');
+                // Re-enable auto-save interval
+                if (!autoSaveTimerRef.current) {
+                  autoSaveTimerRef.current = setInterval(() => {
+                    if (saveStatus === 'unsaved') {
+                      executeSave(visibility, false);
+                    }
+                  }, 30000);
+                }
               }
             } catch (err) {
+              isDeletedRef.current = false;
               console.error('Delete request failed:', err);
               toast.error('An unexpected error occurred while deleting the article.');
+              // Re-enable auto-save interval
+              if (!autoSaveTimerRef.current) {
+                autoSaveTimerRef.current = setInterval(() => {
+                  if (saveStatus === 'unsaved') {
+                    executeSave(visibility, false);
+                  }
+                }, 30000);
+              }
             }
           }
         }}

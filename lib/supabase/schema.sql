@@ -171,7 +171,7 @@ BEGIN
     new.id,
     new.email,
     coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
-    coalesce(new.raw_app_meta_data->>'role', 'editor'),
+    coalesce(new.raw_app_meta_data->>'role', 'viewer'),
     coalesce(new.raw_user_meta_data->>'department', 'Aviation Operations')
   )
   ON CONFLICT (id) DO NOTHING;
@@ -182,6 +182,24 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 CREATE OR REPLACE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Trigger to prevent self-service modification of privileged columns
+CREATE OR REPLACE FUNCTION public.protect_profile_columns()
+RETURNS trigger AS $$
+BEGIN
+  IF new.role IS DISTINCT FROM old.role THEN
+    new.role := old.role;
+  END IF;
+  IF new.email IS DISTINCT FROM old.email THEN
+    new.email := old.email;
+  END IF;
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+CREATE OR REPLACE TRIGGER protect_profiles_update
+  BEFORE UPDATE ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION public.protect_profile_columns();
 
 -- -------------------------------------------------------------
 -- TABLE: audit_logs

@@ -175,7 +175,7 @@ export default function ContentManagerPage() {
             try {
               const success = await deleteDbPost(id);
               if (success) {
-                setPosts(posts.filter((post) => post.id !== id));
+                setPosts(prev => prev.filter((post) => post.id !== id));
                 toast.success('Article deleted successfully');
                 try {
                   await logAdminActivity('deleted', `Deleted article: "${title}" (ID: ${id})`);

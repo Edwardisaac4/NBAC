@@ -29,9 +29,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid role value' }, { status: 400 });
     }
 
-    // Admins can only change their own role, or a head_admin can change anyone's role.
-    if (user.id !== targetUserId && userRole !== 'head_admin') {
-      return NextResponse.json({ error: 'Forbidden: Only Head Admins can change other users\' roles' }, { status: 403 });
+    // Only Head Admins can change anyone's role (including their own)
+    if (userRole !== 'head_admin') {
+      return NextResponse.json({ error: 'Forbidden: Only Head Admins can change user roles' }, { status: 403 });
     }
 
     // 4. Initialize Supabase Admin client with service role key
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
 
     if (dbUpdateError) {
       console.error('Failed to update profiles table role:', dbUpdateError.message);
-      // Not a fatal auth error, but we want it in sync
+      return NextResponse.json({ error: `Profiles update failed: ${dbUpdateError.message}` }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, role: newRole });
