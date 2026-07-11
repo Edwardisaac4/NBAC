@@ -285,3 +285,85 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO an
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO authenticated, service_role;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO authenticated, service_role;
+
+-- -------------------------------------------------------------
+-- TABLE: notifications
+-- Stores notification items for admin dashboard
+-- -------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.notifications (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    title text NOT NULL,
+    message text NOT NULL,
+    type text NOT NULL,
+    read boolean NOT NULL DEFAULT false,
+    created_at timestamptz DEFAULT now()
+);
+
+-- Enable RLS
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+-- Policies for public.notifications
+CREATE POLICY "Allow admins to read notifications" ON public.notifications
+    FOR SELECT USING (public.user_role() IN ('head_admin', 'editor'));
+
+CREATE POLICY "Allow admins to update notifications" ON public.notifications
+    FOR UPDATE USING (public.user_role() IN ('head_admin', 'editor'))
+    WITH CHECK (public.user_role() IN ('head_admin', 'editor'));
+
+CREATE POLICY "Allow admins to delete notifications" ON public.notifications
+    FOR DELETE USING (public.user_role() IN ('head_admin', 'editor'));
+
+-- Triggers to automatically create notifications
+CREATE OR REPLACE FUNCTION public.on_reservation_inserted()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.notifications (title, message, type)
+  VALUES (
+    'New Ticket Registration',
+    coalesce(new.name, 'Someone') || ' registered as ' || coalesce(new.tier, 'delegate') || ' (' || coalesce(new.delegate_count, 1) || ' seat(s)).',
+    'delegate_registration'
+  );
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+CREATE OR REPLACE TRIGGER tr_reservation_inserted
+  AFTER INSERT ON public.reservations
+  FOR EACH ROW EXECUTE FUNCTION public.on_reservation_inserted();
+
+CREATE OR REPLACE FUNCTION public.on_sponsor_inserted()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.notifications (title, message, type)
+  VALUES (
+    'New Sponsor Application',
+    coalesce(new.company_name, 'A company') || ' applied for ' || coalesce(new.tier, 'sponsor') || ' tier sponsorship.',
+    'sponsor_application'
+  );
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+CREATE OR REPLACE TRIGGER tr_sponsor_inserted
+  AFTER INSERT ON public.sponsors
+  FOR EACH ROW EXECUTE FUNCTION public.on_sponsor_inserted();
+
+CREATE OR REPLACE FUNCTION public.on_contact_inserted()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.notifications (title, message, type)
+  VALUES (
+    'New Contact Inquiry',
+    coalesce(new.full_name, 'Someone') || ' sent an inquiry: "' || substring(coalesce(new.message, ''), 1, 60) || '..."',
+    'contact_inquiry'
+  );
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+CREATE OR REPLACE TRIGGER tr_contact_inserted
+  AFTER INSERT ON public.contacts
+  FOR EACH ROW EXECUTE FUNCTION public.on_contact_inserted();
+
+GRANT SELECT, UPDATE, DELETE ON public.notifications TO authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, UPDATE, DELETE ON TABLES TO authenticated, service_role;

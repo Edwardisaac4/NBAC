@@ -96,25 +96,27 @@ export default function SponsorContactPage() {
     setIsSubmitting(true)
     
     try {
-      const supabase = createClient()
-      const { error } = await supabase
-        .from('sponsors')
-        .insert({
-          company_name: formData.companyName,
+      const response = await fetch('/api/register/sponsor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          companyName: formData.companyName,
           industry: formData.industry,
           website: formData.website,
-          full_name: formData.fullName,
+          fullName: formData.fullName,
           designation: formData.designation,
           email: formData.email,
           phone: formData.phone,
           tier: selectedTier.name,
-          add_ons: selectedAddOns,
-          track_count: trackCount,
-          special_requirements: formData.specialRequirements
+          addOns: selectedAddOns,
+          trackCount: trackCount,
+          specialRequirements: formData.specialRequirements
         })
-        
-      if (error) {
-        throw error
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Sponsorship application failed');
       }
       
       // Delay slightly for visual checkout uploader transition
