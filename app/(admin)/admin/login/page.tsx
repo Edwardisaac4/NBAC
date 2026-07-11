@@ -2,65 +2,51 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Shield, Lock, Mail, KeyRound } from 'lucide-react';
+import { Shield, Mail, KeyRound } from 'lucide-react';
 import { useAdminRole } from '@/hooks/use-admin-role';
 import { createClient } from '@/lib/supabase/client';
 import { logAdminActivity } from '@/lib/blog-data';
+import { useToast } from '@/components/shared/toast';
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const { setRole } = useAdminRole();
+  const toast = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent, roleType?: 'head_admin' | 'editor') => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (roleType && process.env.NODE_ENV === 'production') {
-      alert('Developer Demo Mode is disabled in production.');
-      return;
-    }
-
     setIsLoading(true);
 
-    if (roleType) {
-      // Simulate authenticating
-      setTimeout(async () => {
-        setRole(roleType);
-        setIsLoading(false);
-        await logAdminActivity('login', `Administrator logged in (Demo Mode): ${roleType === 'head_admin' ? 'chief.admin@nbac.com.ng' : 'staff.editor@nbac.com.ng'}`);
-        router.push('/admin');
-      }, 800);
-    } else {
-      try {
-        const supabase = createClient();
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-        if (error) {
-          setIsLoading(false);
-          alert(`Access Denied: ${error.message}`);
-          return;
-        }
-
-        const userRole = data.user?.app_metadata?.role;
-        if (userRole === 'head_admin' || userRole === 'editor') {
-          setRole(userRole);
-          await logAdminActivity('login', `Administrator logged in: ${data.user?.email}`);
-          setIsLoading(false);
-          router.push('/admin');
-        } else {
-          setIsLoading(false);
-          alert('Access Denied: Authorized role not found on user profile.');
-          await supabase.auth.signOut();
-        }
-      } catch {
+      if (error) {
         setIsLoading(false);
-        alert('An unexpected error occurred during login.');
+        toast.error('Access Denied', { description: error.message });
+        return;
       }
+
+      const userRole = data.user?.app_metadata?.role;
+      if (userRole === 'head_admin' || userRole === 'editor') {
+        setRole(userRole);
+        await logAdminActivity('login', `Administrator logged in: ${data.user?.email}`);
+        setIsLoading(false);
+        router.push('/admin');
+      } else {
+        setIsLoading(false);
+        toast.error('Access Denied', { description: 'Authorized role not found on user profile.' });
+        await supabase.auth.signOut();
+      }
+    } catch {
+      setIsLoading(false);
+      toast.error('An unexpected error occurred during login.');
     }
   };
 
@@ -127,31 +113,6 @@ export default function AdminLoginPage() {
             {isLoading ? 'Decrypting credentials...' : 'Enter Admin Control Board'}
           </button>
         </form>
-
-        {/* Demo Roles Quick-Selector */}
-        {process.env.NODE_ENV !== 'production' && (
-          <div className="mt-8 pt-6 border-t border-nbac-border">
-            <p className="font-sans text-[10px] uppercase tracking-wider font-semibold text-nbac-muted text-center mb-3">
-              Developer Demo Mode — Click to bypass & set role:
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={(e) => handleLogin(e, 'head_admin')}
-                className="bg-nbac-gold/10 hover:bg-nbac-gold/20 border border-nbac-gold/30 text-nbac-gold-light font-sans font-semibold text-xs py-2.5 rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-              >
-                <Shield size={12} />
-                <span>Head Admin</span>
-              </button>
-              <button
-                onClick={(e) => handleLogin(e, 'editor')}
-                className="bg-nbac-panel hover:bg-nbac-border border border-nbac-border text-nbac-text font-sans font-semibold text-xs py-2.5 rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-              >
-                <Lock size={12} />
-                <span>Editor / Staff</span>
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -32,6 +32,214 @@ import Link from 'next/link'
 
 gsap.registerPlugin(ScrollTrigger)
 
+const TRACKS = [
+  {
+    id: 1,
+    title: "The Clearance Problem",
+    obj: "OBJ 01: Regulatory",
+    desc: "Build a solution that reduces flight clearance and overflight permit processing time for Nigerian and West African operators.",
+    icon: Plane,
+    color: "from-blue-500/10 to-indigo-500/10 border-blue-500/20 text-blue-400"
+  },
+  {
+    id: 2,
+    title: "Money in the Air",
+    obj: "OBJ 02: Finance",
+    desc: "Design a financing or leasing product, platform, or model that makes aircraft acquisition more accessible within the current FX and regulatory environment.",
+    icon: Coins,
+    color: "from-amber-500/10 to-yellow-500/10 border-amber-500/20 text-amber-400"
+  },
+  {
+    id: 3,
+    title: "The Green FBO",
+    obj: "OBJ 03: Ecosystem",
+    desc: "Propose a practical, costed sustainability plan for a Nigerian FBO — covering energy, ground equipment, waste, fuel efficiency, and carbon tracking.",
+    icon: Leaf,
+    color: "from-emerald-500/10 to-teal-500/10 border-emerald-500/20 text-emerald-400"
+  },
+  {
+    id: 4,
+    title: "Fly Her Forward",
+    obj: "OBJ 04 / Women in Aviation",
+    desc: "Build a platform, programme, or tool that measurably improves the recruitment, training, retention, or visibility of women in Nigerian aviation.",
+    icon: Sparkles,
+    color: "from-pink-500/10 to-purple-500/10 border-pink-500/20 text-pink-400"
+  },
+  {
+    id: 5,
+    title: "The Charter Experience",
+    obj: "OBJ 05: Innovation",
+    desc: "Design a digital product that improves the end-to-end charter booking, dispatch, or inflight experience for Nigerian business aviation clients.",
+    icon: Compass,
+    color: "from-cyan-500/10 to-blue-500/10 border-cyan-500/20 text-cyan-400"
+  }
+]
+
+const ELIGIBILITY = [
+  {
+    title: "Aviation Tech Startups",
+    desc: "Early-stage companies looking to disrupt business aviation operations, scheduling, passenger experience, or aviation finance in Africa.",
+    icon: Cpu
+  },
+  {
+    title: "Students & Graduates",
+    desc: "University students or recent graduates in computer science, software engineering, aerospace sciences, data analytics, or business administration.",
+    icon: GraduationCap
+  },
+  {
+    title: "Aviation Professionals",
+    desc: "Pilots, dispatchers, FBO representatives, charter brokers, or safety officers with industry experience and a practical idea.",
+    icon: Plane
+  },
+  {
+    title: "Cross-Functional Teams",
+    desc: "Teams of 3 to 6 members combining technical builders (devs, designers) with domain experts to build holistic solutions.",
+    icon: Users2
+  }
+]
+
+const TIMELINE_STEPS = [
+  {
+    phase: "8 Weeks Before",
+    title: "Applications Open",
+    desc: "Online application goes live. Teams submit a one-page concept note covering the problem, approach and team composition."
+  },
+  {
+    phase: "6 Weeks Before",
+    title: "Teams Selected",
+    desc: "Up to 30 teams selected across all five tracks. Each team receives a briefing pack and is assigned an industry mentor."
+  },
+  {
+    phase: "4 Weeks Before",
+    title: "Mentor Sessions",
+    desc: "Two virtual sessions per team with an assigned industry mentor drawn from the NBAC steering committee and speaker pool."
+  },
+  {
+    phase: "1 Week Before",
+    title: "Submissions Due",
+    desc: "Working prototype or solution deck submitted. Up to 10 finalists selected — a maximum of 2 per track."
+  },
+  {
+    phase: "Conference Day 1",
+    title: "Finalist Showcase",
+    desc: "Finalists given dedicated exhibition space. Delegates visit during luncheon and coffee breaks for live demos and pitches."
+  },
+  {
+    phase: "Conference Day 2",
+    title: "Final Pitches & Awards",
+    desc: "10 finalists deliver 5-minute pitches to the full conference. Winners announced and celebrated at the Gala Dinner."
+  }
+]
+
+const JUDGING_CRITERIA = [
+  {
+    percentage: "25%",
+    title: "Relevance",
+    desc: "Does it directly address a real and current problem in Nigerian or African business aviation?"
+  },
+  {
+    percentage: "25%",
+    title: "Feasibility",
+    desc: "Can it realistically be built, funded and deployed within the Nigerian context?"
+  },
+  {
+    percentage: "20%",
+    title: "Innovation",
+    desc: "Does it bring a genuinely new approach, or meaningfully improve on what already exists?"
+  },
+  {
+    percentage: "20%",
+    title: "Impact",
+    desc: "If adopted, what is the scale and depth of change it would create?"
+  },
+  {
+    percentage: "10%",
+    title: "Presentation",
+    desc: "Is the pitch clear, confident and compelling to a non-technical audience?"
+  }
+]
+
+const PRIZES = [
+  {
+    title: "Track Winners (×5)",
+    amount: "₦1,500,000",
+    subAmount: "each",
+    subAmountClass: "text-sm font-sans text-nbac-muted font-medium ml-1",
+    desc: "Awarded to the top solutions across each of the five individual competition tracks.",
+    icon: Award,
+    iconColor: "text-nbac-emerald bg-nbac-emerald/10 border-nbac-emerald/20",
+    iconClass: "w-5 h-5",
+    checkColor: "text-nbac-emerald",
+    features: [
+      "Official certificate and track trophy",
+      "Inclusion in the NBAC 2027 post-event report",
+      "Introductions to relevant industry stakeholders",
+      "Matchmaking with potential implementation partners"
+    ],
+    className: "order-2 lg:order-1 lg:translate-y-4 bg-nbac-panel/40 border border-nbac-border",
+    style: { boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)' },
+    titleColor: "text-nbac-emerald font-semibold",
+    amountColor: "text-3xl md:text-4xl",
+    featuresHeader: "INCLUDES:",
+    featuresHeaderColor: "text-nbac-muted",
+    featureTextClass: "font-light text-nbac-body",
+    isGrand: false
+  },
+  {
+    title: "Overall Winner — Best in Show",
+    amount: "₦5,000,000",
+    subAmount: "(or USD equivalent)",
+    subAmountClass: "text-xs font-sans text-nbac-muted font-medium block mt-1",
+    desc: "The highest honor. Awarded to the ultimate solution demonstrating the highest degree of innovation, technical viability, and market impact.",
+    icon: Trophy,
+    iconColor: "text-nbac-gold bg-nbac-gold/15 border-nbac-gold/20",
+    iconClass: "w-5 h-5 animate-pulse",
+    checkColor: "text-nbac-gold",
+    features: [
+      "Formal presentation to steering committee & regulators",
+      "Feature in the official NBAC 2027 White Paper",
+      "One-year industry mentorship & guidance",
+      "Free exhibition space at NBAC 2029",
+      "Full Gala Dinner award media spotlight"
+    ],
+    className: "order-1 lg:order-2 scale-100 lg:scale-[1.04] bg-nbac-panel/85 border-2 border-nbac-gold relative",
+    style: { 
+      boxShadow: '0 20px 50px rgba(197, 160, 89, 0.15)',
+      borderColor: '#c5a059'
+    },
+    titleColor: "text-nbac-gold font-bold",
+    amountColor: "text-4xl md:text-5xl",
+    featuresHeader: "INCLUDES:",
+    featuresHeaderColor: "text-nbac-gold",
+    featureTextClass: "font-medium text-nbac-text",
+    isGrand: true
+  },
+  {
+    title: "People's Choice Award",
+    amount: "Sponsor Gift",
+    subAmount: "High-value sponsor package",
+    subAmountClass: "text-xs font-sans text-nbac-muted block mt-1",
+    desc: "Voted live by conference delegates during Day 2. Highlights the solution that resonated most with the conference floor.",
+    icon: Flame,
+    iconColor: "text-amber-400 bg-amber-500/10 border-amber-500/20",
+    iconClass: "w-5 h-5",
+    checkColor: "text-amber-400",
+    features: [
+      "Delegates vote live via conference web app on Day 2",
+      "Winner receives a high-value physical or service package provided by the NBAC Title Sponsor",
+      "Live announcement on the main ballroom stage"
+    ],
+    className: "order-3 lg:order-3 lg:translate-y-4 bg-nbac-panel/40 border border-nbac-border",
+    style: { boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)' },
+    titleColor: "text-amber-400 font-semibold",
+    amountColor: "text-3xl md:text-4xl",
+    featuresHeader: "DETAILS:",
+    featuresHeaderColor: "text-nbac-muted",
+    featureTextClass: "font-light text-nbac-body",
+    isGrand: false
+  }
+]
+
 export default function AeroLabPage() {
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -179,132 +387,6 @@ export default function AeroLabPage() {
     { scope: containerRef }
   )
 
-  const tracks = [
-    {
-      id: 1,
-      title: "The Clearance Problem",
-      obj: "OBJ 03: Regulatory",
-      desc: "Build a solution that reduces flight clearance and overflight permit processing time for Nigerian and West African operators.",
-      icon: Plane,
-      color: "from-blue-500/10 to-indigo-500/10 border-blue-500/20 text-blue-400"
-    },
-    {
-      id: 2,
-      title: "Money in the Air",
-      obj: "OBJ 02: Finance",
-      desc: "Design a financing or leasing product, platform, or model that makes aircraft acquisition more accessible within the current FX and regulatory environment.",
-      icon: Coins,
-      color: "from-amber-500/10 to-yellow-500/10 border-amber-500/20 text-amber-400"
-    },
-    {
-      id: 3,
-      title: "The Green FBO",
-      obj: "OBJ 05: Ecosystem",
-      desc: "Propose a practical, costed sustainability plan for a Nigerian FBO — covering energy, ground equipment, waste, fuel efficiency, and carbon tracking.",
-      icon: Leaf,
-      color: "from-emerald-500/10 to-teal-500/10 border-emerald-500/20 text-emerald-400"
-    },
-    {
-      id: 4,
-      title: "Fly Her Forward",
-      obj: "OBJ 06 / Women in Aviation",
-      desc: "Build a platform, programme, or tool that measurably improves the recruitment, training, retention, or visibility of women in Nigerian aviation.",
-      icon: Sparkles,
-      color: "from-pink-500/10 to-purple-500/10 border-pink-500/20 text-pink-400"
-    },
-    {
-      id: 5,
-      title: "The Charter Experience",
-      obj: "OBJ 07: Innovation",
-      desc: "Design a digital product that improves the end-to-end charter booking, dispatch, or inflight experience for Nigerian business aviation clients.",
-      icon: Compass,
-      color: "from-cyan-500/10 to-blue-500/10 border-cyan-500/20 text-cyan-400"
-    }
-  ]
-
-  const eligibility = [
-    {
-      title: "Aviation Tech Startups",
-      desc: "Early-stage companies looking to disrupt business aviation operations, scheduling, passenger experience, or aviation finance in Africa.",
-      icon: Cpu
-    },
-    {
-      title: "Students & Graduates",
-      desc: "University students or recent graduates in computer science, software engineering, aerospace sciences, data analytics, or business administration.",
-      icon: GraduationCap
-    },
-    {
-      title: "Aviation Professionals",
-      desc: "Pilots, dispatchers, FBO representatives, charter brokers, or safety officers with industry experience and a practical idea.",
-      icon: Plane
-    },
-    {
-      title: "Cross-Functional Teams",
-      desc: "Teams of 3 to 6 members combining technical builders (devs, designers) with domain experts to build holistic solutions.",
-      icon: Users2
-    }
-  ]
-
-  const timelineSteps = [
-    {
-      phase: "8 Weeks Before",
-      title: "Applications Open",
-      desc: "Online application goes live. Teams submit a one-page concept note covering the problem, approach and team composition."
-    },
-    {
-      phase: "6 Weeks Before",
-      title: "Teams Selected",
-      desc: "Up to 30 teams selected across all five tracks. Each team receives a briefing pack and is assigned an industry mentor."
-    },
-    {
-      phase: "4 Weeks Before",
-      title: "Mentor Sessions",
-      desc: "Two virtual sessions per team with an assigned industry mentor drawn from the NBAC steering committee and speaker pool."
-    },
-    {
-      phase: "1 Week Before",
-      title: "Submissions Due",
-      desc: "Working prototype or solution deck submitted. Up to 10 finalists selected — a maximum of 2 per track."
-    },
-    {
-      phase: "Conference Day 1",
-      title: "Finalist Showcase",
-      desc: "Finalists given dedicated exhibition space. Delegates visit during luncheon and coffee breaks for live demos and pitches."
-    },
-    {
-      phase: "Conference Day 2",
-      title: "Final Pitches & Awards",
-      desc: "10 finalists deliver 5-minute pitches to the full conference. Winners announced and celebrated at the Gala Dinner."
-    }
-  ]
-
-  const judgingCriteria = [
-    {
-      percentage: "25%",
-      title: "Relevance",
-      desc: "Does it directly address a real and current problem in Nigerian or African business aviation?"
-    },
-    {
-      percentage: "25%",
-      title: "Feasibility",
-      desc: "Can it realistically be built, funded and deployed within the Nigerian context?"
-    },
-    {
-      percentage: "20%",
-      title: "Innovation",
-      desc: "Does it bring a genuinely new approach, or meaningfully improve on what already exists?"
-    },
-    {
-      percentage: "20%",
-      title: "Impact",
-      desc: "If adopted, what is the scale and depth of change it would create?"
-    },
-    {
-      percentage: "10%",
-      title: "Presentation",
-      desc: "Is the pitch clear, confident and compelling to a non-technical audience?"
-    }
-  ]
 
   return (
     <>
@@ -372,7 +454,7 @@ export default function AeroLabPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {tracks.map((track) => {
+              {TRACKS.map((track) => {
                 const IconComponent = track.icon
                 
                 // Determine responsive spans for the bento layout
@@ -577,7 +659,7 @@ export default function AeroLabPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 mb-12">
-              {eligibility.map((item, idx) => {
+              {ELIGIBILITY.map((item, idx) => {
                 const ItemIcon = item.icon
                 return (
                   <div 
@@ -631,7 +713,7 @@ export default function AeroLabPage() {
               <div className="absolute top-1/2 left-[5%] h-0.5 bg-nbac-emerald -translate-y-1/2 timeline-progress-line" style={{ width: '0%', maxWidth: '90%' }} />
 
               <div className="grid grid-cols-6 gap-6 relative">
-                {timelineSteps.map((step, idx) => {
+                {TIMELINE_STEPS.map((step, idx) => {
                   const isTop = idx % 2 === 0;
                   return (
                     <div key={idx} className="timeline-step opacity-0 flex flex-col items-center relative">
@@ -701,7 +783,7 @@ export default function AeroLabPage() {
               <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-nbac-border" />
               
               <div className="space-y-8">
-                {timelineSteps.map((step, idx) => (
+                {TIMELINE_STEPS.map((step, idx) => (
                   <div key={idx} className="timeline-step opacity-0 relative flex items-start gap-6">
                     {/* Node Dot */}
                     <div className="absolute left-[-21px] top-1.5 w-5 h-5 rounded-full bg-[#101415] border-2 border-nbac-emerald flex items-center justify-center z-10 shadow-[0_0_10px_rgba(16,185,129,0.3)]">
@@ -739,7 +821,7 @@ export default function AeroLabPage() {
 
             {/* Grid layout for 5 cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 max-w-6xl mx-auto">
-              {judgingCriteria.map((item, idx) => (
+              {JUDGING_CRITERIA.map((item, idx) => (
                 <div key={idx} className="criteria-card opacity-0 flex flex-col group">
                   {/* Green Percentage Box */}
                   <div className="bg-nbac-emerald text-white py-4 rounded-t-xl text-center font-display text-2xl font-bold tracking-tight shadow-md z-10 relative">
@@ -780,136 +862,52 @@ export default function AeroLabPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch max-w-6xl mx-auto">
-              {/* Track Winners */}
-              <div 
-                className="prize-card opacity-0 flex flex-col justify-between bg-nbac-panel/40 border border-nbac-border rounded-2xl p-8 glass-card order-2 lg:order-1 lg:translate-y-4"
-                style={{ boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)' }}
-              >
-                <div>
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2.5 rounded-lg bg-nbac-emerald/10 text-nbac-emerald border border-nbac-emerald/20">
-                      <Award className="w-5 h-5" />
+              {PRIZES.map((prize, idx) => {
+                const IconComponent = prize.icon;
+                return (
+                  <div 
+                    key={idx}
+                    className={`prize-card opacity-0 flex flex-col justify-between rounded-2xl p-8 glass-card ${prize.className}`}
+                    style={prize.style}
+                  >
+                    {prize.isGrand && (
+                      <div className="absolute top-0 right-1/2 translate-x-1/2 -translate-y-1/2 bg-linear-to-r from-nbac-gold to-nbac-gold-dark text-[#0b0f10] font-sans font-bold text-[9px] uppercase tracking-widest px-4 py-1.5 rounded-full shadow-md">
+                        GRAND PRIZE
+                      </div>
+                    )}
+
+                    <div>
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className={`p-2.5 rounded-lg border ${prize.iconColor}`}>
+                          <IconComponent className={prize.iconClass} />
+                        </div>
+                        <span className={`font-sans text-xs uppercase tracking-wider ${prize.titleColor}`}>{prize.title}</span>
+                      </div>
+                      
+                      <div className="mb-6">
+                        <span className={`font-display font-extrabold text-nbac-text ${prize.amountColor}`}>{prize.amount}</span>
+                        <span className={prize.subAmountClass}>{prize.subAmount}</span>
+                      </div>
+
+                      <p className="font-sans text-sm font-light text-nbac-body leading-relaxed mb-6">
+                        {prize.desc}
+                      </p>
                     </div>
-                    <span className="font-sans text-xs uppercase tracking-wider text-nbac-emerald font-semibold">Track Winners (×5)</span>
-                  </div>
-                  
-                  <div className="mb-6">
-                    <span className="font-display text-3xl md:text-4xl font-extrabold text-nbac-text">₦1,500,000</span>
-                    <span className="text-sm font-sans text-nbac-muted font-medium ml-1">each</span>
-                  </div>
 
-                  <p className="font-sans text-sm font-light text-nbac-body leading-relaxed mb-6">
-                    Awarded to the top solutions across each of the five individual competition tracks.
-                  </p>
-                </div>
-
-                <div className="pt-6 border-t border-nbac-border/60">
-                  <span className="font-sans text-[10px] uppercase tracking-wider text-nbac-muted font-bold block mb-4">INCLUDES:</span>
-                  <ul className="flex flex-col gap-3">
-                    {[
-                      "Official certificate and track trophy",
-                      "Inclusion in the NBAC 2027 post-event report",
-                      "Introductions to relevant industry stakeholders",
-                      "Matchmaking with potential implementation partners"
-                    ].map((feat, i) => (
-                      <li key={i} className="flex items-start gap-2.5 text-xs font-light text-nbac-body">
-                        <Check className="w-4 h-4 text-nbac-emerald shrink-0 mt-0.5" />
-                        <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              {/* Best In Show */}
-              <div 
-                className="prize-card opacity-0 flex flex-col justify-between bg-nbac-panel/85 border-2 border-nbac-gold rounded-2xl p-8 relative glass-card order-1 lg:order-2 scale-100 lg:scale-[1.04]"
-                style={{ 
-                  boxShadow: '0 20px 50px rgba(197, 160, 89, 0.15)',
-                  borderColor: '#c5a059'
-                }}
-              >
-                {/* Grand Prize Badge */}
-                <div className="absolute top-0 right-1/2 translate-x-1/2 -translate-y-1/2 bg-linear-to-r from-nbac-gold to-nbac-gold-dark text-[#0b0f10] font-sans font-bold text-[9px] uppercase tracking-widest px-4 py-1.5 rounded-full shadow-md">
-                  GRAND PRIZE
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2.5 rounded-lg bg-nbac-gold/15 text-nbac-gold border border-nbac-gold/20">
-                      <Trophy className="w-5 h-5 animate-pulse" />
+                    <div className="pt-6 border-t border-nbac-border/60">
+                      <span className={`font-sans text-[10px] uppercase tracking-wider font-bold block mb-4 ${prize.featuresHeaderColor}`}>{prize.featuresHeader}</span>
+                      <ul className="flex flex-col gap-3">
+                        {prize.features.map((feat, i) => (
+                          <li key={i} className="flex items-start gap-2.5 text-xs font-light text-nbac-body">
+                            <Check className={`w-4 h-4 shrink-0 mt-0.5 ${prize.checkColor}`} />
+                            <span className={prize.featureTextClass}>{feat}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-                    <span className="font-sans text-xs uppercase tracking-wider text-nbac-gold font-bold">Overall Winner — Best in Show</span>
                   </div>
-                  
-                  <div className="mb-6">
-                    <span className="font-display text-4xl md:text-5xl font-extrabold text-nbac-text">₦5,000,000</span>
-                    <span className="text-xs font-sans text-nbac-muted font-medium block mt-1">(or USD equivalent)</span>
-                  </div>
-
-                  <p className="font-sans text-sm font-light text-nbac-body leading-relaxed mb-6">
-                    The highest honor. Awarded to the ultimate solution demonstrating the highest degree of innovation, technical viability, and market impact.
-                  </p>
-                </div>
-
-                <div className="pt-6 border-t border-nbac-border/60">
-                  <span className="font-sans text-[10px] uppercase tracking-wider text-nbac-gold font-bold block mb-4">INCLUDES:</span>
-                  <ul className="flex flex-col gap-3">
-                    {[
-                      "Formal presentation to steering committee & regulators",
-                      "Feature in the official NBAC 2027 White Paper",
-                      "One-year industry mentorship & guidance",
-                      "Free exhibition space at NBAC 2029",
-                      "Full Gala Dinner award media spotlight"
-                    ].map((feat, i) => (
-                      <li key={i} className="flex items-start gap-2.5 text-xs font-light text-nbac-body">
-                        <Check className="w-4 h-4 text-nbac-gold shrink-0 mt-0.5" />
-                        <span className="font-medium text-nbac-text">{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              {/* People's Choice */}
-              <div 
-                className="prize-card opacity-0 flex flex-col justify-between bg-nbac-panel/40 border border-nbac-border rounded-2xl p-8 glass-card order-3 lg:order-3 lg:translate-y-4"
-                style={{ boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)' }}
-              >
-                <div>
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                      <Flame className="w-5 h-5" />
-                    </div>
-                    <span className="font-sans text-xs uppercase tracking-wider text-amber-400 font-semibold">People&apos;s Choice Award</span>
-                  </div>
-                  
-                  <div className="mb-6">
-                    <span className="font-display text-3xl md:text-4xl font-extrabold text-nbac-text">Sponsor Gift</span>
-                    <span className="text-xs font-sans text-nbac-muted block mt-1">High-value sponsor package</span>
-                  </div>
-
-                  <p className="font-sans text-sm font-light text-nbac-body leading-relaxed mb-6">
-                    Voted live by conference delegates during Day 2. Highlights the solution that resonated most with the conference floor.
-                  </p>
-                </div>
-
-                <div className="pt-6 border-t border-nbac-border/60">
-                  <span className="font-sans text-[10px] uppercase tracking-wider text-nbac-muted font-bold block mb-4">DETAILS:</span>
-                  <ul className="flex flex-col gap-3">
-                    {[
-                      "Delegates vote live via conference web app on Day 2",
-                      "Winner receives a high-value physical or service package provided by the NBAC Title Sponsor",
-                      "Live announcement on the main ballroom stage"
-                    ].map((feat, i) => (
-                      <li key={i} className="flex items-start gap-2.5 text-xs font-light text-nbac-body">
-                        <Check className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                        <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
+                );
+              })}
             </div>
           </section>
         </SectionBlur>

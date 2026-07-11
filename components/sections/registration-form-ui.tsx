@@ -6,12 +6,14 @@ import { Mail, Shield, User, Landmark, Phone, Plus, Minus, CreditCard, Lock, Che
 import { PassTierDetails } from '@/types'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/shared/toast'
 
 interface RegistrationFormUIProps {
   selectedTier: PassTierDetails | null
 }
 
 export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
+  const toast = useToast()
   const [delegateCount, setDelegateCount] = useState(1)
   const [formData, setFormData] = useState({
     fullName: '',
@@ -95,8 +97,8 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
       }, 2000)
     } catch (err) {
       setIsSubmitting(false)
-      const msg = err instanceof Error ? err.message : String(err)
-      alert(`Registration Error: ${msg}`)
+      console.error('Registration submission failure:', err)
+      toast.error('Registration Error', { description: 'An error occurred while creating your registration. Please check your network and try again.' })
     }
   }
 

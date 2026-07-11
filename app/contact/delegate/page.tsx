@@ -10,8 +10,10 @@ import { PASS_TIERS } from '@/lib/constants'
 import { PassTierDetails } from '@/types'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/shared/toast'
 
 export default function DelegateRegistrationPage() {
+  const toast = useToast()
   const [selectedTier, setSelectedTier] = useState<PassTierDetails | null>(null)
   const [isTierLocked, setIsTierLocked] = useState(false)
 
@@ -122,8 +124,8 @@ export default function DelegateRegistrationPage() {
       }, 1500)
     } catch (err) {
       setIsSubmitting(false)
-      const msg = err instanceof Error ? err.message : String(err)
-      alert(`Registration Error: ${msg}`)
+      console.error('Registration database persistence failure:', err)
+      toast.error('Registration Error', { description: 'We were unable to process your registration. Please check your network connection and try again.' })
     }
   }
 

@@ -31,6 +31,7 @@ export default function AdminLayout({
     if (path.startsWith('/admin/reservations')) return 'Reservations Intake';
     if (path.startsWith('/admin/media')) return 'Media Gallery';
     if (path.startsWith('/admin/logs')) return 'Security Audit Logs';
+    if (path.startsWith('/admin/profile')) return 'My Profile';
     if (path.startsWith('/admin/login')) return 'Admin Login';
     return 'Admin Control Panel';
   };

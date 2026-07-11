@@ -3,6 +3,7 @@
 import React from 'react';
 import { Menu, Bell, Shield, Settings } from 'lucide-react';
 import { useAdminRole } from '@/hooks/use-admin-role';
+import { useToast } from '@/components/shared/toast';
 
 interface AdminTopbarProps {
   title: string;
@@ -11,6 +12,7 @@ interface AdminTopbarProps {
 
 export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
   const { isHeadAdmin } = useAdminRole();
+  const toast = useToast();
 
   return (
     <header className="sticky top-0 right-0 z-20 flex items-center justify-between px-6 h-20 bg-nbac-canvas/80 backdrop-blur-md border-b border-nbac-border text-nbac-text select-none">
@@ -33,7 +35,7 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
       <div className="flex items-center gap-4">
         {/* Notifications Icon */}
         <button 
-          onClick={() => alert('Notifications clicked (mocked UI)')}
+          onClick={() => toast.info('Notifications Panel', { description: 'Notifications clicked (mocked UI)' })}
           className="relative p-2 text-nbac-body hover:text-nbac-gold hover:bg-nbac-panel border border-nbac-border rounded-lg bg-nbac-panel/40 transition-all duration-200"
           aria-label="View notifications"
         >
@@ -44,7 +46,7 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
 
         {/* Quick Settings Icon */}
         <button 
-          onClick={() => alert('Settings clicked (mocked UI)')}
+          onClick={() => toast.info('Settings Panel', { description: 'Settings clicked (mocked UI)' })}
           className="p-2 text-nbac-body hover:text-nbac-gold hover:bg-nbac-panel border border-nbac-border rounded-lg bg-nbac-panel/40 transition-all duration-200"
           aria-label="Settings"
         >

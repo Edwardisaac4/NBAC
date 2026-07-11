@@ -3,8 +3,10 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, Mail, CheckCircle2 } from 'lucide-react'
+import { useToast } from '@/components/shared/toast'
 
 export function ContactFormUI() {
+  const toast = useToast()
   const inquiryTypes = [
     { value: 'general', label: 'General Inquiry' },
     { value: 'aerolabs', label: 'AeroLabs' },
@@ -65,8 +67,8 @@ export function ContactFormUI() {
       }, 1500)
     } catch (err) {
       setIsSubmitting(false)
-      const msg = err instanceof Error ? err.message : String(err)
-      alert(`Submission Error: ${msg}`)
+      console.error('Contact inquiry submission failure:', err)
+      toast.error('Submission Error', { description: 'An error occurred while sending your message. Please verify your details and try again.' })
     }
   }
 

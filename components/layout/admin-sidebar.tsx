@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
@@ -28,6 +28,48 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const router = useRouter();
   const { role, setRole } = useAdminRole();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [profile, setProfile] = useState<{ fullName: string; jobTitle: string; department: string; avatarUrl: string } | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    async function fetchProfile() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && active) {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('full_name, job_title, department, avatar_url')
+            .eq('id', user.id)
+            .single();
+          
+          if (data && !error && active) {
+            setProfile({
+              fullName: data.full_name || user.email?.split('@')[0] || 'User Profile',
+              jobTitle: data.job_title || '',
+              department: data.department || 'Aviation Operations',
+              avatarUrl: data.avatar_url || ''
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching profile for sidebar:', err);
+      }
+    }
+
+    fetchProfile();
+
+    // Listen to profile updates
+    const handleUpdate = () => {
+      fetchProfile();
+    };
+    window.addEventListener('profile-update', handleUpdate);
+
+    return () => {
+      active = false;
+      window.removeEventListener('profile-update', handleUpdate);
+    };
+  }, [role]);
 
   const menuItems = [
     {
@@ -126,19 +168,33 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       {/* User Section / Footer */}
       <div className="p-4 border-t border-nbac-border bg-[#070b0c] space-y-4">
         {/* User Card */}
-        <div className="flex items-center gap-3 px-2">
-          <div className="flex items-center justify-center w-9 h-9 rounded-full bg-nbac-panel border border-nbac-border shadow-inner text-nbac-gold-light">
-            <User size={18} />
+        <Link 
+          href="/admin/profile"
+          onClick={onClose}
+          className="flex items-center gap-3 px-2 py-1.5 -mx-1 hover:bg-nbac-panel/40 border border-transparent hover:border-nbac-border/20 rounded-xl transition-all duration-200 cursor-pointer group/user"
+        >
+          <div className="w-9 h-9 rounded-full border border-nbac-border shadow-inner group-hover/user:border-nbac-gold/30 transition-colors shrink-0 overflow-hidden bg-nbac-panel">
+            {profile?.avatarUrl ? (
+              <img src={profile.avatarUrl} alt="" className="w-full h-full object-cover" />
+            ) : profile ? (
+              <div className="w-full h-full flex items-center justify-center text-nbac-gold-light font-sans text-xs font-bold">
+                {profile.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+              </div>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-nbac-muted">
+                <User size={18} />
+              </div>
+            )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-sans text-xs font-semibold text-nbac-text truncate">
-              User Profile
+            <p className="font-sans text-xs font-semibold text-nbac-text truncate group-hover/user:text-nbac-gold-light transition-colors">
+              {profile ? profile.fullName : 'User Profile'}
             </p>
-            <p className="font-sans text-[10px] text-nbac-muted truncate capitalize">
-              {role ? role.replace('_', ' ') : ''}
+            <p className="font-sans text-[10px] text-nbac-muted truncate">
+              {profile?.jobTitle || profile?.department || (role ? role.replace('_', ' ') : '')}
             </p>
           </div>
-        </div>
+        </Link>
 
         {/* Logout Button */}
         <button 

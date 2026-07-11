@@ -163,6 +163,8 @@ export interface MediaFile {
   uploaded_by: string;
   created_at: string;
   sort_order: number;
+  category: 'Conference' | 'Exhibition' | 'Gala Dinner' | 'Networking';
+  year: '2026' | '2017' | '2016' | '2014' | '2013';
 }
 
 // Admin logs

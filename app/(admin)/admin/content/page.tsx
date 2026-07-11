@@ -6,10 +6,14 @@ import { Plus, Edit, Trash2, Globe, FileEdit, Image as ImageIcon } from 'lucide-
 import { useAdminRole } from '@/hooks/use-admin-role';
 import { RoleBanner } from '@/components/admin/role-banner';
 import { getDbPosts, deleteDbPost, logAdminActivity, type BlogPost } from '@/lib/blog-data';
+import { useToast } from '@/components/shared/toast';
+import { AlertDialog } from '@/components/shared/alert-dialog';
 
 export default function ContentManagerPage() {
   const { isHeadAdmin } = useAdminRole();
+  const toast = useToast();
   const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
 
   // Load posts on mount
   useEffect(() => {
@@ -27,16 +31,8 @@ export default function ContentManagerPage() {
   }, []);
 
   // Delete handler (Head Admin only)
-  const handleDelete = async (id: string, title: string) => {
-    if (confirm(`Are you sure you want to delete: "${title}"?\nThis action cannot be undone.`)) {
-      const success = await deleteDbPost(id);
-      if (success) {
-        setPosts(posts.filter((post) => post.id !== id));
-        await logAdminActivity('deleted', `Deleted article: "${title}" (ID: ${id})`);
-      } else {
-        alert('Failed to delete article from the database.');
-      }
-    }
+  const handleDelete = (id: string, title: string) => {
+    setDeleteTarget({ id, title });
   };
 
   const formatPostType = (type: string) => {
@@ -169,6 +165,38 @@ export default function ContentManagerPage() {
           </table>
         </div>
       </div>
+
+      <AlertDialog
+        isOpen={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={async () => {
+          if (deleteTarget) {
+            const { id, title } = deleteTarget;
+            try {
+              const success = await deleteDbPost(id);
+              if (success) {
+                setPosts(prev => prev.filter((post) => post.id !== id));
+                toast.success('Article deleted successfully');
+                try {
+                  await logAdminActivity('deleted', `Deleted article: "${title}" (ID: ${id})`);
+                } catch (logErr) {
+                  console.error('Failed to log admin activity:', logErr);
+                  toast.error('Article deleted, but audit log could not be recorded.');
+                }
+              } else {
+                toast.error('Failed to delete article from the database.');
+              }
+            } catch (err) {
+              console.error('Delete request failed:', err);
+              toast.error('An unexpected error occurred while deleting the article.');
+            }
+          }
+        }}
+        title="Delete Article"
+        description={`Are you sure you want to permanently delete "${deleteTarget?.title || 'this article'}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
   );
 }

@@ -14,6 +14,8 @@ interface DbMediaAsset {
   file_url: string
   tags: string[] | null
   created_at?: string
+  category: 'Conference' | 'Exhibition' | 'Gala Dinner' | 'Networking'
+  year: '2026' | '2017' | '2016' | '2014' | '2013'
 }
 
 interface GalleryViewProps {
@@ -44,9 +46,10 @@ export function GalleryView({ initialYear = 'All' }: GalleryViewProps) {
 
       if (data) {
         const formatted: GalleryItem[] = data.map((item: DbMediaAsset) => {
-          let category: 'Conference' | 'Exhibition' | 'Gala Dinner' | 'Networking' = 'Conference'
+          let category: 'Conference' | 'Exhibition' | 'Gala Dinner' | 'Networking' = item.category || 'Conference'
           
-          if (item.tags && Array.isArray(item.tags)) {
+          // Heuristic fallback if category is not set (for safety/backward compatibility)
+          if (!item.category && item.tags && Array.isArray(item.tags)) {
             const tagsLower = item.tags.map((t: string) => t.toLowerCase())
             if (tagsLower.some((t: string) => t.includes('exhibit') || t.includes('aerolab') || t.includes('jet') || t.includes('plane') || t.includes('tarmac'))) {
               category = 'Exhibition'
@@ -69,7 +72,7 @@ export function GalleryView({ initialYear = 'All' }: GalleryViewProps) {
             alt: item.file_name,
             title: cleanTitle,
             description: item.tags && item.tags.length > 0 ? `Tags: ${item.tags.join(', ')}` : 'Uploaded via dashboard',
-            year: '2026',
+            year: item.year || '2026',
             category,
           }
         })

@@ -11,6 +11,8 @@ import { PublishBar } from './publish-bar';
 import { EditorToolbar } from './editor-toolbar';
 import { PostEditor } from './post-editor';
 import { DocumentSettings } from './document-settings';
+import { useToast } from '@/components/shared/toast';
+import { AlertDialog } from '@/components/shared/alert-dialog';
 
 interface EditorPageShellProps {
   mode: 'create' | 'edit';
@@ -21,7 +23,9 @@ interface EditorPageShellProps {
 export function EditorPageShell({ mode, template = 'blank', postId }: EditorPageShellProps) {
   const router = useRouter();
   const { role } = useAdminRole();
+  const toast = useToast();
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Dynamic mode and post ID tracking to convert create to edit after first save
   const [currentPostId, setCurrentPostId] = useState<string | undefined>(postId);
@@ -50,13 +54,16 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef(true);
+  const inFlightSaveRef = useRef<Promise<void> | null>(null);
+  const isDeletedRef = useRef(false);
 
   // Execute Save/Update logic
   const executeSave = useCallback(async (targetVisibility: PostVisibility, navigateBackAfterSave = false) => {
+    if (isDeletedRef.current) return;
     if (!title.trim()) {
       // Skip auto-saves without title to avoid user annoyance, only alert on manual clicks
       if (navigateBackAfterSave) {
-        alert('Please enter a title before saving.');
+        toast.error('Please enter a title before saving.');
       }
       return;
     }
@@ -65,84 +72,102 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
       setSaveStatus('saving');
     }
 
-    try {
-      const posts = await getDbPosts();
-      const now = new Date();
-      const nowIso = now.toISOString();
-      let targetPostId = currentPostId;
-      let newPostObj: BlogPost;
+    const promiseHolder = { promise: null as Promise<void> | null };
+    const savePromise = (async () => {
+      try {
+        const posts = await getDbPosts();
+        if (isDeletedRef.current) return;
+        const now = new Date();
+        const nowIso = now.toISOString();
+        let targetPostId = currentPostId;
+        let newPostObj: BlogPost;
 
-      if (currentMode === 'edit' && currentPostId) {
-        // Update existing post
-        newPostObj = {
-          id: currentPostId,
-          title,
-          type: postType,
-          status: targetVisibility,
-          author_id: 'user_admin',
-          author: authorName, // back-compat
-          author_name: authorName,
-          body,
-          cover_image_url: coverImageUrl,
-          featured_image: coverImageUrl, // back-compat
-          created_at: nowIso, // fallback
-          updated_at: nowIso,
-        };
-        const existingPost = posts.find((p) => p.id === currentPostId);
-        if (existingPost) {
-          newPostObj.created_at = existingPost.created_at;
-        }
-      } else {
-        // Create new post - generate a robust unique ID with random suffix to avoid collisions
-        const newPostId = `post_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-        targetPostId = newPostId;
-        newPostObj = {
-          id: newPostId,
-          title,
-          type: postType,
-          status: targetVisibility,
-          author_id: 'user_admin',
-          author: authorName, // legacy field populated
-          author_name: authorName,
-          body,
-          cover_image_url: coverImageUrl,
-          featured_image: coverImageUrl, // back-compat
-          created_at: nowIso,
-          updated_at: nowIso,
-        };
-      }
-
-      const success = await saveDbPost(newPostObj);
-      if (!success) {
-        throw new Error('Database save failed');
-      }
-
-      // Log admin activity
-      const logAction = currentMode === 'edit' ? 'edited' : 'published';
-      await logAdminActivity(logAction, `${logAction === 'published' ? 'Published' : 'Edited'} article: "${title}" (ID: ${targetPostId})`);
-
-      if (isMountedRef.current) {
-        if (currentMode !== 'edit') {
-          // Transition state to edit mode so subsequent updates edit this post
-          setCurrentPostId(targetPostId);
-          setCurrentMode('edit');
-          
-          // Update the browser URL without full reload so refresh loads the edit page
-          window.history.replaceState(null, '', `/admin/content/${targetPostId}/edit`);
+        if (currentMode === 'edit' && currentPostId) {
+          // Update existing post
+          newPostObj = {
+            id: currentPostId,
+            title,
+            type: postType,
+            status: targetVisibility,
+            author_id: 'user_admin',
+            author: authorName, // back-compat
+            author_name: authorName,
+            body,
+            cover_image_url: coverImageUrl,
+            featured_image: coverImageUrl, // back-compat
+            created_at: nowIso, // fallback
+            updated_at: nowIso,
+          };
+          const existingPost = posts.find((p) => p.id === currentPostId);
+          if (existingPost) {
+            newPostObj.created_at = existingPost.created_at;
+          }
+        } else {
+          // Create new post - generate a robust unique ID with random suffix to avoid collisions
+          const newPostId = `post_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+          targetPostId = newPostId;
+          newPostObj = {
+            id: newPostId,
+            title,
+            type: postType,
+            status: targetVisibility,
+            author_id: 'user_admin',
+            author: authorName, // legacy field populated
+            author_name: authorName,
+            body,
+            cover_image_url: coverImageUrl,
+            featured_image: coverImageUrl, // back-compat
+            created_at: nowIso,
+            updated_at: nowIso,
+          };
         }
 
-        setSaveStatus('saved');
-      }
+        const success = await saveDbPost(newPostObj);
+        if (isDeletedRef.current) return;
+        if (!success) {
+          throw new Error('Database save failed');
+        }
 
-      if (navigateBackAfterSave) {
-        router.push('/admin/content');
+        // Log admin activity
+        const logAction = currentMode === 'edit' ? 'edited' : 'published';
+        try {
+          await logAdminActivity(logAction, `${logAction === 'published' ? 'Published' : 'Edited'} article: "${title}" (ID: ${targetPostId})`);
+        } catch (logErr) {
+          console.error('Failed to log admin activity:', logErr);
+        }
+
+        if (isMountedRef.current) {
+          if (currentMode !== 'edit') {
+            // Transition state to edit mode so subsequent updates edit this post
+            setCurrentPostId(targetPostId);
+            setCurrentMode('edit');
+            
+            // Update the browser URL without full reload so refresh loads the edit page
+            window.history.replaceState(null, '', `/admin/content/${targetPostId}/edit`);
+          }
+
+          setSaveStatus('saved');
+        }
+
+        if (navigateBackAfterSave) {
+          router.push('/admin/content');
+        }
+      } catch (err) {
+        console.error('Save failed', err);
+        if (isMountedRef.current) {
+          setSaveStatus('unsaved');
+        }
+      } finally {
+        if (inFlightSaveRef.current === promiseHolder.promise) {
+          inFlightSaveRef.current = null;
+        }
       }
-    } catch (err) {
-      console.error('Save failed', err);
-      if (isMountedRef.current) {
-        setSaveStatus('unsaved');
-      }
-    }
+    })();
+
+    promiseHolder.promise = savePromise;
+
+    inFlightSaveRef.current = savePromise;
+    await savePromise;
   }, [title, body, postType, authorName, coverImageUrl, currentMode, currentPostId, router]);
 
   // Keep refs of latest values for executeSave to be accessed safely on unmount
@@ -183,7 +208,7 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
           setAuthorName(post.author_name || post.author || 'Staff Editor');
           setCoverImageUrl(post.cover_image_url || post.featured_image || '');
         } else {
-          alert('Post not found.');
+          toast.error('Post not found.');
           router.push('/admin/content');
         }
       }
@@ -211,7 +236,9 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
       isMountedRef.current = false;
       if (saveTimerRef.current) {
         clearTimeout(saveTimerRef.current);
-        executeSaveRef.current(visibilityRef.current, false);
+        if (!isDeletedRef.current) {
+          executeSaveRef.current(visibilityRef.current, false);
+        }
       }
       if (autoSaveTimerRef.current) clearInterval(autoSaveTimerRef.current);
     };
@@ -266,17 +293,9 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
   };
 
   // Delete handler (Danger Zone)
-  const handleDeletePost = async () => {
+  const handleDeletePost = () => {
     if (currentMode === 'edit' && currentPostId) {
-      if (confirm('Are you sure you want to permanently delete this article?\nThis action cannot be undone.')) {
-        const success = await deleteDbPost(currentPostId);
-        if (success) {
-          await logAdminActivity('deleted', `Deleted article: "${title}" (ID: ${currentPostId})`);
-          router.push('/admin/content');
-        } else {
-          alert('Failed to delete article from the database.');
-        }
-      }
+      setShowDeleteConfirm(true);
     }
   };
 
@@ -289,6 +308,70 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
 
   return (
     <div className="min-h-screen bg-nbac-canvas text-nbac-text flex flex-col select-none">
+      <AlertDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={async () => {
+          if (currentMode === 'edit' && currentPostId) {
+            isDeletedRef.current = true;
+            if (saveTimerRef.current) {
+              clearTimeout(saveTimerRef.current);
+              saveTimerRef.current = null;
+            }
+            if (autoSaveTimerRef.current) {
+              clearInterval(autoSaveTimerRef.current);
+              autoSaveTimerRef.current = null;
+            }
+            if (inFlightSaveRef.current) {
+              try {
+                await inFlightSaveRef.current;
+              } catch (e) {
+                console.error('Pending save failed during deletion confirmation:', e);
+              }
+            }
+            try {
+              const success = await deleteDbPost(currentPostId);
+              if (success) {
+                toast.success('Article deleted successfully');
+                try {
+                  await logAdminActivity('deleted', `Deleted article: "${title}" (ID: ${currentPostId})`);
+                } catch (logErr) {
+                  console.error('Failed to log admin activity:', logErr);
+                  toast.error('Article deleted, but audit log could not be recorded.');
+                }
+                router.push('/admin/content');
+              } else {
+                isDeletedRef.current = false;
+                toast.error('Failed to delete article from the database.');
+                // Re-enable auto-save interval
+                if (!autoSaveTimerRef.current) {
+                  autoSaveTimerRef.current = setInterval(() => {
+                    if (saveStatus === 'unsaved') {
+                      executeSave(visibility, false);
+                    }
+                  }, 30000);
+                }
+              }
+            } catch (err) {
+              isDeletedRef.current = false;
+              console.error('Delete request failed:', err);
+              toast.error('An unexpected error occurred while deleting the article.');
+              // Re-enable auto-save interval
+              if (!autoSaveTimerRef.current) {
+                autoSaveTimerRef.current = setInterval(() => {
+                  if (saveStatus === 'unsaved') {
+                    executeSave(visibility, false);
+                  }
+                }, 30000);
+              }
+            }
+          }
+        }}
+        title="Delete Article"
+        description="Are you sure you want to permanently delete this article? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
       {/* Sticky Publish Bar (Top) */}
       <PublishBar
         template={postType}

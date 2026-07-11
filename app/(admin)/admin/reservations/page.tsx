@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FileDown, Search, ArrowUpRight, CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
+import { FileDown, Search, ArrowUpRight, CheckCircle2, AlertCircle, XCircle, X } from 'lucide-react';
 import { useAdminRole } from '@/hooks/use-admin-role';
 import { RoleBanner } from '@/components/admin/role-banner';
 import { createClient } from '@/lib/supabase/client';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from '@/components/shared/toast';
 
 interface DBRegistration {
   id: string;
@@ -24,10 +26,12 @@ const getCsvFilename = () => `nbac_reservations_${Date.now()}.csv`;
 
 export default function ReservationsPage() {
   useAdminRole();
+  const toast = useToast();
   const [registrations, setRegistrations] = useState<DBRegistration[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedTier, setSelectedTier] = useState<string>('all');
+  const [selectedBooking, setSelectedBooking] = useState<DBRegistration | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -115,7 +119,7 @@ export default function ReservationsPage() {
 
   const handleExport = (format: 'xlsx' | 'csv') => {
     if (filteredRegistrations.length === 0) {
-      alert('No data available to export.');
+      toast.error('No data available to export.');
       return;
     }
 
@@ -149,7 +153,9 @@ export default function ReservationsPage() {
       link.click();
       document.body.removeChild(link);
     } else {
-      alert('Excel (.xlsx) format requires external server-side workbook libraries. Reverting to local CSV download.');
+      toast.info('Exporting...', {
+        description: 'Excel (.xlsx) format requires external server-side workbook libraries. Reverting to local CSV download.'
+      });
       handleExport('csv');
     }
   };
@@ -309,7 +315,7 @@ export default function ReservationsPage() {
                     </td>
                     <td className="p-4 pr-6 text-right">
                       <button
-                        onClick={() => alert(`Booking Details: ${reg.reference}\n--------------------\nDelegate: ${reg.name}\nEmail: ${reg.email}\nCompany: ${reg.company}\nDelegate Count: ${reg.delegateCount}\nSpecial Requirements: ${reg.specialRequirements || 'None'}\nDate: ${reg.date}`)}
+                        onClick={() => setSelectedBooking(reg)}
                         className="text-nbac-gold-light hover:text-white border border-nbac-border hover:bg-nbac-gold/10 font-sans font-medium px-3.5 py-1.5 rounded-lg transition-colors text-xs flex items-center gap-1.5 ml-auto cursor-pointer"
                       >
                         <span>Details</span>
@@ -329,6 +335,104 @@ export default function ReservationsPage() {
           </table>
         </div>
       </div>
+
+      {/* Details Modal Overlay */}
+      <AnimatePresence>
+        {selectedBooking && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Reservation details for ${selectedBooking.reference}`}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setSelectedBooking(null);
+            }}
+          >
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedBooking(null)}
+              className="absolute inset-0 bg-[#070b0c]/80 backdrop-blur-sm"
+            />
+
+            {/* Modal Box */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ type: 'spring', duration: 0.3 }}
+              className="relative w-full max-w-lg bg-nbac-panel border border-nbac-border rounded-xl p-6 shadow-2xl z-10 space-y-6 text-left"
+              ref={(node) => {
+                if (node) {
+                  const focusable = node.querySelector<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                  focusable?.focus();
+                }
+              }}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-nbac-border pb-4">
+                <div>
+                  <span className="font-sans text-[10px] uppercase tracking-widest font-semibold text-nbac-gold-light">
+                    Reservation File
+                  </span>
+                  <h3 className="font-display text-xl font-bold text-white mt-0.5">
+                    Booking Reference: {selectedBooking.reference}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setSelectedBooking(null)}
+                  aria-label="Close dialog"
+                  className="bg-nbac-canvas border border-nbac-border hover:border-white p-1.5 rounded-full text-nbac-muted hover:text-white transition-colors cursor-pointer"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Grid content */}
+              <div className="grid grid-cols-2 gap-4 font-sans text-xs">
+                <div>
+                  <span className="text-nbac-muted block font-medium uppercase tracking-wider text-[9px] mb-1">Delegate Name</span>
+                  <span className="text-white text-sm font-semibold">{selectedBooking.name}</span>
+                </div>
+                <div>
+                  <span className="text-nbac-muted block font-medium uppercase tracking-wider text-[9px] mb-1">Company</span>
+                  <span className="text-white text-sm font-semibold">{selectedBooking.company}</span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-nbac-muted block font-medium uppercase tracking-wider text-[9px] mb-1">Email Address</span>
+                  <span className="text-white text-sm font-semibold break-all">{selectedBooking.email}</span>
+                </div>
+                <div>
+                  <span className="text-nbac-muted block font-medium uppercase tracking-wider text-[9px] mb-1">Pass Tier</span>
+                  <span className={`text-xs border px-2 py-0.5 rounded-md font-medium inline-block mt-0.5 ${getTierColor(selectedBooking.tier)}`}>
+                    {selectedBooking.tier}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-nbac-muted block font-medium uppercase tracking-wider text-[9px] mb-1">Delegates Count</span>
+                  <span className="text-white text-sm font-semibold">{selectedBooking.delegateCount}</span>
+                </div>
+                <div>
+                  <span className="text-nbac-muted block font-medium uppercase tracking-wider text-[9px] mb-1">Total Amount</span>
+                  <span className="text-nbac-gold-light text-sm font-bold">{selectedBooking.amount}</span>
+                </div>
+                <div>
+                  <span className="text-nbac-muted block font-medium uppercase tracking-wider text-[9px] mb-1">Registration Date</span>
+                  <span className="text-white text-sm font-semibold">{selectedBooking.date}</span>
+                </div>
+                <div className="col-span-2 border-t border-nbac-border pt-3 mt-1">
+                  <span className="text-nbac-muted block font-medium uppercase tracking-wider text-[9px] mb-1">Special Requirements</span>
+                  <p className="text-nbac-body text-xs leading-relaxed bg-nbac-canvas border border-nbac-border rounded-lg p-2.5 mt-1 max-h-24 overflow-y-auto whitespace-pre-wrap">
+                    {selectedBooking.specialRequirements || 'No special requirements specified.'}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
