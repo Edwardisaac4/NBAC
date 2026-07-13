@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Mail, User, Phone, Plus, Minus, Lock, CheckCircle2, Landmark, Send, ArrowLeft, CreditCard } from 'lucide-react'
+import { Mail, User, Phone, Plus, Minus, Lock, CheckCircle2, Landmark, ArrowLeft, CreditCard } from 'lucide-react'
 import Link from 'next/link'
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
@@ -91,6 +91,9 @@ export default function DelegateRegistrationPage() {
     const reference = generateReference(selectedTier.id)
     const amount = calculateTotal(selectedTier, delegateCount)
 
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000)
+
     try {
       const response = await fetch('/api/register/delegate', {
         method: 'POST',
@@ -106,26 +109,55 @@ export default function DelegateRegistrationPage() {
           currency: 'USD',
           specialRequirements: formData.specialRequirements,
           delegateCount: delegateCount
-        })
+        }),
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
+      let resData: { data?: { reference?: string } } | null = null;
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Registration failed');
+        let errorMessage = `Registration failed with status ${response.status}`;
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const errData = await response.json();
+            if (errData && errData.error) {
+              errorMessage = errData.error;
+            }
+          }
+        } catch {
+          // ignore parsing error
+        }
+        throw new Error(errorMessage);
+      } else {
+        try {
+          resData = await response.json();
+        } catch {
+          // ignore parsing error
+        }
       }
 
       // Delay slightly for visual checkout transition
       setTimeout(() => {
         setSubmittedTier(selectedTier)
         setSubmittedDelegateCount(delegateCount)
-        setSubmittedReference(reference)
+        setSubmittedReference(resData?.data?.reference || reference)
         setIsSubmitting(false)
         setSubmitSuccess(true)
       }, 1500)
-    } catch (err) {
+    } catch (err: unknown) {
+      clearTimeout(timeoutId);
       setIsSubmitting(false)
       console.error('Registration database persistence failure:', err)
-      toast.error('Registration Error', { description: 'We were unable to process your registration. Please check your network connection and try again.' })
+      const error = err as Error
+      const isAbort = error.name === 'AbortError'
+      const desc = isAbort
+        ? 'The request took too long to respond. Please check your network and try again.'
+        : error.message || 'We were unable to process your registration. Please check your network connection and try again.'
+      toast.error(isAbort ? 'Request Timeout' : 'Registration Error', {
+        description: desc
+      })
     }
   }
 

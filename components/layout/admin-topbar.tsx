@@ -62,6 +62,7 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
   const [clearingAll, setClearingAll] = useState(false);
   
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const isMounted = useRef(true);
 
   // Load notifications from Supabase
   const loadNotifications = async () => {
@@ -75,6 +76,8 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
 
       if (error) throw error;
 
+      if (!isMounted.current) return;
+
       if (data) {
         setNotifications(data);
         setUnreadCount(data.filter((n: Notification) => !n.read).length);
@@ -82,14 +85,19 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
     } catch (err) {
       console.error('Failed to load notifications:', err);
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
+    isMounted.current = true;
+
     // Call loadNotifications asynchronously to avoid calling setState synchronously in the effect
     const initNotifications = async () => {
       await Promise.resolve();
+      if (!isMounted.current) return;
       await loadNotifications();
     };
     initNotifications();
@@ -106,10 +114,11 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
           table: 'notifications'
         },
         (payload: RealtimePostgresChangesPayload<Notification>) => {
+          if (!isMounted.current) return;
           if (payload.eventType === 'INSERT') {
             const newNotif = payload.new as Notification;
-            setNotifications(prev => [newNotif, ...prev]);
-            setUnreadCount(prev => prev + 1);
+            setNotifications(prev => isMounted.current ? [newNotif, ...prev] : prev);
+            setUnreadCount(prev => isMounted.current ? prev + 1 : prev);
             
             // Trigger a beautiful browser toast notification
             toast.success(newNotif.title, { 
@@ -126,12 +135,15 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
     // Handle clicks outside of dropdown
     const handleOutsideClick = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false);
+        if (isMounted.current) {
+          setDropdownOpen(false);
+        }
       }
     };
     document.addEventListener('mousedown', handleOutsideClick);
 
     return () => {
+      isMounted.current = false;
       channel.unsubscribe();
       document.removeEventListener('mousedown', handleOutsideClick);
     };
@@ -139,12 +151,15 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
   }, []);
 
   const handleMarkAsRead = async (id: string) => {
+    const previousNotifications = [...notifications];
+    const previousUnreadCount = unreadCount;
+
     try {
       const supabase = createClient();
       setNotifications(prev => 
-        prev.map(n => n.id === id ? { ...n, read: true } : n)
+        isMounted.current ? prev.map(n => n.id === id ? { ...n, read: true } : n) : prev
       );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      setUnreadCount(prev => isMounted.current ? Math.max(0, prev - 1) : prev);
 
       const { error } = await supabase
         .from('notifications')
@@ -154,15 +169,25 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
       if (error) throw error;
     } catch (err) {
       console.error('Failed to mark notification as read:', err);
+      if (isMounted.current) {
+        setNotifications(previousNotifications);
+        setUnreadCount(previousUnreadCount);
+      }
+      toast.error('Failed to mark notification as read');
     }
   };
 
   const handleMarkAllAsRead = async () => {
     if (unreadCount === 0 || markingAll) return;
-    setMarkingAll(true);
+    if (isMounted.current) {
+      setMarkingAll(true);
+    }
+    const previousNotifications = [...notifications];
+    const previousUnreadCount = unreadCount;
+
     try {
       const supabase = createClient();
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setNotifications(prev => isMounted.current ? prev.map(n => ({ ...n, read: true })) : prev);
       setUnreadCount(0);
 
       const { error } = await supabase
@@ -174,14 +199,26 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
       toast.success('Marked all notifications as read');
     } catch (err) {
       console.error('Failed to mark all as read:', err);
+      if (isMounted.current) {
+        setNotifications(previousNotifications);
+        setUnreadCount(previousUnreadCount);
+      }
+      toast.error('Failed to mark all notifications as read');
     } finally {
-      setMarkingAll(false);
+      if (isMounted.current) {
+        setMarkingAll(false);
+      }
     }
   };
 
   const handleClearAll = async () => {
     if (notifications.length === 0 || clearingAll) return;
-    setClearingAll(true);
+    if (isMounted.current) {
+      setClearingAll(true);
+    }
+    const previousNotifications = [...notifications];
+    const previousUnreadCount = unreadCount;
+
     try {
       const supabase = createClient();
       setNotifications([]);
@@ -194,11 +231,20 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
 
       if (error) throw error;
       toast.success('Cleared all notifications');
-      setDropdownOpen(false);
+      if (isMounted.current) {
+        setDropdownOpen(false);
+      }
     } catch (err) {
       console.error('Failed to clear notifications:', err);
+      if (isMounted.current) {
+        setNotifications(previousNotifications);
+        setUnreadCount(previousUnreadCount);
+      }
+      toast.error('Failed to clear notifications');
     } finally {
-      setClearingAll(false);
+      if (isMounted.current) {
+        setClearingAll(false);
+      }
     }
   };
 
@@ -318,7 +364,17 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
                     <div 
                       key={n.id}
                       onClick={() => !n.read && handleMarkAsRead(n.id)}
-                      className={`flex gap-3.5 p-4 transition-colors relative group/item cursor-pointer ${n.read ? 'hover:bg-nbac-panel/30 bg-transparent' : 'bg-nbac-gold/5 hover:bg-nbac-gold/10'}`}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          if (!n.read) {
+                            handleMarkAsRead(n.id);
+                          }
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      className={`flex gap-3.5 p-4 transition-colors relative group/item cursor-pointer focus:outline-none focus:bg-nbac-panel/40 ${n.read ? 'hover:bg-nbac-panel/30 bg-transparent' : 'bg-nbac-gold/5 hover:bg-nbac-gold/10'}`}
                     >
                       {/* Unread marker bar */}
                       {!n.read && (

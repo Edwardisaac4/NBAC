@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import type { Speaker } from '@/types'
@@ -74,16 +75,18 @@ export function SpeakerCard({ speaker }: SpeakerCardProps) {
         )}
 
         {/* DAY BADGE — top right corner */}
-        <div className="absolute top-3 right-3">
-          <span className={cn(
-            'font-sans text-xs font-medium px-2 py-1 rounded-full',
-            speaker.session_day === 'day_1'
-              ? 'bg-nbac-emerald/15 text-nbac-emerald'
-              : 'bg-indigo-500/15 text-indigo-400'
-          )}>
-            {speaker.session_day === 'day_1' ? 'Day 1' : 'Day 2'}
-          </span>
-        </div>
+        {speaker.session_day && (
+          <div className="absolute top-3 right-3">
+            <span className={cn(
+              'font-sans text-xs font-medium px-2 py-1 rounded-full',
+              speaker.session_day === 'day_1'
+                ? 'bg-nbac-emerald/15 text-nbac-emerald'
+                : 'bg-indigo-500/15 text-indigo-400'
+            )}>
+              {speaker.session_day === 'day_1' ? 'Day 1' : 'Day 2'}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* CONTENT */}

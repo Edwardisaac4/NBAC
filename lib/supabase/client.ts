@@ -17,30 +17,67 @@ export function createClient() {
       )
     }
 
-    return new Proxy({} as any, {
+    return new Proxy({} as unknown as ReturnType<typeof createBrowserClient>, {
       get(target, prop) {
         if (prop === 'auth') {
-          return new Proxy({} as any, {
+          return new Proxy({} as unknown as Record<string, unknown>, {
             get(authTarget, authProp) {
+              if (authProp === 'onAuthStateChange') {
+                return (_callback?: unknown) => {
+                  return {
+                    data: {
+                      subscription: {
+                        unsubscribe: () => {
+                          // Safe no-op
+                        }
+                      }
+                    }
+                  }
+                }
+              }
               if (authProp === 'getUser') {
                 return () => Promise.resolve({ data: { user: null }, error: null })
               }
-              return () => Promise.resolve({ data: null, error: null })
+              if (authProp === 'getSession') {
+                return () => Promise.resolve({ data: { session: null }, error: null })
+              }
+              return () => Promise.resolve({ data: { session: null, user: null }, error: null })
             }
           })
         }
         if (prop === 'from') {
-          return () => new Proxy({} as any, {
-            get(fromTarget, fromProp) {
-              return () => Promise.resolve({ data: [], error: null })
-            }
-          })
+          return () => {
+            const builder: unknown = new Proxy(
+              Object.assign(
+                (onfulfilled?: (value: { data: unknown[]; error: null }) => unknown) => {
+                  return Promise.resolve({ data: [], error: null }).then(onfulfilled)
+                },
+                {
+                  then(
+                    onfulfilled?: (value: { data: unknown[]; error: null }) => unknown,
+                    onrejected?: (reason: unknown) => unknown
+                  ) {
+                    return Promise.resolve({ data: [], error: null }).then(onfulfilled, onrejected)
+                  }
+                }
+              ),
+              {
+                get(targetBuilder, method) {
+                  if (method === 'then') {
+                    return (targetBuilder as { then: unknown }).then
+                  }
+                  return () => builder
+                }
+              }
+            );
+            return builder;
+          }
         }
         if (prop === 'storage') {
-          return new Proxy({} as any, {
+          return new Proxy({} as unknown as Record<string, unknown>, {
             get(storageTarget, storageProp) {
               if (storageProp === 'from') {
-                return () => new Proxy({} as any, {
+                return () => new Proxy({} as unknown as Record<string, unknown>, {
                   get(bucketTarget, bucketProp) {
                     if (bucketProp === 'getPublicUrl') {
                       return () => ({ data: { publicUrl: '' } })

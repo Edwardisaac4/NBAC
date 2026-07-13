@@ -22,10 +22,10 @@ export function SpeakersGrid({ speakers }: SpeakersGridProps) {
 
   const filtered = activeFilter === 'all'
     ? speakers
-    : speakers.filter((s) => s.session_day === activeFilter)
+    : speakers.filter((s) => s.session_day && s.session_day === activeFilter)
 
-  const confirmed = filtered.filter((s) => s.status === 'confirmed')
-  const tbc       = filtered.filter((s) => s.status === 'tbc')
+  const confirmed = filtered.filter((s) => s.status && s.status === 'confirmed')
+  const tbc       = filtered.filter((s) => s.status && s.status === 'tbc')
 
   return (
     <section className="max-w-6xl mx-auto px-6">

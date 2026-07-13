@@ -1,15 +1,25 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { Resend } from 'resend';
+import { PASS_TIERS } from '@/lib/constants';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, company, phone, tier, reference, amount, currency, specialRequirements, delegateCount } = body;
+    const { name, email, company, phone, tier: clientTier, reference: clientReference, amount: clientAmount, currency, specialRequirements, delegateCount } = body;
 
-    if (!name || !email || !tier || !reference) {
+    if (!name || !email || !clientTier) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+
+    const foundTier = PASS_TIERS.find(t => t.id === clientTier || t.name === clientTier);
+    if (!foundTier) {
+      return NextResponse.json({ error: 'Invalid tier specified' }, { status: 400 });
+    }
+
+    const amount = foundTier.price * (delegateCount || 1);
+    const reference = `NBAC-2027-${foundTier.id.toUpperCase()}-${Math.floor(10000 + Math.random() * 90000)}`;
+    const tier = foundTier.name;
 
     const supabase = await createClient();
     const { data, error } = await supabase

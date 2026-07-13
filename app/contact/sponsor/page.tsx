@@ -114,8 +114,19 @@ export default function SponsorContactPage() {
       });
 
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Sponsorship application failed');
+        let errorMessage = 'Sponsorship application failed';
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const errData = await response.json();
+            if (errData && errData.error) {
+              errorMessage = errData.error;
+            }
+          }
+        } catch {
+          // ignore parsing error
+        }
+        throw new Error(errorMessage);
       }
       
       // Delay slightly for visual checkout uploader transition
@@ -126,10 +137,11 @@ export default function SponsorContactPage() {
         setIsSubmitting(false)
         setSubmitSuccess(true)
       }, 1500)
-    } catch (err) {
+    } catch (err: unknown) {
       setIsSubmitting(false)
       console.error('Sponsorship database persistence failure:', err)
-      toast.error('Sponsorship Submission Error', { description: 'We were unable to process your sponsorship application. Please check your network connection and try again.' })
+      const error = err as Error
+      toast.error('Sponsorship Submission Error', { description: error.message || 'We were unable to process your sponsorship application. Please check your network connection and try again.' })
     }
   }
 

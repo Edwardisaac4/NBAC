@@ -63,10 +63,11 @@ export default function AdminDashboardPage() {
       try {
         const supabase = createClient();
 
-        // 1. Fetch registrations for KPI aggregation
-        const { data: allRes, error: resError } = await supabase
-          .from('reservations')
-          .select('delegate_count, amount, status, created_at');
+        // 1. Fetch registrations for KPI aggregation via reservation_kpis view
+        const { data: kpiData, error: resError } = await supabase
+          .from('reservation_kpis')
+          .select('*')
+          .single();
 
         if (resError) {
           console.error('Error fetching registrations stats:', resError.message);
@@ -102,18 +103,29 @@ export default function AdminDashboardPage() {
         let pending = 0;
         let revenueSum = 0;
 
-        if (allRes) {
-          allRes.forEach((row: ReservationStatRow) => {
-            const count = row.delegate_count || 1;
-            totalReg += count;
+        if (kpiData) {
+          totalReg = Number(kpiData.total_registrations ?? 0);
+          confirmed = Number(kpiData.confirmed_bookings ?? 0);
+          pending = Number(kpiData.pending_payments ?? 0);
+          revenueSum = Number(kpiData.total_revenue ?? 0);
+        } else {
+          // Fallback client-side aggregation (preserving explicit delegate_count of 0 and defaulting to 1 only for null or undefined values)
+          const { data: allRes } = await supabase
+            .from('reservations')
+            .select('delegate_count, amount, status');
+          if (allRes) {
+            allRes.forEach((row: ReservationStatRow) => {
+              const count = row.delegate_count ?? 1;
+              totalReg += count;
 
-            if (row.status === 'paid') {
-              confirmed += count;
-              revenueSum += Number(row.amount || 0);
-            } else if (row.status === 'pending') {
-              pending += count;
-            }
-          });
+              if (row.status === 'paid') {
+                confirmed += count;
+                revenueSum += Number(row.amount ?? 0);
+              } else if (row.status === 'pending') {
+                pending += count;
+              }
+            });
+          }
         }
 
         const formattedRev = new Intl.NumberFormat('en-US', {
