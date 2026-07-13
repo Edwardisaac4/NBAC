@@ -22,8 +22,6 @@ interface GalleryViewProps {
   initialYear?: typeof GALLERY_YEARS[number]
 }
 
-const supabase = createClient()
-
 export function GalleryView({ initialYear = 'All' }: GalleryViewProps) {
   const [selectedYear, setSelectedYear] = useState<typeof GALLERY_YEARS[number]>(initialYear)
   const [selectedCategory, setSelectedCategory] = useState<typeof GALLERY_CATEGORIES[number]>('All')
@@ -34,6 +32,7 @@ export function GalleryView({ initialYear = 'All' }: GalleryViewProps) {
   // Fetch dynamic uploaded assets from Supabase
   const fetchDbAssets = useCallback(async () => {
     try {
+      const supabase = createClient()
       const { data, error } = await supabase
         .from('media_assets')
         .select('*')

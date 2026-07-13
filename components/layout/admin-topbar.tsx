@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
 import { 
   Menu, 
   Bell, 
@@ -19,6 +18,7 @@ import {
 import { useAdminRole } from '@/hooks/use-admin-role';
 import { useToast } from '@/components/shared/toast';
 import { createClient } from '@/lib/supabase/client';
+import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 interface Notification {
   id: string;
@@ -87,7 +87,12 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
   };
 
   useEffect(() => {
-    loadNotifications();
+    // Call loadNotifications asynchronously to avoid calling setState synchronously in the effect
+    const initNotifications = async () => {
+      await Promise.resolve();
+      await loadNotifications();
+    };
+    initNotifications();
 
     // Subscribe to realtime postgres changes
     const supabase = createClient();
@@ -100,7 +105,7 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
           schema: 'public',
           table: 'notifications'
         },
-        (payload) => {
+        (payload: RealtimePostgresChangesPayload<Notification>) => {
           if (payload.eventType === 'INSERT') {
             const newNotif = payload.new as Notification;
             setNotifications(prev => [newNotif, ...prev]);
@@ -336,7 +341,7 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
                             {formatRelativeTime(n.created_at)}
                           </span>
                         </div>
-                        <p className="font-sans text-[11px] text-nbac-muted font-light leading-relaxed break-words">
+                        <p className="font-sans text-[11px] text-nbac-muted font-light leading-relaxed wrap-break-word">
                           {n.message}
                         </p>
                       </div>

@@ -1,10 +1,10 @@
 import { Navbar } from "@/components/layout/navbar";
 import { HeroSection } from "@/components/sections/hero-section";
 import { StateSection } from "@/components/sections/state-section";
+import { ChairmansWelcome } from "@/components/sections/chairmans-welcome";
 import { ExperienceSection } from "@/components/sections/experience-section";
 import { CommitteeSection } from "@/components/sections/committee-section";
 import { AudienceSection } from "@/components/sections/audience-section";
-import { TestimonialsSection } from "@/components/sections/testimonials-section";
 import { SponsorsStrip } from "@/components/sections/sponsors-strip";
 import { Footer } from "@/components/layout/footer";
 import { SectionBlur } from "@/components/shared/section-blur";
@@ -30,7 +30,7 @@ export default function Home() {
           <AudienceSection />
         </SectionBlur>
         <SectionBlur>
-          <TestimonialsSection />
+          <ChairmansWelcome />
         </SectionBlur>
         <SectionBlur intensity={4} minOpacity={0.75}>
           <SponsorsStrip />

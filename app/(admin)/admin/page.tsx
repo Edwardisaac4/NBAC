@@ -8,6 +8,29 @@ import { RecentActivity, ActivityItem } from '@/components/admin/recent-activity
 import { CreditCard, Users, CheckCircle, Clock } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
+interface ReservationStatRow {
+  delegate_count: number | null;
+  amount: number | string | null;
+  status: string | null;
+  created_at: string;
+}
+
+interface RecentReservationRow {
+  id: string | number;
+  status: string | null;
+  name: string | null;
+  tier: string | null;
+  created_at: string;
+}
+
+interface RecentAuditLogRow {
+  id: string | number;
+  action: string | null;
+  admin_email: string | null;
+  target: string | null;
+  created_at: string;
+}
+
 function formatRelativeTime(dateStr: string): string {
   const date = new Date(dateStr);
   const now = new Date();
@@ -80,7 +103,7 @@ export default function AdminDashboardPage() {
         let revenueSum = 0;
 
         if (allRes) {
-          allRes.forEach((row) => {
+          allRes.forEach((row: ReservationStatRow) => {
             const count = row.delegate_count || 1;
             totalReg += count;
 
@@ -110,15 +133,15 @@ export default function AdminDashboardPage() {
         const feedItems: (ActivityItem & { date: Date })[] = [];
 
         if (recentRes) {
-          recentRes.forEach((row) => {
+          recentRes.forEach((row: RecentReservationRow) => {
             feedItems.push({
               id: `res_${row.id}`,
               type: row.status === 'paid' ? 'registration_paid' : 'registration_pending',
-              message: `${row.name} registered as ${row.tier} holder.`,
+              message: `${row.name || 'Unknown'} registered as ${row.tier || 'delegate'} holder.`,
               timestamp: formatRelativeTime(row.created_at),
               meta: {
-                name: row.name,
-                detail: row.tier
+                name: row.name ?? undefined,
+                detail: row.tier ?? undefined
               },
               date: new Date(row.created_at)
             });
@@ -126,7 +149,7 @@ export default function AdminDashboardPage() {
         }
 
         if (recentLogs) {
-          recentLogs.forEach((row) => {
+          recentLogs.forEach((row: RecentAuditLogRow) => {
             let activityType: ActivityItem['type'] = 'system_success';
             if (row.action === 'deleted') activityType = 'system_alert';
             if (row.action === 'permission_changed') activityType = 'system_alert';

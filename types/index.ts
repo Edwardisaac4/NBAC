@@ -36,13 +36,23 @@ export interface Registration {
 export type SessionCategory = 'keynote' | 'panel' | 'workshop' | 'break' | 'networking';
 export type ConferenceDay = 'day_1' | 'day_2';
 
+export type SessionDay = 'day_1' | 'day_2';
+export type SpeakerStatus = 'confirmed' | 'tbc';
+
 export interface Speaker {
   id: string;
   name: string;
   title: string;
-  company: string;
-  avatar_url?: string;
-  bio?: string;
+  company?: string;        // Keep for backward compatibility with mock-events
+  organisation?: string;   // e.g. "SAHCO"
+  avatar_url?: string;     // placeholder image if not provided
+  session_title?: string;  // name of the panel they're speaking at
+  session_day?: SessionDay;
+  session_time?: string;    // e.g. "11:30 AM"
+  topic?: string;          // short topic label e.g. "Industry Dialogue"
+  bio?: string;            // full bio paragraph
+  linkedin_url?: string;
+  status?: SpeakerStatus;
 }
 
 export interface EventSession {

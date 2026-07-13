@@ -9,7 +9,6 @@ import { Footer } from "@/components/layout/footer"
 import { SPONSOR_TIERS, SPONSOR_ADD_ONS } from '@/lib/constants'
 import { SponsorTierDetails } from '@/types'
 import { cn } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/shared/toast'
 
 export default function SponsorContactPage() {

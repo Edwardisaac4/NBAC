@@ -48,6 +48,7 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
   const [visibility, setVisibility] = useState<PostVisibility>('draft');
   const [authorName, setAuthorName] = useState('Staff Editor');
   const [coverImageUrl, setCoverImageUrl] = useState('');
+  const [isPublishedInDb, setIsPublishedInDb] = useState(false);
 
   // Status & Timers
   const [saveStatus, setSaveStatus] = useState<'saved' | 'unsaved' | 'saving'>('saved');
@@ -129,7 +130,7 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
         }
 
         // Log admin activity
-        const logAction = currentMode === 'edit' ? 'edited' : 'published';
+        const logAction = targetVisibility === 'published' ? 'published' : 'edited';
         try {
           await logAdminActivity(logAction, `${logAction === 'published' ? 'Published' : 'Edited'} article: "${title}" (ID: ${targetPostId})`);
         } catch (logErr) {
@@ -147,6 +148,7 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
           }
 
           setSaveStatus('saved');
+          setIsPublishedInDb(targetVisibility === 'published');
         }
 
         if (navigateBackAfterSave) {
@@ -173,6 +175,7 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
   // Keep refs of latest values for executeSave to be accessed safely on unmount
   const executeSaveRef = useRef(executeSave);
   const visibilityRef = useRef(visibility);
+  const isPublishedInDbRef = useRef(isPublishedInDb);
 
   useEffect(() => {
     executeSaveRef.current = executeSave;
@@ -181,6 +184,10 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
   useEffect(() => {
     visibilityRef.current = visibility;
   }, [visibility]);
+
+  useEffect(() => {
+    isPublishedInDbRef.current = isPublishedInDb;
+  }, [isPublishedInDb]);
 
   // Set initial default author name from user role if available
   useEffect(() => {
@@ -205,6 +212,7 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
           setBody(post.body);
           setPostType(post.type);
           setVisibility(post.status);
+          setIsPublishedInDb(post.status === 'published');
           setAuthorName(post.author_name || post.author || 'Staff Editor');
           setCoverImageUrl(post.cover_image_url || post.featured_image || '');
         } else {
@@ -237,7 +245,7 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
       if (saveTimerRef.current) {
         clearTimeout(saveTimerRef.current);
         if (!isDeletedRef.current) {
-          executeSaveRef.current(visibilityRef.current, false);
+          executeSaveRef.current(isPublishedInDbRef.current ? 'published' : 'draft', false);
         }
       }
       if (autoSaveTimerRef.current) clearInterval(autoSaveTimerRef.current);
@@ -250,14 +258,14 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
 
     autoSaveTimerRef.current = setInterval(() => {
       if (saveStatus === 'unsaved') {
-        executeSave(visibility, false); // auto-save keeps current visibility
+        executeSave(isPublishedInDb ? 'published' : 'draft', false); // auto-save keeps current DB publication status
       }
     }, 30000);
 
     return () => {
       if (autoSaveTimerRef.current) clearInterval(autoSaveTimerRef.current);
     };
-  }, [saveStatus, visibility, executeSave]);
+  }, [saveStatus, isPublishedInDb, executeSave]);
 
   // Change title handler
   const handleTitleChange = (val: string) => {
@@ -276,7 +284,7 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
     setSaveStatus('unsaved');
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
-      executeSave(visibility, false);
+      executeSave(isPublishedInDb ? 'published' : 'draft', false);
     }, 3000);
   };
 
@@ -302,7 +310,7 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
   // Handle immediate save on editor blur
   const handleEditorBlur = () => {
     if (saveStatus === 'unsaved') {
-      executeSave(visibility, false);
+      executeSave(isPublishedInDb ? 'published' : 'draft', false);
     }
   };
 
@@ -347,7 +355,7 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
                 if (!autoSaveTimerRef.current) {
                   autoSaveTimerRef.current = setInterval(() => {
                     if (saveStatus === 'unsaved') {
-                      executeSave(visibility, false);
+                      executeSave(isPublishedInDb ? 'published' : 'draft', false);
                     }
                   }, 30000);
                 }
@@ -360,7 +368,7 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
               if (!autoSaveTimerRef.current) {
                 autoSaveTimerRef.current = setInterval(() => {
                   if (saveStatus === 'unsaved') {
-                    executeSave(visibility, false);
+                    executeSave(isPublishedInDb ? 'published' : 'draft', false);
                   }
                 }, 30000);
               }
@@ -376,9 +384,11 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
       <PublishBar
         template={postType}
         status={visibility}
+        isPublishedInDb={isPublishedInDb}
         onStatusChange={(status) => {
           setVisibility(status);
-          executeSave(status, false);
+          setSaveStatus('unsaved');
+          triggerDebouncedSave();
         }}
         saveStatus={saveStatus}
         onSave={handleSaveDraft}
@@ -443,7 +453,8 @@ export function EditorPageShell({ mode, template = 'blank', postId }: EditorPage
           visibility={visibility}
           onVisibilityChange={(vis) => {
             setVisibility(vis);
-            executeSave(vis, false);
+            setSaveStatus('unsaved');
+            triggerDebouncedSave();
           }}
           isEditMode={currentMode === 'edit'}
           onDelete={handleDeletePost}
