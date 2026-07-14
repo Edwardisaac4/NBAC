@@ -100,7 +100,7 @@ export const CONFERENCE_OBJECTIVES = [
 
 export const TARGET_AUDIENCE = [
   "High Net-worth Individuals (HNI's) who charter, own or intend to purchase/lease private jets.",
-  'Industry regulators (CAA, Airport Authorities, Customs, Immigration and Ministry of Aviation).',
+  'Industry regulators (NCAA, Airport Authorities, Customs, Immigration and Ministry of Aviation).',
   'Aircraft Manufacturers, Operators and Service Providers in the Business Aviation industry.',
   'National and international companies with business aviation interests.',
 ]

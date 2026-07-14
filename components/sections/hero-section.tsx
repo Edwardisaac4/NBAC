@@ -488,13 +488,15 @@ export function HeroSection() {
         {/* CTAs */}
         <div className="hero-buttons flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto opacity-0">
           <Link href="/reservations" className="w-full sm:w-auto">
-            <button className="hero-shimmer w-full bg-gradient-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold hover:from-nbac-gold-light hover:to-nbac-gold text-[#0b0f10] font-sans font-bold px-6 md:px-8 py-2.5 md:py-3 rounded-full transition-all duration-300 shadow-lg shadow-nbac-gold/15 hover:shadow-nbac-gold/30 hover:scale-[1.02] active:scale-[0.98] text-sm uppercase tracking-widest">
+            <button className="hero-shimmer w-full bg-gradient-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold hover:from-nbac-gold-light hover:to-nbac-gold text-[#0b0f10] font-sans font-bold px-6 md:px-8 py-2.5 md:py-3 rounded-full transition-all duration-300 shadow-lg shadow-nbac-gold/15 hover:shadow-nbac-gold/30 hover:scale-[1.02] active:scale-[0.98] text-sm uppercase tracking-widest cursor-pointer">
               Secure Executive Pass
             </button>
           </Link>
-          <button className="w-full sm:w-auto border border-white/20 text-white hover:bg-white/10 hover:border-white/40 font-sans font-medium px-6 md:px-8 py-2.5 md:py-3 rounded-full transition-colors backdrop-blur-sm text-sm uppercase tracking-widest">
-            Download Brochure
-          </button>
+          <a href="/documents/nbac-2027-brochure.pdf" download="NBAC_2027_Conference_Brochure.pdf" className="w-full sm:w-auto">
+            <button className="w-full sm:w-auto border border-white/20 text-white hover:bg-white/10 hover:border-white/40 font-sans font-medium px-6 md:px-8 py-2.5 md:py-3 rounded-full transition-colors backdrop-blur-sm text-sm uppercase tracking-widest cursor-pointer">
+              Download Brochure
+            </button>
+          </a>
         </div>
       </div>
     </section>
