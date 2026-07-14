@@ -467,7 +467,7 @@ export function HeroSection() {
         </div>
 
         {/* Stats Row */}
-        <div ref={statsRowRef} className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-16 py-2 md:py-3 w-full my-2 md:my-3 relative" style={{ willChange: 'transform' }}>
+        <div ref={statsRowRef} className="grid grid-cols-3 gap-2 sm:gap-8 md:gap-16 py-2 md:py-3 w-full max-w-3xl mx-auto my-2 md:my-3 relative" style={{ willChange: 'transform' }}>
           {/* Top divider — grows from center */}
           <div className="hero-divider-line absolute top-0 left-0 right-0 h-px bg-white/15 origin-center opacity-0" />
 
@@ -479,9 +479,6 @@ export function HeroSection() {
           </div>
           <div className="hero-stat-item opacity-0">
             <StatCounter value={8} suffix="+" label="Speakers" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
-          </div>
-          <div className="hero-stat-item opacity-0">
-            <StatCounter value={15} suffix="+" label="Aircraft on Display" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
           </div>
 
           {/* Bottom divider — grows from center */}
