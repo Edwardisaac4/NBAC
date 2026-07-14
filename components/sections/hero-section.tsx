@@ -6,6 +6,7 @@ import Link from 'next/link'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { StatCounter } from '../shared/stat-counter'
+import { SPEAKERS } from '@/lib/mock-events'
 
 
 gsap.registerPlugin(ScrollTrigger)
@@ -67,6 +68,7 @@ const headingWords = [
 ]
 
 export function HeroSection() {
+  const speakersCount = Object.values(SPEAKERS).filter(s => s.id !== 'host').length
   const bgRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -107,7 +109,7 @@ export function HeroSection() {
       const isFirstLoad = !sessionStorage.getItem('nbac-preloader-shown')
       const delayOffset = isFirstLoad ? 1.8 : 0
 
-      const tl = gsap.timeline({ 
+      const tl = gsap.timeline({
         defaults: { ease: 'power3.out' },
         delay: delayOffset
       })
@@ -423,10 +425,10 @@ export function HeroSection() {
         <div className="hero-light-sweep">
           <div ref={lightSweepRef} className="hero-light-sweep-beam" />
         </div>
-        
+
         {/* Scroll-reactive theme-colored overlay — starts transparent */}
         <div className="hero-gradient-scroll absolute inset-0 bg-nbac-canvas z-10 opacity-0" style={{ willChange: 'opacity' }} />
-        
+
         {/* Subtle multiply layer for deep shadows */}
         <div className="absolute inset-0 bg-black/20 mix-blend-multiply z-10" />
       </div>
@@ -478,7 +480,7 @@ export function HeroSection() {
             <StatCounter value={30} suffix="+" label="AeroLab Finalist Teams" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
           </div>
           <div className="hero-stat-item opacity-0">
-            <StatCounter value={8} suffix="+" label="Speakers" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
+            <StatCounter value={speakersCount} suffix="+" label="Speakers" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
           </div>
 
           {/* Bottom divider — grows from center */}
@@ -492,12 +494,13 @@ export function HeroSection() {
               Secure Executive Pass
             </button>
           </Link>
-          <a href="/documents/nbac-2027-brochure.pdf" download="NBAC_2027_Conference_Brochure.pdf" className="w-full sm:w-auto">
-            <button className="w-full sm:w-auto border border-white/20 text-white hover:bg-white/10 hover:border-white/40 font-sans font-medium px-6 md:px-8 py-2.5 md:py-3 rounded-full transition-colors backdrop-blur-sm text-sm uppercase tracking-widest cursor-pointer">
-              Download Brochure
-            </button>
-          </a>
-        </div>
+          <a
+            href="/documents/nbac-2027-brochure.pdf"
+            download="NBAC_2027_Conference_Brochure.pdf"
+            className="w-full sm:w-auto inline-flex justify-center border border-white/20 text-white hover:bg-white/10 hover:border-white/40 font-sans font-medium px-6 md:px-8 py-2.5 md:py-3 rounded-full transition-colors backdrop-blur-sm text-sm uppercase tracking-widest cursor-pointer"
+          >
+            Download Brochure
+          </a>        </div>
       </div>
     </section>
   )
