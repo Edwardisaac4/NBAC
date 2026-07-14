@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { AdminRole } from '@/types';
 import { createClient } from '@/lib/supabase/client';
+import { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 export function useAdminRole() {
   const [role, setRoleState] = useState<AdminRole | null>(null);
@@ -50,7 +51,7 @@ export function useAdminRole() {
 
       checkUser();
 
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
         if (!active) return;
         let targetRole: AdminRole | null = null;
         if (session?.user) {

@@ -122,7 +122,7 @@ export function SpeakerDialog({ speaker, sessions, isOpen, onClose }: SpeakerDia
                     {speaker.title}
                   </p>
                   <p className="font-sans text-xs uppercase tracking-wider text-nbac-muted font-medium mt-1">
-                    {speaker.company}
+                    {speaker.company || speaker.organisation}
                   </p>
                 </div>
               </div>

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { AdminSidebar } from '@/components/layout/admin-sidebar';
 import { AdminTopbar } from '@/components/layout/admin-topbar';
 import { useAdminRole } from '@/hooks/use-admin-role';
+import { useInactivityLogout } from '@/hooks/use-inactivity-logout';
 
 export default function AdminLayout({
   children,
@@ -15,6 +16,9 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { isAdmin, loading } = useAdminRole();
+
+  // Log out admin users after 5 hours of inactivity
+  useInactivityLogout(isAdmin);
 
   const isLoginPage = pathname === '/admin/login';
 

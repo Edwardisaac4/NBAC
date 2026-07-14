@@ -10,6 +10,7 @@ interface PublishBarProps {
   template: PostTemplate;
   status: PostVisibility;
   onStatusChange: (status: PostVisibility) => void;
+  isPublishedInDb: boolean;
   saveStatus: 'saved' | 'unsaved' | 'saving';
   onSave: () => void;
   onPublish: () => void;
@@ -28,6 +29,7 @@ export function PublishBar({
   template,
   status,
   onStatusChange,
+  isPublishedInDb,
   saveStatus,
   onSave,
   onPublish,
@@ -52,7 +54,7 @@ export function PublishBar({
         </Link>
         
         <div className="h-4 w-px bg-nbac-border" />
-
+ 
         <span className="bg-nbac-emerald/10 text-nbac-emerald-light text-xs font-medium px-3 py-1 rounded-full border border-nbac-emerald/20">
           {templateName}
         </span>
@@ -109,22 +111,22 @@ export function PublishBar({
 
         <div className="h-4 w-px bg-nbac-border" />
 
-        {/* Save Draft Action */}
+        {/* Save Draft / Switch to Draft Action */}
         <button
           type="button"
           onClick={onSave}
           className="border border-nbac-border text-nbac-body hover:bg-nbac-panel hover:text-white font-sans text-xs font-medium px-4 py-2 rounded-full transition-colors cursor-pointer"
         >
-          {isEditMode ? 'Save Updates' : 'Save Draft'}
+          {isPublishedInDb ? 'Switch to Draft' : 'Save Draft'}
         </button>
 
-        {/* Publish Action */}
+        {/* Publish Action / Save & Update */}
         <button
           type="button"
           onClick={onPublish}
           className="bg-nbac-emerald hover:bg-nbac-emerald-dark text-white font-sans text-xs font-medium px-5 py-2 rounded-full transition-all duration-300 shadow-md shadow-nbac-emerald/10 hover:scale-[1.01] cursor-pointer"
         >
-          {status === 'published' ? 'Save & Update' : 'Publish Post'}
+          {isPublishedInDb ? 'Save & Update' : 'Publish Post'}
         </button>
       </div>
     </div>

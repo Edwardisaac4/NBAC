@@ -35,14 +35,13 @@ const ALLOWED_MIME_TYPES = new Set([
   'application/pdf',
 ]);
 
-const supabase = createClient();
-
 function generateUniquePath(fileName: string): string {
   const cleanName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
   return `uploads/${Date.now()}_${cleanName}`;
 }
 
 export default function MediaGalleryPage() {
+  const supabase = createClient();
   const { isHeadAdmin } = useAdminRole();
   const toast = useToast();
   const [mediaItems, setMediaItems] = useState<MediaAsset[]>([]);
