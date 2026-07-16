@@ -17,7 +17,7 @@ const cormorant = Cormorant_Garamond({
   style: ["normal", "italic"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nbac.com.ng";
+const siteUrl = "https://nbac.com.ng";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -32,9 +32,6 @@ export const metadata: Metadata = {
     apple: "/images/logo-mark.jpg",
   },
   openGraph: {
-    title: "NBAC | Nigerian Business Aviation Conference",
-    description: "West Africa's premier business aviation conference combining elite panels, private aircraft displays, and high-level networking.",
-    url: siteUrl,
     siteName: "Nigerian Business Aviation Conference",
     locale: "en_NG",
     type: "website",
@@ -49,8 +46,6 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "NBAC | Nigerian Business Aviation Conference",
-    description: "West Africa's premier business aviation conference combining elite panels, private aircraft displays, and high-level networking.",
     images: ["/images/og-banner.png"],
   },
 };

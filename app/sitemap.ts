@@ -4,7 +4,7 @@ import { DEFAULT_POSTS, BlogPost } from '@/lib/blog-data';
 import { createClient } from '@supabase/supabase-js';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://nbac.com.ng';
+  const siteUrl = 'https://nbac.com.ng';
 
   // Static routes with differentiated SEO priorities
   const staticRoutes: { path: string; priority: number; changeFrequency: 'daily' | 'weekly' | 'monthly' }[] = [
@@ -25,7 +25,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const sitemapEntries: MetadataRoute.Sitemap = staticRoutes.map((route) => ({
     url: `${siteUrl}${route.path}`,
-    lastModified: new Date().toISOString(),
     changeFrequency: route.changeFrequency,
     priority: route.priority,
   }));
@@ -33,7 +32,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Dynamic event program routes
   const eventRoutes = MOCK_EVENTS.map((event) => ({
     url: `${siteUrl}/events/${event.id}`,
-    lastModified: new Date().toISOString(),
     changeFrequency: 'weekly' as const,
     priority: 0.6,
   }));
@@ -51,7 +49,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .select('id, updated_at')
         .eq('status', 'published');
 
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         blogPosts = data as BlogPost[];
       }
     }
@@ -59,12 +57,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('Sitemap: Failed to fetch dynamic blog posts from Supabase:', err);
   }
 
-  const blogRoutes = blogPosts.map((post) => ({
-    url: `${siteUrl}/blog/${post.id}`,
-    lastModified: post.updated_at ? new Date(post.updated_at).toISOString() : new Date().toISOString(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }));
+  const blogRoutes = blogPosts.map((post) => {
+    const entry: MetadataRoute.Sitemap[number] = {
+      url: `${siteUrl}/blog/${post.id}`,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    };
+    if (post.updated_at) {
+      entry.lastModified = new Date(post.updated_at).toISOString();
+    }
+    return entry;
+  });
 
   return [...sitemapEntries, ...eventRoutes, ...blogRoutes];
 }
