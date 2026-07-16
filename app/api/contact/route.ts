@@ -1,17 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { Resend } from 'resend';
 
 const ALLOWED_INQUIRY_TYPES = ['general', 'aerolabs', 'sponsorship', 'registration', 'aircraft_display', 'others'] as const;
-
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -70,61 +60,48 @@ export async function POST(request: NextRequest) {
     }
 
     // --- ALERTS PIPELINE ---
-
-    // 1. Send Email Notification via Resend if API key is configured
-    if (process.env.RESEND_API_KEY && process.env.CONTACT_ALERT_EMAIL) {
-      const resend = new Resend(process.env.RESEND_API_KEY);
-
+    // Send Email Notification via EmailJS (Only EmailJS is used now)
+    if (
+      process.env.EMAILJS_SERVICE_ID &&
+      process.env.EMAILJS_TEMPLATE_ID &&
+      process.env.EMAILJS_PUBLIC_KEY
+    ) {
       try {
-        const { data, error: resendError } = await resend.emails.send({
-          from: `NBAC Alerts <${process.env.RESEND_FROM_EMAIL || 'noreply@nbac.com.ng'}>`,
-          to: process.env.CONTACT_ALERT_EMAIL,
-          replyTo: email,
-          subject: `✈️ [Inquiry] ${inquiryType.toUpperCase().replace(/[\r\n]/g, '')} - ${fullName.replace(/[\r\n]/g, '')}`,
-          html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e3e5; border-radius: 8px; background-color: #ffffff; color: #101415;">
-              <h2 style="color: #10b981; border-bottom: 2px solid #e0e3e5; padding-bottom: 10px; margin-top: 0;">New Conference Inquiry</h2>
-              <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                <tr>
-                  <td style="padding: 8px 0; font-weight: bold; width: 140px;">Full Name:</td>
-                  <td style="padding: 8px 0;">${escapeHtml(fullName)}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; font-weight: bold;">Email:</td>
-                  <td style="padding: 8px 0;"><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; font-weight: bold;">Company:</td>
-                  <td style="padding: 8px 0;">${escapeHtml(company || 'N/A')}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; font-weight: bold;">Phone:</td>
-                  <td style="padding: 8px 0;">${escapeHtml(phone || 'N/A')}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; font-weight: bold;">Inquiry Type:</td>
-                  <td style="padding: 8px 0; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; color: #c5a059;">${escapeHtml(inquiryType.replace('_', ' '))}</td>
-                </tr>
-              </table>
-              <div style="background-color: #f8fafc; border-left: 4px solid #10b981; padding: 15px; border-radius: 4px; margin-top: 10px;">
-                <h4 style="margin: 0 0 10px 0; color: #323537; font-size: 12px; text-transform: uppercase; tracking: 0.05em;">Message Details:</h4>
-                <p style="margin: 0; line-height: 1.6; white-space: pre-wrap; font-size: 14px;">${escapeHtml(message)}</p>
-              </div>
-              <p style="font-size: 11px; color: #909097; margin-top: 30px; text-align: center; border-top: 1px solid #e0e3e5; padding-top: 15px;">
-                Sent automatically by the NBAC website engine.
-              </p>
-            </div>
-          `
+        const emailJsPayload = {
+          service_id: process.env.EMAILJS_SERVICE_ID,
+          template_id: process.env.EMAILJS_TEMPLATE_ID,
+          user_id: process.env.EMAILJS_PUBLIC_KEY,
+          accessToken: process.env.EMAILJS_PRIVATE_KEY || undefined,
+          template_params: {
+            fullName,
+            email,
+            company: company || 'N/A',
+            phone: phone || 'N/A',
+            inquiryType: inquiryType.toUpperCase().replace('_', ' '),
+            message,
+            to_email: process.env.CONTACT_ALERT_EMAIL || 'it.support@ean.aero',
+          },
+        };
+
+        const emailJsRes = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(emailJsPayload),
         });
 
-        if (resendError) {
-          console.error('Resend SDK response error:', resendError.message);
-        } else if (data) {
-          console.log('Resend email sent successfully. ID:', data.id);
+        if (!emailJsRes.ok) {
+          const errText = await emailJsRes.text();
+          console.error('EmailJS sending failed:', emailJsRes.status, errText);
+        } else {
+          console.log('EmailJS contact inquiry notification sent successfully.');
         }
       } catch (err) {
-        console.error('Failed to dispatch Resend email alert (network-level):', err);
+        console.error('Failed to send contact inquiry via EmailJS:', err);
       }
+    } else {
+      console.warn('EmailJS environment variables (EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY) are not configured. Email notification skipped.');
     }
 
     return NextResponse.json({ success: true }, { status: 200 });
