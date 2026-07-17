@@ -63,7 +63,7 @@ export default function PrivacyPolicyPage() {
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
                   <li>Processing and issuing your VIP, Exhibitor, or Jet Display conference passes.</li>
-                  <li>Sending secure confirmation and transactional receipt emails via our email provider, Resend.</li>
+                  <li>Sending secure confirmation and transactional receipt emails via our email provider, EmailJS.</li>
                   <li>Coordinating ground handling, airport transfers, and room reservations with FBO terminals and partner hotels (upon your explicit inquiry request).</li>
                   <li>Auditing security logs and system operations to prevent fraud.</li>
                 </ul>

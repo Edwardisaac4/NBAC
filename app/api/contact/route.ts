@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendEmailJS } from '@/lib/email';
 
 const ALLOWED_INQUIRY_TYPES = ['general', 'aerolabs', 'sponsorship', 'registration', 'aircraft_display', 'others'] as const;
 
@@ -24,75 +25,6 @@ function isRateLimited(ip: string): boolean {
   return false;
 }
 
-// --- EMAILJS QUEUE & WORKER ---
-interface QueueJob {
-  payload: {
-    service_id: string;
-    template_id: string;
-    user_id: string;
-    accessToken?: string;
-    template_params: {
-      fullName: string;
-      email: string;
-      company: string;
-      phone: string;
-      inquiryType: string;
-      message: string;
-      to_email: string;
-    };
-  };
-}
-
-const emailQueue: QueueJob[] = [];
-let workerRunning = false;
-
-async function processEmailJob(job: QueueJob) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000); // 8-second request timeout
-
-  try {
-    const emailJsRes = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(job.payload),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!emailJsRes.ok) {
-      const errText = await emailJsRes.text();
-      console.error('EmailJS sending failed:', emailJsRes.status, errText);
-    } else {
-      console.log('EmailJS contact inquiry notification sent successfully.');
-    }
-  } catch (err) {
-    clearTimeout(timeoutId);
-    console.error('Failed to send contact inquiry via EmailJS:', err);
-  }
-}
-
-async function runWorker() {
-  if (workerRunning) return;
-  workerRunning = true;
-
-  try {
-    while (emailQueue.length > 0) {
-      const job = emailQueue.shift();
-      if (job) {
-        await processEmailJob(job);
-      }
-      // Guarantee at least 1 second between starts of EmailJS requests
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
-  } catch (err) {
-    console.error('Queue worker loop error:', err);
-  } finally {
-    workerRunning = false;
-  }
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -163,34 +95,17 @@ export async function POST(request: NextRequest) {
     }
 
     // --- ALERTS PIPELINE ---
-    // Push the job to the non-blocking EmailJS queue
-    if (
-      process.env.EMAILJS_SERVICE_ID &&
-      process.env.EMAILJS_TEMPLATE_ID &&
-      process.env.EMAILJS_PUBLIC_KEY
-    ) {
-      const emailJsPayload = {
-        service_id: process.env.EMAILJS_SERVICE_ID,
-        template_id: process.env.EMAILJS_TEMPLATE_ID,
-        user_id: process.env.EMAILJS_PUBLIC_KEY,
-        accessToken: process.env.EMAILJS_PRIVATE_KEY || undefined,
-        template_params: {
-          fullName,
-          email,
-          company: company || 'N/A',
-          phone: phone || 'N/A',
-          inquiryType: inquiryType.toUpperCase().replace('_', ' '),
-          message,
-          to_email: process.env.CONTACT_ALERT_EMAIL || 'it.support@ean.aero',
-        },
-      };
-
-      emailQueue.push({ payload: emailJsPayload });
-      // Trigger background worker asynchronously (without await) to not block the response or DB write
-      runWorker().catch((err) => console.error('Failed to run EmailJS queue worker:', err));
-    } else {
-      console.warn('EmailJS environment variables (EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY) are not configured. Email notification skipped.');
-    }
+    await sendEmailJS({
+      templateParams: {
+        fullName,
+        email,
+        company: company || 'N/A',
+        phone: phone || 'N/A',
+        inquiryType: inquiryType.toUpperCase().replace('_', ' '),
+        message,
+        to_email: process.env.CONTACT_ALERT_EMAIL,
+      }
+    });
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

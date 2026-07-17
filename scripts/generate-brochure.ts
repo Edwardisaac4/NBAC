@@ -2,8 +2,9 @@ import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { SPEAKERS, MOCK_EVENTS } from '../lib/mock-events';
-import { EventSession, Speaker } from '../types';
+import { SESSIONS } from '../data/sessions';
+import { SPEAKERS as SPEAKERS_ARRAY } from '../data/speakers';
+import { CONFERENCE_STATS, AEROLAB_TRACKS } from '../data/conference-stats';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,9 +38,6 @@ const COLORS = {
   white: '#FFFFFF'
 };
 
-// Filter out Master of Ceremonies / Host from featured speakers
-const speakersList = Object.values(SPEAKERS).filter(s => s.id !== 'host');
-
 // Draw Background helper
 function drawBackground(doc: typeof PDFDocument) {
   doc.rect(0, 0, 595.28, 841.89).fill(COLORS.canvas);
@@ -56,7 +54,7 @@ function drawPageHeader(doc: typeof PDFDocument, pageTitle: string) {
   
   doc.fillColor(COLORS.text)
      .font('Helvetica-Bold')
-     .fontSize(22)
+     .fontSize(20)
      .text(pageTitle.toUpperCase(), 40, 40);
 
   // Decorative line
@@ -78,13 +76,32 @@ function drawPageFooter(doc: typeof PDFDocument, pageNum: number) {
   doc.fillColor(COLORS.muted)
      .font('Helvetica')
      .fontSize(8)
-     .text('May 4-5, 2027 | Marriott Hotel, Ikeja, Lagos', 40, 810);
+     .text('May 2027 | Lagos, Nigeria | Organised by EAN Aviation Limited', 40, 810);
 
   doc.fillColor(COLORS.gold)
      .font('Helvetica-Bold')
      .fontSize(8)
      .text(`PAGE ${pageNum}`, 520, 810);
 }
+
+// Helper to get session start/end times
+const getSessionTimes = (sessionsList: typeof SESSIONS, index: number, current: typeof SESSIONS[0]) => {
+  const start_time = current.time;
+  let end_time = '';
+  // Find the next session on the same day
+  const nextSession = sessionsList.slice(index + 1).find(s => s.day === current.day);
+  if (nextSession) {
+    end_time = nextSession.time;
+  } else {
+    // If it's the last session of the day
+    if (current.day === 'day_1') {
+      end_time = '22:00'; // Gala ends at 22:00
+    } else {
+      end_time = '18:00'; // Closing Cocktail ends at 18:00
+    }
+  }
+  return { start_time, end_time };
+};
 
 // ==========================================
 // PAGE 1: COVER PAGE
@@ -139,7 +156,7 @@ doc.fillColor(COLORS.muted)
    .text('DATE:', 40, 680)
    .fillColor(COLORS.text)
    .font('Helvetica-Bold')
-   .text('MAY 4 - 5, 2027', 100, 680);
+   .text('MAY 2027', 100, 680);
 
 doc.fillColor(COLORS.muted)
    .font('Helvetica')
@@ -147,7 +164,7 @@ doc.fillColor(COLORS.muted)
    .text('VENUE:', 40, 700)
    .fillColor(COLORS.text)
    .font('Helvetica-Bold')
-   .text('MARRIOTT HOTEL, IKEJA, LAGOS', 100, 700);
+   .text('MARRIOTT HOTEL, LAGOS, NIGERIA', 100, 700);
 
 doc.fillColor(COLORS.muted)
    .font('Helvetica')
@@ -155,10 +172,10 @@ doc.fillColor(COLORS.muted)
    .text('HOST:', 40, 720)
    .fillColor(COLORS.text)
    .font('Helvetica-Bold')
-   .text('NBAC STEERING COMMITTEE', 100, 720);
+   .text('EAN AVIATION LIMITED', 100, 720);
 
 // ==========================================
-// PAGE 2: CHAIRMAN'S WELCOME
+// PAGE 2: CHAIRMAN'S WELCOME & STATS
 // ==========================================
 doc.addPage();
 drawBackground(doc);
@@ -178,86 +195,121 @@ const welcomeText =
 doc.fillColor(COLORS.text)
    .font('Helvetica')
    .fontSize(10.5)
-   .text(welcomeText, 40, 125, { width: 515, align: 'justify', lineGap: 6 });
+   .text(welcomeText, 40, 120, { width: 515, align: 'justify', lineGap: 4.5 });
 
 // Signature block
 doc.fillColor(COLORS.goldLight)
    .font('Helvetica-Bold')
-   .fontSize(12)
-   .text('Segun Demuren', 40, 420);
+   .fontSize(11)
+   .text('Segun Demuren', 40, 395);
 
 doc.fillColor(COLORS.muted)
    .font('Helvetica')
-   .fontSize(10)
-   .text('Chairman, NBAC Steering Committee', 40, 435);
+   .fontSize(9.5)
+   .text('Chairman, NBAC Steering Committee · MD/CEO, EAN Aviation Limited', 40, 410);
 
-// Event statistics box (Premium Glassmorphic imitation)
-doc.roundedRect(40, 480, 515, 120, 8).fill(COLORS.panel);
-doc.roundedRect(40, 480, 515, 120, 8).lineWidth(1).stroke(COLORS.border);
+// Render conference stats in 2x4 grid starting at y=440
+const statsY = 440;
+CONFERENCE_STATS.forEach((stat, idx) => {
+  const col = idx % 2;
+  const row = Math.floor(idx / 2);
+  const x = 40 + col * 262; 
+  const y = statsY + row * 78;
 
-// Stat 1
-doc.fillColor(COLORS.gold)
-   .font('Helvetica-Bold')
-   .fontSize(28)
-   .text('300+', 70, 510);
-doc.fillColor(COLORS.text)
-   .font('Helvetica')
-   .fontSize(10)
-   .text('Delegates', 70, 545);
+  doc.roundedRect(x, y, 252, 70, 6).fill(COLORS.panel);
+  doc.roundedRect(x, y, 252, 70, 6).lineWidth(1).stroke(COLORS.border);
+  doc.rect(x, y, 3, 70).fill(COLORS.gold);
 
-// Stat 2
-doc.fillColor(COLORS.gold)
-   .font('Helvetica-Bold')
-   .fontSize(28)
-   .text('30+', 250, 510);
-doc.fillColor(COLORS.text)
-   .font('Helvetica')
-   .fontSize(10)
-   .text('AeroLab Finalists', 250, 545);
+  doc.fillColor(COLORS.gold)
+     .font('Helvetica-Bold')
+     .fontSize(22)
+     .text(stat.value, x + 15, y + 12);
 
-// Stat 3 (Derived from speakersList)
-doc.fillColor(COLORS.gold)
-   .font('Helvetica-Bold')
-   .fontSize(28)
-   .text(`${speakersList.length}+`, 420, 510);
-doc.fillColor(COLORS.text)
-   .font('Helvetica')
-   .fontSize(10)
-   .text('Expert Speakers', 420, 545);
+  doc.fillColor(COLORS.text)
+     .font('Helvetica-Bold')
+     .fontSize(8.5)
+     .text(stat.label.toUpperCase(), x + 15, y + 38, { width: 220, characterSpacing: 0.5 });
+});
 
 drawPageFooter(doc, 2);
 
 // ==========================================
-// PAGE 3+: FEATURED SPEAKERS
+// PAGE 3: AEROLAB INNOVATION CHALLENGE
 // ==========================================
-let speakerIndex = 0;
-let pageNumber = 3;
+doc.addPage();
+drawBackground(doc);
+drawPageHeader(doc, "AeroLab NBAC 2027");
 
+doc.fillColor(COLORS.text)
+   .font('Helvetica-Bold')
+   .fontSize(14)
+   .text('PARALLEL INNOVATION CHALLENGE', 40, 95, { characterSpacing: 1.5 });
+
+const aerolabDesc = 
+  "Running alongside the main conference, AeroLab NBAC 2027 is the premier aviation hackathon in West Africa. " +
+  "It brings together real aviation problems, built live by elite developer teams, and presented on stage to delegates and judges. " +
+  "Over two days, ten finalist teams compete across five distinct challenge tracks for a grand prize and the coveted People's Choice Award.";
+
+doc.fillColor(COLORS.text)
+   .font('Helvetica')
+   .fontSize(10.5)
+   .text(aerolabDesc, 40, 125, { width: 515, align: 'justify', lineGap: 5 });
+
+// Render the 5 tracks
+let trackY = 210;
+AEROLAB_TRACKS.forEach((track) => {
+  doc.roundedRect(40, trackY, 515, 65, 6).fill(COLORS.panel);
+  doc.roundedRect(40, trackY, 515, 65, 6).lineWidth(1).stroke(COLORS.border);
+  
+  // Emerald indicator on the left
+  doc.rect(40, trackY, 3, 65).fill(COLORS.emerald);
+
+  doc.fillColor(COLORS.emerald)
+     .font('Helvetica-Bold')
+     .fontSize(10)
+     .text(`TRACK 0${track.number}`, 60, trackY + 12);
+
+  doc.fillColor(COLORS.text)
+     .font('Helvetica-Bold')
+     .fontSize(11)
+     .text(track.title, 60, trackY + 27);
+
+  doc.fillColor(COLORS.muted)
+     .font('Helvetica-Oblique')
+     .fontSize(9.5)
+     .text(track.subtitle, 60, trackY + 42);
+
+  trackY += 75;
+});
+
+drawPageFooter(doc, 3);
+
+// ==========================================
+// PAGE 4+: FEATURED SPEAKERS
+// ==========================================
+let pageNumber = 4;
 doc.addPage();
 drawBackground(doc);
 drawPageHeader(doc, "Featured Speakers");
 let yPos = 90;
 
-while (speakerIndex < speakersList.length) {
-  const spk = speakersList[speakerIndex];
-  
-  // Calculate text heights dynamically to ensure perfect padding and zero overflow/overlaps
-  doc.font('Helvetica-Bold').fontSize(13);
+const speakersList = SPEAKERS_ARRAY.filter(s => s.id !== 'host');
+
+for (const spk of speakersList) {
+  doc.font('Helvetica-Bold').fontSize(11);
   const nameHeight = doc.heightOfString(spk.name, { width: 475 });
   
-  doc.font('Helvetica-Bold').fontSize(10);
-  const companyOrOrg = spk.company || spk.organisation || '';
-  const titleString = `${spk.title}${companyOrOrg ? ` — ${companyOrOrg}` : ''}`;
-  const titleHeight = doc.heightOfString(titleString, { width: 475 });
+  const orgOrTitle = `${spk.title}${spk.organisation ? ` — ${spk.organisation}` : ''}`;
+  doc.font('Helvetica-Bold').fontSize(9);
+  const titleHeight = doc.heightOfString(orgOrTitle, { width: 475 });
   
-  doc.font('Helvetica').fontSize(9.5);
-  const bioHeight = spk.bio ? doc.heightOfString(spk.bio, { width: 475, lineGap: 3 }) : 0;
+  doc.font('Helvetica').fontSize(8.5);
+  const bioHeight = spk.bio ? doc.heightOfString(spk.bio, { width: 475, lineGap: 2.5 }) : 0;
   
-  const padding = 14;
-  const gap = 5;
+  const padding = 10;
+  const gap = 3;
   const cardHeight = padding * 2 + nameHeight + gap + titleHeight + (bioHeight ? gap + bioHeight : 0);
   
-  // Check if card fits on page, otherwise paginate cleanly
   if (yPos + cardHeight > 780) {
     drawPageFooter(doc, pageNumber);
     pageNumber++;
@@ -268,33 +320,28 @@ while (speakerIndex < speakersList.length) {
     yPos = 90;
   }
   
-  // Draw card (Rounded container)
-  doc.roundedRect(40, yPos, 515, cardHeight, 8).fill(COLORS.panel);
-  doc.roundedRect(40, yPos, 515, cardHeight, 8).lineWidth(1).stroke(COLORS.border);
-  
-  // Decorative small gold line inside left edge
+  doc.roundedRect(40, yPos, 515, cardHeight, 6).fill(COLORS.panel);
+  doc.roundedRect(40, yPos, 515, cardHeight, 6).lineWidth(1).stroke(COLORS.border);
   doc.rect(40, yPos, 3, cardHeight).fill(COLORS.gold);
 
-  // Speaker Details
   doc.fillColor(COLORS.gold)
      .font('Helvetica-Bold')
-     .fontSize(13)
+     .fontSize(11)
      .text(spk.name, 60, yPos + padding);
   
   doc.fillColor(COLORS.text)
      .font('Helvetica-Bold')
-     .fontSize(10)
-     .text(titleString, 60, yPos + padding + nameHeight + gap, { width: 475 });
+     .fontSize(9)
+     .text(orgOrTitle, 60, yPos + padding + nameHeight + gap, { width: 475 });
 
   if (spk.bio) {
     doc.fillColor(COLORS.text)
        .font('Helvetica')
-       .fontSize(9.5)
-       .text(spk.bio, 60, yPos + padding + nameHeight + gap + titleHeight + gap, { width: 475, align: 'justify', lineGap: 3 });
+       .fontSize(8.5)
+       .text(spk.bio, 60, yPos + padding + nameHeight + gap + titleHeight + gap, { width: 475, align: 'justify', lineGap: 2.5 });
   }
 
-  yPos += cardHeight + 12;
-  speakerIndex++;
+  yPos += cardHeight + 10;
 }
 
 drawPageFooter(doc, pageNumber);
@@ -303,7 +350,7 @@ pageNumber++;
 // ==========================================
 // AGENDA DRAWING FUNCTION
 // ==========================================
-function drawAgenda(doc: typeof PDFDocument, title: string, sessions: EventSession[], startPageNum: number) {
+function drawAgenda(doc: typeof PDFDocument, title: string, sessions: typeof SESSIONS, startPageNum: number) {
   let sessionIndex = 0;
   let pageNum = startPageNum;
   
@@ -315,19 +362,23 @@ function drawAgenda(doc: typeof PDFDocument, title: string, sessions: EventSessi
   while (sessionIndex < sessions.length) {
     const session = sessions[sessionIndex];
     
-    // Calculate heights dynamically to avoid any text overlapping
+    // Calculate heights dynamically to avoid overlapping
     doc.font('Helvetica-Bold').fontSize(9.5);
-    const titleHeight = doc.heightOfString(session.title, { width: 260 });
+    const titleHeight = doc.heightOfString(session.title, { width: 280 });
     
-    const speakerNames = (session.speakers || []).map((s: Speaker) => s.name).join(', ');
+    doc.font('Helvetica').fontSize(8.5);
+    const subtitleHeight = session.subtitle ? doc.heightOfString(session.subtitle, { width: 280 }) : 0;
+    
+    const panellistNames = (session.panellists || []).map(p => {
+      return p.name + (p.organisation ? ` (${p.organisation})` : p.role ? ` (${p.role})` : '');
+    }).join(', ');
     doc.font('Helvetica-Oblique').fontSize(8);
-    const speakersHeight = speakerNames ? doc.heightOfString(`Speakers: ${speakerNames}`, { width: 260 }) : 0;
+    const panellistsHeight = panellistNames ? doc.heightOfString(`Speakers: ${panellistNames}`, { width: 280 }) : 0;
     
-    const padding = 12;
-    const gap = 4;
-    const cardHeight = padding * 2 + titleHeight + (speakersHeight ? gap + speakersHeight : 0);
+    const padding = 10;
+    const gap = 3;
+    const cardHeight = padding * 2 + titleHeight + (subtitleHeight ? gap + subtitleHeight : 0) + (panellistsHeight ? gap + panellistsHeight : 0);
     
-    // Paginate if the card overflows the printable bottom page boundary
     if (yPos + cardHeight > 780) {
       drawPageFooter(doc, pageNum);
       pageNum++;
@@ -338,52 +389,65 @@ function drawAgenda(doc: typeof PDFDocument, title: string, sessions: EventSessi
       yPos = 90;
     }
     
-    // Draw row container (rounded corners)
+    // Draw row container
     doc.roundedRect(40, yPos, 515, cardHeight, 6).fill(COLORS.panel);
     doc.roundedRect(40, yPos, 515, cardHeight, 6).lineWidth(1).stroke(COLORS.border);
     
-    // Type indicator line
+    // Category indicator color
     let indicatorColor = COLORS.gold;
-    const type = session.category || 'general';
-    if (type === 'panel') indicatorColor = COLORS.emerald;
-    else if (type === 'keynote') indicatorColor = COLORS.goldLight;
-    else if (type === 'networking') indicatorColor = COLORS.muted;
-    else if (type === 'break') indicatorColor = COLORS.border;
+    const format = session.format;
+    if (format === 'panel') indicatorColor = COLORS.emerald;
+    else if (format === 'keynote' || format === 'presentation' || format === 'fireside') indicatorColor = COLORS.goldLight;
+    else if (format === 'networking' || format === 'break') indicatorColor = COLORS.muted;
+    else if (format === 'hackathon' || format === 'ceremony') indicatorColor = COLORS.emerald;
     doc.rect(40, yPos, 3, cardHeight).fill(indicatorColor);
 
-    // Time Column (Centered vertically inside card)
+    // Calculate times
+    const { start_time, end_time } = getSessionTimes(sessions, sessionIndex, session);
+
+    // Time Column
     doc.fillColor(COLORS.goldLight)
        .font('Helvetica-Bold')
-       .fontSize(9.5)
-       .text(`${session.start_time} - ${session.end_time}`, 52, yPos + (cardHeight - 10) / 2);
+       .fontSize(9)
+       .text(`${start_time} - ${end_time}`, 52, yPos + (cardHeight - 9) / 2);
 
     // Title
     doc.fillColor(COLORS.text)
        .font('Helvetica-Bold')
        .fontSize(9.5)
-       .text(session.title, 160, yPos + padding, { width: 260 });
+       .text(session.title, 160, yPos + padding, { width: 280 });
     
-    // Speakers (Drawn dynamically below the title, with perfect gap offset)
-    if (speakerNames) {
+    // Subtitle
+    let textOffset = padding + titleHeight;
+    if (session.subtitle) {
+      doc.fillColor(COLORS.muted)
+         .font('Helvetica')
+         .fontSize(8.5)
+         .text(session.subtitle, 160, yPos + textOffset + gap, { width: 280 });
+      textOffset += subtitleHeight + gap;
+    }
+    
+    // Speakers
+    if (panellistNames) {
       doc.fillColor(COLORS.muted)
          .font('Helvetica-Oblique')
          .fontSize(8)
-         .text(`Speakers: ${speakerNames}`, 160, yPos + padding + titleHeight + gap, { width: 260 });
+         .text(`Speakers: ${panellistNames}`, 160, yPos + textOffset + gap, { width: 280 });
     }
 
-    // Category
+    // Category Badge
     doc.fillColor(COLORS.white)
        .font('Helvetica-Bold')
        .fontSize(7.5)
-       .text(type.toUpperCase(), 430, yPos + padding, { width: 110, align: 'right' });
+       .text(format.toUpperCase(), 430, yPos + padding, { width: 110, align: 'right' });
 
-    // Location (Room)
+    // Location / Note
     doc.fillColor(COLORS.muted)
        .font('Helvetica')
        .fontSize(8)
-       .text(session.location || 'Main Auditorium', 430, yPos + padding + 15, { width: 110, align: 'right' });
+       .text(session.day === 'day_1' ? 'Marriott, Lagos' : 'TBC, Lagos', 430, yPos + padding + 15, { width: 110, align: 'right' });
 
-    yPos += cardHeight + 8;
+    yPos += cardHeight + 6;
     sessionIndex++;
   }
   
@@ -393,10 +457,9 @@ function drawAgenda(doc: typeof PDFDocument, title: string, sessions: EventSessi
   return pageNum;
 }
 
-const day1Sessions = MOCK_EVENTS.find(e => e.id === 'nbac-2027-day-1')?.sessions || [];
-const day2Sessions = MOCK_EVENTS.find(e => e.id === 'nbac-2027-day-2')?.sessions || [];
+const day1Sessions = SESSIONS.filter(s => s.day === 'day_1');
+const day2Sessions = SESSIONS.filter(s => s.day === 'day_2');
 
-// Draw Agendas and track page numbers dynamically
 pageNumber = drawAgenda(doc, "Program Agenda — Day 1", day1Sessions, pageNumber);
 pageNumber = drawAgenda(doc, "Program Agenda — Day 2", day2Sessions, pageNumber);
 

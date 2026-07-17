@@ -192,7 +192,7 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
                   Thank you, <span className="font-semibold text-nbac-text">{formData.fullName || 'Delegate'}</span>. Your delegate seat reservation for the <span className="font-semibold text-nbac-text">{submittedTier.name}</span> package has been securely requested. 
                 </p>
                 <p className="font-sans text-xs text-nbac-muted font-light leading-relaxed">
-                  In a production environment, this would verify your payment of <span className="font-semibold text-nbac-text">{formatPrice(calculateTotal(submittedTier, submittedDelegateCount))}</span> via Paystack, save your record in Supabase, and dispatch your access passes via Resend.
+                  In a production environment, this would verify your payment of <span className="font-semibold text-nbac-text">{formatPrice(calculateTotal(submittedTier, submittedDelegateCount))}</span> via Paystack, save your record in Supabase, and dispatch your access passes via EmailJS.
                 </p>
               </div>
 

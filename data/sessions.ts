@@ -1,0 +1,423 @@
+export type SessionDay    = 'day_1' | 'day_2'
+export type SessionFormat = 'panel' | 'keynote' | 'presentation' | 'fireside' |
+                            'networking' | 'hackathon' | 'ceremony' | 'dinner' | 'break'
+
+export interface Panellist {
+  name:         string
+  organisation?: string
+  role?:        string
+}
+
+export interface Session {
+  id:           string
+  number?:      string      // e.g. "01", "02" — null for non-numbered slots
+  day:          SessionDay
+  time:         string      // e.g. "10:30"
+  title:        string
+  subtitle?:    string
+  format:       SessionFormat
+  panellists?:  Panellist[]
+  questions?:   string[]    // panel discussion questions
+  keyAreas?:    string[]    // key discussion areas
+  notes?:       string      // extra context
+  isBreak?:     boolean     // true for networking/lunch/sponsor slots
+}
+
+export const SESSIONS: Session[] = [
+
+  // ─── DAY 1 ───────────────────────────────────────────────────────────────
+
+  {
+    id: 'day1-registration',
+    day: 'day_1',
+    time: '08:00',
+    title: 'Registration & Refreshments',
+    subtitle: 'Delegates arrive, badge collection, networking',
+    format: 'networking',
+    isBreak: true,
+  },
+  {
+    id: 'day1-opening',
+    day: 'day_1',
+    time: '09:00',
+    title: 'Opening Remarks & Welcome Address',
+    subtitle: 'Host · NBAC Chairman · Guest of Honour',
+    format: 'keynote',
+  },
+  {
+    id: 'day1-keynote',
+    day: 'day_1',
+    time: '09:30',
+    title: 'Keynote Address',
+    subtitle: 'Peterside / Minister of Aviation',
+    format: 'keynote',
+    panellists: [
+      { name: 'Capt. Peterside' },
+      { name: 'Minister of Aviation' },
+    ],
+  },
+  {
+    id: 'day1-icebreaker',
+    day: 'day_1',
+    time: '10:00',
+    title: 'Networking Break — Ice Breaker',
+    subtitle: 'Each table names 3 people at their table + 1 from another',
+    format: 'networking',
+    isBreak: true,
+  },
+  {
+    id: 'session-01',
+    number: '01',
+    day: 'day_1',
+    time: '10:30',
+    title: 'Regulatory Panel',
+    subtitle: 'Strategy, Policy & Legal Frameworks for Business Aviation',
+    format: 'panel',
+    panellists: [
+      { name: 'NCAA',              organisation: 'Nigerian Civil Aviation Authority' },
+      { name: 'FAAN',              organisation: 'Federal Airports Authority of Nigeria' },
+      { name: 'NAMA',              organisation: 'Nigerian Airspace Management Agency' },
+      { name: 'Capt. Abdullahi' },
+      { name: 'Capt. Peterside' },
+    ],
+    keyAreas: [
+      'AOC regulations for business aviation',
+      'Two-pilot regulation review',
+      'Ground handling duty limitations',
+      'Dedicated business aviation regulatory structure',
+      'Commercial charges on business aviation',
+      'Infrastructure and security concerns',
+      'Digitisation of permits and flight planning',
+    ],
+    questions: [
+      'Why does the AOC framework for business aviation follow the same structure as commercial aviation?',
+      'Why has Nigeria not reviewed the two-pilot regulation for business aviation operations?',
+      'Given that most incidents occur on the ground without defined duty time limitations, is there a case for introducing ground handling regulations?',
+      'Should there be a dedicated business aviation regulatory structure — and what would it take to establish one?',
+      'What specific steps is FAAN taking to create a more enabling and secure operating environment for business aviation?',
+      'What initiatives are underway to digitise flight planning and permit approval processes?',
+    ],
+  },
+  {
+    id: 'session-02',
+    number: '02',
+    day: 'day_1',
+    time: '11:30',
+    title: 'Operators Panel',
+    subtitle: 'Operational Realities of Business Aviation in Nigeria',
+    format: 'panel',
+    panellists: [
+      { name: 'Selected Nigerian operators' },
+      { name: 'Industry advocacy representatives' },
+      { name: 'OEM voice', role: 'Title Sponsor' },
+    ],
+    keyAreas: [
+      'Permit challenges and flight planning delays',
+      'Illegal charter operations',
+      'Aircraft operating without AOCs',
+      'Industry advocacy and collaboration',
+      'Cost pressures on Nigerian operators',
+    ],
+    questions: [
+      'What is the single biggest constraint holding back your business in Nigeria today?',
+      'Why do some private jets engage in illegal charter activities — and whose responsibility is it to stop it?',
+      'Why do some operators use aircraft without AOCs, and what are the risks to the wider industry?',
+      'Nigeria has had a business aviation community for decades. Why does it still lack a unified advocacy voice, and who should lead that effort?',
+      'If operators in this room established an association within 12 months, what should the first three priority actions be?',
+    ],
+  },
+  {
+    id: 'session-03',
+    number: '03',
+    day: 'day_1',
+    time: '12:30',
+    title: 'Infrastructure in Aviation',
+    subtitle: "Nigeria's aviation infrastructure benchmarked against leading global markets",
+    format: 'presentation',
+    notes: '20-minute keynote-style presentation with data slides. No panel discussion.',
+    panellists: [
+      {
+        name:         'Segun Demuren',
+        organisation: 'EAN Aviation Limited',
+        role:         'MD/CEO · NBAC 2027 Host',
+      },
+    ],
+    keyAreas: [
+      "Nigeria's current aviation infrastructure: airports, FBOs, navigation systems",
+      'Benchmark comparison: UAE, South Africa, Morocco, Rwanda, Europe',
+      'Critical infrastructure gaps and investment requirements',
+      'The case for Nigeria as West Africa\'s premier business aviation gateway',
+      'Recommended policy and investment priorities for the next 5 years',
+    ],
+  },
+  {
+    id: 'day1-lunch',
+    day: 'day_1',
+    time: '13:15',
+    title: 'Lunch & Networking',
+    subtitle: 'Sponsor exhibition open',
+    format: 'break',
+    isBreak: true,
+  },
+  {
+    id: 'session-04',
+    number: '04',
+    day: 'day_1',
+    time: '14:15',
+    title: 'Finance Panel',
+    subtitle: 'Deals That Got Done: Real-World Finance Structures in African Aviation',
+    format: 'panel',
+    panellists: [
+      { name: 'Erica',         organisation: 'TLG' },
+      { name: 'Fidelity Bank', organisation: 'Fidelity Bank' },
+      { name: 'Boyede / Ahmed' },
+      { name: '1 international lessor' },
+      { name: '1 local lessor' },
+    ],
+    keyAreas: [
+      'Aircraft acquisition financing structures',
+      'Lender perceptions of African aviation',
+      'Why deals fall through',
+      'First-time aircraft finance guidance',
+      'West Africa-specific financing models',
+      'Naira pressure and FX-resilient structures',
+    ],
+    questions: [
+      'Walk us through the financing structure behind your most recent aircraft acquisition — what worked, what didn\'t, and what would you do differently?',
+      'What do lenders consistently get wrong about the African aviation market, and how do you make the case when the data works against the narrative?',
+      'When deals fall through, what is the most common reason — the borrower, the structure, currency risk, or the regulatory environment?',
+      'For an operator who has never closed an aircraft finance deal, what is the most honest advice on where to start?',
+      'Is there a deal structure that works specifically for West Africa that the global leasing community hasn\'t discovered yet?',
+      'With continued pressure on the Naira, what financing structures are actually working for Nigerian operators right now?',
+    ],
+  },
+  {
+    id: 'session-05',
+    number: '05',
+    day: 'day_1',
+    time: '15:15',
+    title: 'Fireside Chat',
+    subtitle: 'Steve Varsano & Hani — moderated by Alan Peaford / Alex',
+    format: 'fireside',
+    notes: 'Format: one-on-one conversation, no slides.',
+    panellists: [
+      { name: 'Steve Varsano', organisation: 'The Jet Business',  role: 'Global aircraft trading authority' },
+      { name: 'Hani',                                             role: 'Aviation industry leader — Africa & Middle East' },
+      { name: 'Alan Peaford / Alex',                             role: 'Moderator' },
+    ],
+    keyAreas: [
+      'The value of business aviation to the African economy',
+      'Positioning Africa within the global business aviation market',
+      'Investment opportunities and what is holding capital back',
+      "The future of premium aviation services — Africa's moment",
+      'What it takes to build a world-class aviation business in a frontier market',
+    ],
+  },
+  {
+    id: 'day1-aerolab-pitch',
+    day: 'day_1',
+    time: '16:15',
+    title: 'AeroLab Pitch — Finals',
+    subtitle: '10 finalist teams present to delegates & judges. Live audience voting via Slido.',
+    format: 'hackathon',
+  },
+  {
+    id: 'day1-audience-speak',
+    day: 'day_1',
+    time: '17:00',
+    title: 'Audience Speak — Open Mic',
+    subtitle: 'Questions passed table to table · Live display via Slido',
+    format: 'networking',
+    isBreak: true,
+  },
+  {
+    id: 'day1-gala',
+    day: 'day_1',
+    time: '19:30',
+    title: 'NBAC 2027 Gala Dinner — An Evening with the Aviator',
+    subtitle: 'Black-tie · Awards · Live entertainment · Business Card Lottery',
+    format: 'dinner',
+  },
+
+  // ─── DAY 2 ───────────────────────────────────────────────────────────────
+
+  {
+    id: 'day2-welcome',
+    day: 'day_2',
+    time: '09:00',
+    title: 'Welcome Back & Day Recap',
+    subtitle: 'Host recaps Day 1 key takeaways and commitments',
+    format: 'keynote',
+    isBreak: true,
+  },
+  {
+    id: 'day2-sponsor-open',
+    day: 'day_2',
+    time: '09:15',
+    title: 'Sponsor Slot — Day 2 Opening',
+    subtitle: 'Platinum or Gold sponsor address',
+    format: 'networking',
+    isBreak: true,
+  },
+  {
+    id: 'session-06',
+    number: '06',
+    day: 'day_2',
+    time: '09:30',
+    title: 'Maintenance Panel',
+    subtitle: 'Building World-Class MRO Capability in Nigeria',
+    format: 'panel',
+    panellists: [
+      { name: 'ExecuJet',        organisation: 'ExecuJet South Africa' },
+      { name: 'Bayan' },
+      { name: 'Air First' },
+      { name: 'Nigerian MRO voice', role: 'TBC' },
+    ],
+    keyAreas: [
+      'Building world-class MRO facilities in Nigeria',
+      'Investment opportunities in MRO',
+      'Regulatory bottlenecks in maintenance',
+      'Capacity and workforce requirements',
+      'Why aircraft leave Nigeria for maintenance',
+    ],
+    questions: [
+      'Why do Nigerian operators still send aircraft abroad for maintenance — what would it take for that to change within 5 years?',
+      'What does a credible business case for a world-class MRO facility in Nigeria look like, and who should be making the investment?',
+      'What are the most significant regulatory bottlenecks affecting MRO operations in Nigeria today?',
+      'Nigeria lacks sufficient licensed aircraft engineers. What does a realistic workforce development plan look like, and who funds it?',
+      'Which part of the MRO value chain — line maintenance, base maintenance, avionics, interiors — offers the most commercially viable entry point for Nigerian investors?',
+    ],
+  },
+  {
+    id: 'day2-break-1',
+    day: 'day_2',
+    time: '10:30',
+    title: 'Networking Break',
+    subtitle: 'Sponsor exhibition open · Delegate networking',
+    format: 'networking',
+    isBreak: true,
+  },
+  {
+    id: 'session-07',
+    number: '07',
+    day: 'day_2',
+    time: '11:00',
+    title: 'Technology & Sustainability Panel',
+    subtitle: 'Flying Into the Future — One Integrated Conversation',
+    format: 'panel',
+    panellists: [
+      { name: 'Captain James Daniel' },
+      { name: 'Archer',                role: 'eVTOL' },
+      { name: 'Drone technology representative' },
+      { name: 'SAF / fuel industry voice' },
+      { name: 'Digital aviation platform voice' },
+    ],
+    keyAreas: [
+      'Artificial Intelligence in aviation ops',
+      'Predictive maintenance and dynamic pricing',
+      'eVTOL and Advanced Air Mobility',
+      'Digital charter booking and dispatch',
+      'Cybersecurity in aviation',
+      'Sustainable Aviation Fuel (SAF)',
+      'Green FBO infrastructure',
+      'Flight planning and permit digitisation',
+    ],
+    questions: [
+      'AI is being applied globally — from predictive maintenance to safety monitoring. Which applications are most relevant to Nigeria right now, and which are still years away?',
+      'Flight plan filing and permit processing remain largely manual and unpredictable. Is there a technology fix within the current regulatory architecture, or does regulation have to change first?',
+      'Digital charter platforms have grown rapidly elsewhere. What is the single biggest barrier to adoption in Nigeria — and what would accelerate it?',
+      'SAF is increasingly available in major hubs but largely inaccessible across Africa. What would a realistic SAF supply chain for West Africa look like, and who needs to build it?',
+      'If you could fund one aviation technology or sustainability initiative specific to Nigeria or West Africa, what would it be and why?',
+    ],
+  },
+  {
+    id: 'day2-sponsor-mid',
+    day: 'day_2',
+    time: '12:00',
+    title: 'Sponsor Slot',
+    subtitle: 'Silver sponsor address',
+    format: 'networking',
+    isBreak: true,
+  },
+  {
+    id: 'session-08',
+    number: '08',
+    day: 'day_2',
+    time: '12:10',
+    title: 'She Commands the Sky',
+    subtitle: 'Women Leading the Future of African Aviation',
+    format: 'panel',
+    panellists: [
+      { name: 'Dr Ola' },
+      { name: 'Bria Williams' },
+      { name: 'Gbemi Abudu' },
+      { name: 'Wendy Okolo' },
+    ],
+    keyAreas: [
+      'Reframing women in aviation as a business imperative',
+      'Building and sustaining a career in African business aviation',
+      'Structural barriers holding women back',
+      'Equity, capability and opportunity',
+      'Identifying who is responsible — and how',
+    ],
+    questions: [
+      'What are some initiatives that aspiring females can latch on to?',
+      'What is the single biggest non-obvious barrier facing women building a career in Nigerian business aviation — the ones that don\'t get said in public?',
+      'For those on this panel who have made it to leadership — what was the moment you almost didn\'t, and what kept you going?',
+      'If an FBO, airline or MRO wanted to meaningfully improve gender representation within 24 months — not symbolically, but structurally — what are the first three things they must do?',
+      'Who is ultimately responsible for removing the barriers holding women back in African aviation — operators, regulators, associations, or the women already in the room?',
+    ],
+  },
+  {
+    id: 'day2-lunch',
+    day: 'day_2',
+    time: '13:10',
+    title: 'Networking Break / Lunch',
+    subtitle: 'Sponsor exhibition open · Delegate networking',
+    format: 'break',
+    isBreak: true,
+  },
+  {
+    id: 'day2-aerolab-awards',
+    day: 'day_2',
+    time: '14:10',
+    title: 'AeroLab Winners & People\'s Choice Award',
+    subtitle: 'Top 3 announced · 4th–6th compete for People\'s Choice via delegate vote',
+    format: 'ceremony',
+    notes: 'Prizes presented by Minister / OEM Sponsor / Event Hosts',
+  },
+  {
+    id: 'day2-sponsor-close',
+    day: 'day_2',
+    time: '15:10',
+    title: 'Sponsor Slot — Closing',
+    subtitle: 'Final sponsor address',
+    format: 'networking',
+    isBreak: true,
+  },
+  {
+    id: 'day2-speed-networking',
+    day: 'day_2',
+    time: '15:20',
+    title: 'Speed Networking — Meet the Operators',
+    subtitle: '5-minute roundtable rotations · FBO · Charter · MRO · OEM · Finance',
+    format: 'networking',
+  },
+  {
+    id: 'day2-recap',
+    day: 'day_2',
+    time: '15:50',
+    title: 'Final Recap & Industry Commitment Statement',
+    subtitle: 'Moderator summarises outcomes · NBAC 2028 announcement',
+    format: 'keynote',
+    isBreak: true,
+  },
+  {
+    id: 'day2-closing',
+    day: 'day_2',
+    time: '16:10',
+    title: 'Closing Remarks & Farewell Cocktail',
+    subtitle: "Conference resolution · Delegates' farewell reception",
+    format: 'networking',
+  },
+]
