@@ -11,6 +11,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    // Normalize addOns to a safe array — reject non-array truthy values
+    if (addOns != null && !Array.isArray(addOns)) {
+      return NextResponse.json({ error: 'Invalid input: addOns must be an array' }, { status: 400 });
+    }
+    const safeAddOns: string[] = Array.isArray(addOns) ? addOns : [];
+    const addOnsText = safeAddOns.length > 0 ? safeAddOns.join(', ') : 'None';
+
     const supabase = await createClient();
     const { data, error } = await supabase
       .from('sponsors')
@@ -23,7 +30,7 @@ export async function POST(request: Request) {
         email,
         phone,
         tier,
-        add_ons: addOns || [],
+        add_ons: safeAddOns,
         track_count: trackCount || 1,
         special_requirements: specialRequirements
       })
@@ -36,36 +43,32 @@ export async function POST(request: Request) {
     }
 
     // Send email alert via EmailJS
-    await sendEmailJS({
+    const emailResult = await sendEmailJS({
+      logContext: 'sponsor',
       templateParams: {
-        fullName,
+        name: fullName,
+        title: `SPONSOR APPLICATION — ${tier}`,
         email,
-        company: companyName,
-        phone: phone || 'N/A',
-        inquiryType: `SPONSOR APPLICATION - ${tier}`,
-        message: `New sponsor application has been received:
-
-Company Name: ${companyName}
-Industry: ${industry || 'N/A'}
-Website: ${website || 'N/A'}
-Contact Name: ${fullName} (${designation || 'N/A'})
-Email: ${email}
-Phone: ${phone || 'N/A'}
-Sponsorship Tier: ${tier}
-Add-Ons Selected: ${addOns && addOns.length > 0 ? addOns.join(', ') : 'None'}
-Track Count: ${trackCount}
-Special Requirements: ${specialRequirements || 'None'}`,
-        // Custom fields just in case the template uses them directly
-        companyName,
-        industry: industry || 'N/A',
-        website: website || 'N/A',
-        designation: designation || 'N/A',
-        tier,
-        addOns: addOns && addOns.length > 0 ? addOns.join(', ') : 'None',
-        trackCount,
-        specialRequirements: specialRequirements || 'None',
+        message: [
+          `New sponsor application received:`,
+          ``,
+          `Company: ${companyName}`,
+          `Industry: ${industry || 'N/A'}`,
+          `Website: ${website || 'N/A'}`,
+          `Contact: ${fullName} (${designation || 'N/A'})`,
+          `Email: ${email}`,
+          `Phone: ${phone || 'N/A'}`,
+          `Sponsorship Tier: ${tier}`,
+          `Add-Ons: ${addOnsText}`,
+          `Track Count: ${trackCount || 1}`,
+          `Special Requirements: ${specialRequirements || 'None'}`,
+        ].join('\n'),
       }
     });
+
+    if (!emailResult.success) {
+      console.warn('[Sponsor API] Email notification failed but DB write succeeded:', emailResult.error);
+    }
 
     return NextResponse.json({ success: true, data });
   } catch (err: unknown) {

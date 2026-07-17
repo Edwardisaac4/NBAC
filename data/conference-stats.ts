@@ -3,7 +3,7 @@ export const CONFERENCE_STATS = [
   { value: '6',    label: 'Panel discussions' },
   { value: '1',    label: 'Keynote presentation' },
   { value: '1',    label: 'Fireside conversation' },
-  { value: '30+',  label: 'AeroLab finalist teams' },
+  { value: '30+',  label: 'AeroLab applicant teams' },
   { value: '300+', label: 'Senior aviation delegates' },
   { value: '5',    label: 'Sponsorship tiers' },
   { value: '1',    label: 'Gala Dinner & Awards night' },

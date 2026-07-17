@@ -95,17 +95,19 @@ export async function POST(request: NextRequest) {
     }
 
     // --- ALERTS PIPELINE ---
-    await sendEmailJS({
+    const emailResult = await sendEmailJS({
+      logContext: 'contact',
       templateParams: {
-        fullName,
+        name: fullName,
+        title: inquiryType.toUpperCase().replace('_', ' '),
         email,
-        company: company || 'N/A',
-        phone: phone || 'N/A',
-        inquiryType: inquiryType.toUpperCase().replace('_', ' '),
-        message,
-        to_email: process.env.CONTACT_ALERT_EMAIL,
+        message: `Company: ${company || 'N/A'}\nPhone: ${phone || 'N/A'}\n\n${message}`,
       }
     });
+
+    if (!emailResult.success) {
+      console.warn('[Contact API] Email notification failed but DB write succeeded:', emailResult.error);
+    }
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

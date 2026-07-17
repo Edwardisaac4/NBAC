@@ -257,12 +257,6 @@ export function Navbar() {
                         className="absolute left-1/2 -translate-x-1/2 top-full mt-1.5 w-48 rounded-xl bg-nbac-panel/95 border border-nbac-border backdrop-blur-md p-2 shadow-xl z-50 flex flex-col gap-0.5"
                       >
                         <Link
-                          href="/events"
-                          className="px-4 py-2 font-sans text-[11px] uppercase tracking-wider text-nbac-body hover:text-nbac-emerald hover:bg-nbac-emerald/5 rounded-lg transition-all duration-200"
-                        >
-                          Events
-                        </Link>
-                        <Link
                           href="/speakers"
                           className="px-4 py-2 font-sans text-[11px] uppercase tracking-wider text-nbac-body hover:text-nbac-emerald hover:bg-nbac-emerald/5 rounded-lg transition-all duration-200"
                         >
@@ -464,13 +458,6 @@ export function Navbar() {
                                 className="overflow-hidden flex flex-col pl-4 mt-2 gap-3 border-l border-nbac-border"
                               >
                                 <Link
-                                  href="/events"
-                                  onClick={toggleMobileMenu}
-                                  className="text-xs font-sans uppercase tracking-wider text-nbac-muted hover:text-nbac-emerald py-1 transition-colors text-left"
-                                >
-                                  Events
-                                </Link>
-                                <Link
                                   href="/speakers"
                                   onClick={toggleMobileMenu}
                                   className="text-xs font-sans uppercase tracking-wider text-nbac-muted hover:text-nbac-emerald py-1 transition-colors text-left"
@@ -625,13 +612,6 @@ export function Navbar() {
                               transition={{ duration: 0.2 }}
                               className="overflow-hidden flex flex-col gap-2 border-t border-nbac-border/50 pt-2"
                             >
-                              <Link
-                                href="/events"
-                                onClick={toggleMobileMenu}
-                                className="text-xs font-sans uppercase tracking-wider text-nbac-muted hover:text-nbac-emerald py-1 transition-colors text-left"
-                              >
-                                Events
-                              </Link>
                               <Link
                                 href="/speakers"
                                 onClick={toggleMobileMenu}

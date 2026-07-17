@@ -46,34 +46,31 @@ export async function POST(request: Request) {
     }
 
     // Send email alert via EmailJS
-    await sendEmailJS({
+    const emailResult = await sendEmailJS({
+      logContext: 'delegate',
       templateParams: {
-        fullName: name,
-        email,
-        company: company || 'N/A',
-        phone: phone || 'N/A',
-        inquiryType: `TICKET REGISTRATION - ${tier}`,
-        message: `New ticket registration has been received:
-
-Name: ${name}
-Email: ${email}
-Company: ${company || 'N/A'}
-Phone: ${phone || 'N/A'}
-Pass Tier: ${tier}
-Seat Count: ${delegateCount}
-Order Reference: ${reference}
-Amount Due: $${amount} ${currency || 'USD'}
-Special Requirements: ${specialRequirements || 'None'}`,
-        // Custom fields just in case the template uses them directly
         name,
-        tier,
-        delegateCount,
-        reference,
-        amount,
-        currency: currency || 'USD',
-        specialRequirements: specialRequirements || 'None',
+        title: `TICKET REGISTRATION — ${tier}`,
+        email,
+        message: [
+          `New delegate registration received:`,
+          ``,
+          `Name: ${name}`,
+          `Email: ${email}`,
+          `Company: ${company || 'N/A'}`,
+          `Phone: ${phone || 'N/A'}`,
+          `Pass Tier: ${tier}`,
+          `Delegates: ${delegateCount || 1}`,
+          `Reference: ${reference}`,
+          `Amount Due: $${amount} ${currency || 'USD'}`,
+          `Special Requirements: ${specialRequirements || 'None'}`,
+        ].join('\n'),
       }
     });
+
+    if (!emailResult.success) {
+      console.warn('[Delegate API] Email notification failed but DB write succeeded:', emailResult.error);
+    }
 
     return NextResponse.json({ success: true, data });
   } catch (err: unknown) {

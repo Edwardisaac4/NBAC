@@ -4,6 +4,7 @@ import { useRef } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { cn } from '@/lib/utils'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -53,11 +54,11 @@ export function StatCounter({
   )
 
   return (
-    <div ref={containerRef} className="text-center group flex flex-col items-center">
-      <div className={`font-display text-4xl font-bold tracking-tight ${numberClassName || "text-nbac-text"}`}>
+    <div ref={containerRef} className="text-center group flex flex-col items-center w-full">
+      <div className={cn("font-display text-3xl sm:text-4xl font-bold tracking-tight", numberClassName || "text-nbac-text")}>
         <span ref={numberRef}>0{suffix}</span>
       </div>
-      <div className={`font-sans text-xs uppercase tracking-widest mt-2 ${labelClassName || "text-nbac-muted"}`}>
+      <div className={cn("font-sans text-[10px] sm:text-xs uppercase tracking-wider sm:tracking-widest mt-2 px-1 text-center leading-tight", labelClassName || "text-nbac-muted")}>
         {label}
       </div>
     </div>

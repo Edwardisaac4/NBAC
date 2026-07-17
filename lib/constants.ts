@@ -27,7 +27,7 @@ export const STEERING_COMMITTEE_MEMBERS: CommitteeMember[] = [
     objectPosition: 'top',
   },
   {
-    name: 'OluBukunola Hudeyin',
+    name: 'Olubukunola Hundeyin',
     role: 'HEAD, QUALITY AND SAFETY',
     image: '/images/Bukky NBAC.jpg',
     objectPosition: 'top',
@@ -41,7 +41,7 @@ export const STEERING_COMMITTEE_MEMBERS: CommitteeMember[] = [
   {
     name: 'Seye Fasuyi',
     role: 'HEAD, HUMAN RESOURCES',
-    image: '/images/Seye NBAC.jpeg',
+    image: '/images/Seye NBAC.jpg',
     objectPosition: 'top',
   },
   {
@@ -78,7 +78,7 @@ export const ABOUT_COMMITTEE_MEMBERS: CommitteeMember[] = [
     objectPosition: 'top',
   },
   {
-    name: 'Olubukunola Hudeyin',
+    name: 'Olubukunola Hundeyin',
     role: 'HEAD, QUALITY AND SAFETY',
     image: '/images/Bukky NBAC.jpg',
     objectPosition: 'top',

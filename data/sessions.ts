@@ -52,7 +52,7 @@ export const SESSIONS: Session[] = [
     subtitle: 'Peterside / Minister of Aviation',
     format: 'keynote',
     panellists: [
-      { name: 'Capt. Peterside' },
+      { name: 'Captain Peterside' },
       { name: 'Minister of Aviation' },
     ],
   },
@@ -77,8 +77,8 @@ export const SESSIONS: Session[] = [
       { name: 'NCAA',              organisation: 'Nigerian Civil Aviation Authority' },
       { name: 'FAAN',              organisation: 'Federal Airports Authority of Nigeria' },
       { name: 'NAMA',              organisation: 'Nigerian Airspace Management Agency' },
-      { name: 'Capt. Abdullahi' },
-      { name: 'Capt. Peterside' },
+      { name: 'Captain Abdullahi' },
+      { name: 'Captain Peterside' },
     ],
     keyAreas: [
       'AOC regulations for business aviation',

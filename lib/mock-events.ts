@@ -1,6 +1,7 @@
 import { EventDetails, Speaker, EventSession, SessionCategory } from "@/types";
 import { SPEAKERS as SPEAKERS_ARRAY } from "../data/speakers";
 import { SESSIONS } from "../data/sessions";
+import { CONFERENCE_META } from "../data/conference-stats";
 
 // Map array to Record for backward compatibility
 export const SPEAKERS: Record<string, Speaker> = {};
@@ -81,7 +82,7 @@ const getSessionSpeakers = (session: typeof SESSIONS[0]): Speaker[] => {
 };
 
 const buildAbstract = (session: typeof SESSIONS[0]): string => {
-  let parts = [session.subtitle || ''];
+  const parts = [session.subtitle || ''];
   if (session.keyAreas && session.keyAreas.length > 0) {
     parts.push('\n\nKey Areas:\n' + session.keyAreas.map(k => `• ${k}`).join('\n'));
   }
@@ -106,7 +107,7 @@ const day1Sessions: EventSession[] = day1List.map((s, index) => {
     title: s.title,
     abstract: buildAbstract(s),
     speakers: getSessionSpeakers(s),
-    location: 'Marriott Hotel, Ikeja, Lagos',
+    location: CONFERENCE_META.venue_d1,
   };
 });
 
@@ -122,7 +123,7 @@ const day2Sessions: EventSession[] = day2List.map((s, index) => {
     title: s.title,
     abstract: buildAbstract(s),
     speakers: getSessionSpeakers(s),
-    location: 'Marriott Hotel, Ikeja, Lagos (TBC)',
+    location: CONFERENCE_META.venue_d2,
   };
 });
 
@@ -132,7 +133,7 @@ export const MOCK_EVENTS: EventDetails[] = [
     title: "NBAC 2027 Conference — Day 1",
     subtitle: "West Africa's Premier Aviation Assembly",
     date: "May 4, 2027",
-    location: "Marriott Hotel, Ikeja, Lagos",
+    location: CONFERENCE_META.venue_d1,
     description: "Day 1 of the flagship summit focusing on industry dialogue, regulatory frameworks, infrastructure ops, and financial structures in African aviation.",
     image_url: "/images/private_jet_runway_dusk.png",
     status: "featured",
@@ -143,7 +144,7 @@ export const MOCK_EVENTS: EventDetails[] = [
     title: "NBAC 2027 Conference — Day 2",
     subtitle: "Innovation, Sustainability & Leadership",
     date: "May 5, 2027",
-    location: "Grand Ballroom, Marriott Hotel, Ikeja, Lagos",
+    location: CONFERENCE_META.venue_d2,
     description: "Day 2 of the flagship summit focusing on ecosystem scale, sustainability, women leadership in aviation, innovation & tech, and speed networking.",
     image_url: "/images/interior_cabin.jpg",
     status: "featured",

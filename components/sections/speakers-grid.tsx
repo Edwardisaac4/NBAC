@@ -103,8 +103,7 @@ export function SpeakersGrid({ speakers }: SpeakersGridProps) {
           More speakers to be confirmed
         </h3>
         <p className="font-sans text-nbac-body text-sm max-w-md mx-auto">
-          NBAC 2027 will feature 25+ global industry speakers. Sign up to be
-          notified as new speakers are announced.
+          NBAC 2027 will feature 25+ global industry speakers.
         </p>
       </div>
 

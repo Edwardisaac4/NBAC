@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Mail, Shield, User, Landmark, Phone, Plus, Minus, CreditCard, Lock, CheckCircle2 } from 'lucide-react'
 import { PassTierDetails } from '@/types'
 import { cn } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/shared/toast'
 
 interface RegistrationFormUIProps {
@@ -62,39 +61,34 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
     if (!selectedTier) return
     setIsSubmitting(true)
     
-    const reference = generateReference(selectedTier.id)
-    const amount = calculateTotal(selectedTier, delegateCount)
-    
     try {
-      const supabase = createClient()
-      const { error } = await supabase
-        .from('reservations')
-        .insert({
+      const res = await fetch('/api/register/delegate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           name: formData.fullName,
           email: formData.email,
           company: formData.company,
           phone: formData.phone,
-          tier: selectedTier.name,
-          status: 'pending',
-          reference: reference,
-          amount: amount,
+          tier: selectedTier.id,
           currency: 'USD',
-          special_requirements: formData.specialRequirements,
-          delegate_count: delegateCount
-        })
+          specialRequirements: formData.specialRequirements,
+          delegateCount,
+        }),
+      })
 
-      if (error) {
-        throw error
+      const result = await res.json()
+
+      if (!res.ok) {
+        throw new Error(result.error || 'Registration failed')
       }
 
-      // Simulate payment processing delay on uploader
-      setTimeout(() => {
-        setSubmittedTier(selectedTier)
-        setSubmittedDelegateCount(delegateCount)
-        setSubmittedReference(reference)
-        setIsSubmitting(false)
-        setPaymentSuccess(true)
-      }, 2000)
+      const serverData = result.data
+      setSubmittedTier(selectedTier)
+      setSubmittedDelegateCount(delegateCount)
+      setSubmittedReference(serverData?.reference || '')
+      setIsSubmitting(false)
+      setPaymentSuccess(true)
     } catch (err) {
       setIsSubmitting(false)
       console.error('Registration submission failure:', err)

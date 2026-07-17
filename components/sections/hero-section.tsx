@@ -6,7 +6,6 @@ import Link from 'next/link'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { StatCounter } from '../shared/stat-counter'
-import { SPEAKERS } from '@/lib/mock-events'
 
 
 gsap.registerPlugin(ScrollTrigger)
@@ -68,7 +67,6 @@ const headingWords = [
 ]
 
 export function HeroSection() {
-  const speakersCount = Object.values(SPEAKERS).filter(s => s.id !== 'host').length
   const bgRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -469,7 +467,7 @@ export function HeroSection() {
         </div>
 
         {/* Stats Row */}
-        <div ref={statsRowRef} className="grid grid-cols-3 gap-2 sm:gap-8 md:gap-16 py-2 md:py-3 w-full max-w-3xl mx-auto my-2 md:my-3 relative" style={{ willChange: 'transform' }}>
+        <div ref={statsRowRef} className="grid grid-cols-2 sm:grid-cols-4 gap-y-6 gap-x-4 sm:gap-x-8 md:gap-x-12 lg:gap-x-16 py-4 md:py-6 w-full max-w-4xl mx-auto my-2 md:my-3 relative" style={{ willChange: 'transform' }}>
           {/* Top divider — grows from center */}
           <div className="hero-divider-line absolute top-0 left-0 right-0 h-px bg-white/15 origin-center opacity-0" />
 
@@ -477,10 +475,13 @@ export function HeroSection() {
             <StatCounter value={300} suffix="+" label="Delegates" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
           </div>
           <div className="hero-stat-item opacity-0">
-            <StatCounter value={30} suffix="+" label="AeroLab Finalist Teams" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
+            <StatCounter value={30} suffix="+" label="AeroLab Teams" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
           </div>
           <div className="hero-stat-item opacity-0">
-            <StatCounter value={speakersCount} suffix="+" label="Speakers" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
+            <StatCounter value={8} suffix="" label="Sessions" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
+          </div>
+          <div className="hero-stat-item opacity-0">
+            <StatCounter value={6} suffix="" label="Panel Sessions" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
           </div>
 
           {/* Bottom divider — grows from center */}

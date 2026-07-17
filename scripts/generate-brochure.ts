@@ -4,7 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { SESSIONS } from '../data/sessions';
 import { SPEAKERS as SPEAKERS_ARRAY } from '../data/speakers';
-import { CONFERENCE_STATS, AEROLAB_TRACKS } from '../data/conference-stats';
+import { CONFERENCE_STATS, AEROLAB_TRACKS, CONFERENCE_META } from '../data/conference-stats';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -164,7 +164,7 @@ doc.fillColor(COLORS.muted)
    .text('VENUE:', 40, 700)
    .fillColor(COLORS.text)
    .font('Helvetica-Bold')
-   .text('MARRIOTT HOTEL, LAGOS, NIGERIA', 100, 700);
+   .text(`${CONFERENCE_META.venue_d1.toUpperCase()}, ${CONFERENCE_META.location.split(', ').slice(1).join(', ').toUpperCase()}`, 100, 700);
 
 doc.fillColor(COLORS.muted)
    .font('Helvetica')
@@ -445,7 +445,7 @@ function drawAgenda(doc: typeof PDFDocument, title: string, sessions: typeof SES
     doc.fillColor(COLORS.muted)
        .font('Helvetica')
        .fontSize(8)
-       .text(session.day === 'day_1' ? 'Marriott, Lagos' : 'TBC, Lagos', 430, yPos + padding + 15, { width: 110, align: 'right' });
+       .text(session.day === 'day_1' ? CONFERENCE_META.venue_d1 : CONFERENCE_META.venue_d2, 430, yPos + padding + 15, { width: 110, align: 'right' });
 
     yPos += cardHeight + 6;
     sessionIndex++;
