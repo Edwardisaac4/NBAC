@@ -4,12 +4,6 @@ import { SpeakersGrid } from '@/components/sections/speakers-grid'
 import { SectionEyebrow } from '@/components/shared/section-eyebrow'
 import { SPEAKERS } from '@/data/speakers'
 
-export const metadata = {
-  title: 'Speakers — NBAC 2027',
-  description:
-    'Meet the industry leaders, regulators, and innovators speaking at the Nigerian Business Aviation Conference 2027.',
-}
-
 export default function SpeakersPage() {
   return (
     <>

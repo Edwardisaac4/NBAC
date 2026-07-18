@@ -1,14 +1,14 @@
-import { MetadataRoute } from 'next';
+import type { MetadataRoute } from 'next'
 
 export default function robots(): MetadataRoute.Robots {
-  const siteUrl = 'https://nbac.com.ng';
-
   return {
-    rules: {
-      userAgent: '*',
-      allow: '/',
-      disallow: ['/admin/', '/api/'],
-    },
-    sitemap: `${siteUrl}/sitemap.xml`,
-  };
+    rules: [
+      {
+        userAgent: '*',
+        allow:    '/',
+        disallow: ['/admin', '/admin/', '/api/', '/portal'],
+      },
+    ],
+    sitemap: 'https://nbac.com.ng/sitemap.xml',
+  }
 }

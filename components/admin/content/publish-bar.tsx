@@ -20,6 +20,7 @@ interface PublishBarProps {
 const TEMPLATE_LABELS: Record<PostTemplate, string> = {
   announcement: 'Announcement',
   press_release: 'Press Release',
+  visual_showcase: 'Visual Showcase',
   sponsor_update: 'Sponsor Update',
   event_copy: 'Event Copy',
   blank: 'Start from Scratch',

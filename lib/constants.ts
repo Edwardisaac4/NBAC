@@ -105,12 +105,19 @@ export const TARGET_AUDIENCE = [
   'National and international companies with business aviation interests.',
 ]
 
-export const NAV_LINKS = [
+export interface NavLink {
+  label: string;
+  href: string;
+}
+
+export const NAV_LINKS: NavLink[] = [
   { label: 'Home', href: '/' },
-  { label: 'About Us', href: '/about' },
-  { label: 'Program', href: '/program' },
-  { label: 'AeroLab', href: '/aerolab' },
-  { label: 'Gallery', href: '/gallery' },
+  { label: 'Reservations', href: '/reservations' },
+  { label: 'Events', href: '/events' },
+  { label: 'Speakers', href: '/speakers' },
+  { label: 'Hotels & Flights', href: '/hotels' },
+  { label: 'News', href: '/news' },
+  { label: 'About', href: '/about' },
   { label: 'Contact', href: '/contact' },
 ]
 

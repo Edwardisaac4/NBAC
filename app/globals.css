@@ -473,3 +473,22 @@
   pointer-events: none;
   height: 0;
 }
+
+/* Tiptap HTML output rendered on public blog post page */
+.prose-nbac {
+  @apply font-sans text-nbac-body leading-relaxed;
+}
+.prose-nbac p       { @apply mb-5 text-nbac-body; }
+.prose-nbac h2      { @apply font-display text-3xl font-bold text-nbac-text mt-12 mb-4; }
+.prose-nbac h3      { @apply font-sans text-xl font-semibold text-nbac-text mt-8 mb-3; }
+.prose-nbac strong  { @apply font-semibold text-nbac-text; }
+.prose-nbac em      { @apply italic; }
+.prose-nbac a       { @apply text-nbac-emerald underline hover:text-nbac-emerald-light; }
+.prose-nbac ul      { @apply list-disc list-inside mb-5 space-y-1.5; }
+.prose-nbac ol      { @apply list-decimal list-inside mb-5 space-y-1.5; }
+.prose-nbac li      { @apply text-nbac-body; }
+.prose-nbac blockquote {
+  @apply border-l-4 border-nbac-emerald pl-5 italic text-nbac-muted my-8;
+}
+.prose-nbac hr      { @apply border-nbac-border my-10; }
+.prose-nbac img     { @apply rounded-lg w-full my-8; }

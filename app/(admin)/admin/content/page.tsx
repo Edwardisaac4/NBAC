@@ -38,6 +38,7 @@ export default function ContentManagerPage() {
   const formatPostType = (type: string) => {
     if (type === 'press_release') return 'Press Release';
     if (type === 'sponsor_update') return 'Sponsor Update';
+    if (type === 'visual_showcase') return 'Visual Showcase';
     if (type === 'event_copy') return 'Event Copy';
     if (type === 'announcement') return 'Announcement';
     if (type === 'blank') return 'General';
@@ -141,7 +142,7 @@ export default function ContentManagerPage() {
                     {/* Actions */}
                     <td className="p-4 pr-6 text-right space-x-2">
                       <Link
-                        href={`/admin/content/${post.id}/edit`}
+                        href={`/admin/content/${post.id ?? ''}/edit`}
                         className="text-nbac-body hover:text-nbac-gold p-1.5 rounded bg-nbac-canvas border border-nbac-border hover:border-nbac-gold/30 transition-colors cursor-pointer inline-flex items-center"
                         title="Edit article"
                       >
@@ -150,7 +151,7 @@ export default function ContentManagerPage() {
 
                       {isHeadAdmin && (
                         <button
-                          onClick={() => handleDelete(post.id, post.title)}
+                          onClick={() => handleDelete(post.id ?? '', post.title)}
                           className="text-nbac-danger/80 hover:text-nbac-danger hover:bg-nbac-danger/10 p-1.5 rounded bg-nbac-canvas border border-nbac-border hover:border-nbac-danger/30 transition-colors cursor-pointer inline-flex items-center"
                           title="Delete article"
                         >
