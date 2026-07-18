@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { PageAnimatePresence } from "@/components/layout/page-animate-presence";
 import { ToastProvider } from "@/components/shared/toast";
 
 const inter = Inter({
@@ -17,13 +16,36 @@ const cormorant = Cormorant_Garamond({
   style: ["normal", "italic"],
 });
 
+const siteUrl = "https://nbac.com.ng";
+
 export const metadata: Metadata = {
-  title: "NBAC | Nigerian Business Aviation Conference",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "NBAC | Nigerian Business Aviation Conference",
+    template: "%s | NBAC",
+  },
   description: "West Africa's premier business aviation conference combining elite panels, private aircraft displays, and high-level networking.",
   icons: {
     icon: "/images/logo-mark.jpg",
     shortcut: "/images/logo-mark.jpg",
     apple: "/images/logo-mark.jpg",
+  },
+  openGraph: {
+    siteName: "Nigerian Business Aviation Conference",
+    locale: "en_NG",
+    type: "website",
+    images: [
+      {
+        url: "/images/og-banner.png",
+        width: 1200,
+        height: 630,
+        alt: "NBAC - Nigerian Business Aviation Conference",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/images/og-banner.png"],
   },
 };
 
@@ -59,9 +81,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-nbac-canvas text-nbac-text font-sans antialiased">
         <ToastProvider>
-          <PageAnimatePresence>
             {children}
-          </PageAnimatePresence>
         </ToastProvider>
       </body>
     </html>

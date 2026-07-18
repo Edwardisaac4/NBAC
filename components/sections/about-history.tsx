@@ -20,7 +20,7 @@ export function AboutHistory() {
 
   const events: TimelineEvent[] = [
     {
-      year: '2026/2027',
+      year: '2027',
       title: 'Connected Ecosystem',
       description: 'Focusing on "One Sky, Many Stakeholders," coordinating regulatory, operational, and infrastructure layers for unified growth.',
     },

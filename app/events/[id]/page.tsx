@@ -1,3 +1,4 @@
+import { Metadata } from "next"
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { SectionBlur } from "@/components/shared/section-blur"
@@ -17,6 +18,26 @@ export async function generateStaticParams() {
   return MOCK_EVENTS.map(event => ({
     id: event.id
   }))
+}
+
+// Dynamic per-event metadata for SEO
+export async function generateMetadata({ params }: EventProgramPageProps): Promise<Metadata> {
+  const { id } = await params
+  const event = MOCK_EVENTS.find(e => e.id === id)
+
+  if (!event) {
+    return { title: 'Event Not Found' }
+  }
+
+  return {
+    title: event.title,
+    description: event.description || `${event.title} — ${event.date} at ${event.location}. View the full program schedule.`,
+    openGraph: {
+      title: event.title,
+      description: event.description || `${event.title} — ${event.date} at ${event.location}.`,
+      images: event.image_url ? [{ url: event.image_url }] : undefined,
+    },
+  }
 }
 
 export default async function EventProgramPage({ params }: EventProgramPageProps) {

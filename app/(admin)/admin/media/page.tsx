@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback, useMemo, useId } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Image as ImageIcon, Upload, Trash2, Tag, Loader2, FileText, Search, X, Calendar } from 'lucide-react';
 import { useAdminRole } from '@/hooks/use-admin-role';
 import { RoleBanner } from '@/components/admin/role-banner';
@@ -51,7 +51,9 @@ export default function MediaGalleryPage() {
   const [uploadStatus, setUploadStatus] = useState<{ [key: string]: 'idle' | 'uploading' | 'completed' | 'failed' }>({});
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
   const uploadStatusRef = useRef(uploadStatus);
-  uploadStatusRef.current = uploadStatus;
+  useEffect(() => {
+    uploadStatusRef.current = uploadStatus;
+  }, [uploadStatus]);
   const stagedFileIdCounter = useRef(0);
   const [tagInput, setTagInput] = useState('');
   const [categoryInput, setCategoryInput] = useState<'Conference' | 'Exhibition' | 'Gala Dinner' | 'Networking'>('Conference');
@@ -78,7 +80,7 @@ export default function MediaGalleryPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     Promise.resolve().then(() => {

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { Resend } from 'resend';
+import { sendEmailJS } from '@/lib/email';
 
 export async function POST(request: Request) {
   try {
@@ -10,6 +10,19 @@ export async function POST(request: Request) {
     if (!companyName || !fullName || !email || !tier) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+
+    // Normalize addOns to a safe array — reject non-array truthy values
+    if (
+      addOns != null &&
+      (!Array.isArray(addOns) || !addOns.every(item => typeof item === 'string'))
+    ) {
+      return NextResponse.json(
+        { error: 'Invalid input: addOns must be an array of strings' },
+        { status: 400 }
+      );
+    }
+    const safeAddOns: string[] = Array.isArray(addOns) ? addOns : [];
+    const addOnsText = safeAddOns.length > 0 ? safeAddOns.join(', ') : 'None';
 
     const supabase = await createClient();
     const { data, error } = await supabase
@@ -23,7 +36,7 @@ export async function POST(request: Request) {
         email,
         phone,
         tier,
-        add_ons: addOns || [],
+        add_ons: safeAddOns,
         track_count: trackCount || 1,
         special_requirements: specialRequirements
       })
@@ -35,70 +48,62 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Send email alert via Resend
-    if (process.env.RESEND_API_KEY && process.env.CONTACT_ALERT_EMAIL) {
-      const resend = new Resend(process.env.RESEND_API_KEY);
-      try {
-        await resend.emails.send({
-          from: `NBAC Alerts <${process.env.RESEND_FROM_EMAIL || 'noreply@nbac.com.ng'}>`,
-          to: process.env.CONTACT_ALERT_EMAIL,
-          subject: `🤝 [Sponsor Application] ${companyName} - ${tier}`,
-          html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e3e5; border-radius: 8px; background-color: #ffffff; color: #101415;">
-              <h2 style="color: #c5a059; border-bottom: 2px solid #e0e3e5; padding-bottom: 10px; margin-top: 0;">New Sponsor Application</h2>
-              <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                <tr>
-                  <td style="padding: 8px 0; font-weight: bold; width: 140px;">Company Name:</td>
-                  <td style="padding: 8px 0;">${companyName}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; font-weight: bold;">Industry:</td>
-                  <td style="padding: 8px 0;">${industry || 'N/A'}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; font-weight: bold;">Website:</td>
-                  <td style="padding: 8px 0;"><a href="${website}" target="_blank">${website}</a></td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; font-weight: bold;">Contact Name:</td>
-                  <td style="padding: 8px 0;">${fullName} (${designation || 'N/A'})</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; font-weight: bold;">Email:</td>
-                  <td style="padding: 8px 0;"><a href="mailto:${email}">${email}</a></td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; font-weight: bold;">Phone:</td>
-                  <td style="padding: 8px 0;">${phone || 'N/A'}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; font-weight: bold;">Sponsorship Tier:</td>
-                  <td style="padding: 8px 0; color: #10b981; font-weight: bold;">${tier}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; font-weight: bold;">Add-Ons selected:</td>
-                  <td style="padding: 8px 0;">${addOns && addOns.length > 0 ? addOns.join(', ') : 'None'}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; font-weight: bold;">Track Count:</td>
-                  <td style="padding: 8px 0;">${trackCount}</td>
-                </tr>
-              </table>
-              ${specialRequirements ? `
-              <div style="background-color: #f8fafc; border-left: 4px solid #c5a059; padding: 15px; border-radius: 4px; margin-top: 10px;">
-                <h4 style="margin: 0 0 10px 0; color: #323537; font-size: 12px; text-transform: uppercase;">Special Requirements:</h4>
-                <p style="margin: 0; line-height: 1.6; font-size: 14px;">${specialRequirements}</p>
-              </div>
-              ` : ''}
-              <p style="font-size: 11px; color: #909097; margin-top: 30px; text-align: center; border-top: 1px solid #e0e3e5; padding-top: 15px;">
-                Sent automatically by the NBAC website engine.
-              </p>
-            </div>
-          `
-        });
-      } catch (mailErr) {
-        console.error('Failed to send Resend email for sponsor application:', mailErr);
+    // Send email alert via EmailJS
+    // 1. Send alert to admin (automatically defaults to CONTACT_ALERT_EMAIL)
+    const adminEmailResult = await sendEmailJS({
+      logContext: 'sponsor-admin',
+      templateParams: {
+        name: fullName,
+        title: `NEW SPONSOR APPLICATION — ${tier}`,
+        email,
+        message: [
+          `New sponsor application received:`,
+          ``,
+          `Company: ${companyName}`,
+          `Industry: ${industry || 'N/A'}`,
+          `Website: ${website || 'N/A'}`,
+          `Contact: ${fullName} (${designation || 'N/A'})`,
+          `Email: ${email}`,
+          `Phone: ${phone || 'N/A'}`,
+          `Sponsorship Tier: ${tier}`,
+          `Add-Ons: ${addOnsText}`,
+          `Track Count: ${trackCount || 1}`,
+          `Special Requirements: ${specialRequirements || 'None'}`,
+        ].join('\n'),
       }
+    });
+
+    if (!adminEmailResult.success) {
+      console.warn('[Sponsor API] Admin email notification failed:', adminEmailResult.error);
+    }
+
+    // 2. Send confirmation copy to sponsor applicant's contact email
+    const clientEmailResult = await sendEmailJS({
+      logContext: 'sponsor-client',
+      templateParams: {
+        name: fullName,
+        title: `Sponsorship Application Received — ${tier}`,
+        email,
+        to_email: email,
+        message: [
+          `Thank you for applying to sponsor NBAC 2027. We have received your sponsor application:`,
+          ``,
+          `Company: ${companyName}`,
+          `Industry: ${industry || 'N/A'}`,
+          `Website: ${website || 'N/A'}`,
+          `Contact: ${fullName} (${designation || 'N/A'})`,
+          `Email: ${email}`,
+          `Phone: ${phone || 'N/A'}`,
+          `Sponsorship Tier: ${tier}`,
+          `Add-Ons: ${addOnsText}`,
+          `Track Count: ${trackCount || 1}`,
+          `Special Requirements: ${specialRequirements || 'None'}`,
+        ].join('\n'),
+      }
+    });
+
+    if (!clientEmailResult.success) {
+      console.warn('[Sponsor API] Client confirmation email failed:', clientEmailResult.error);
     }
 
     return NextResponse.json({ success: true, data });

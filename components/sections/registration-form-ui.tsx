@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Mail, Shield, User, Landmark, Phone, Plus, Minus, CreditCard, Lock, CheckCircle2 } from 'lucide-react'
 import { PassTierDetails } from '@/types'
 import { cn } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/shared/toast'
 
 interface RegistrationFormUIProps {
@@ -25,7 +24,7 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
   
   // UI states for interactive feedback (simulating payment)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [paymentSuccess, setPaymentSuccess] = useState(false)
+  const [registrationSuccess, setRegistrationSuccess] = useState(false)
   const [submittedTier, setSubmittedTier] = useState<PassTierDetails | null>(null)
   const [submittedDelegateCount, setSubmittedDelegateCount] = useState<number>(1)
   const [submittedReference, setSubmittedReference] = useState<string>('')
@@ -62,39 +61,34 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
     if (!selectedTier) return
     setIsSubmitting(true)
     
-    const reference = generateReference(selectedTier.id)
-    const amount = calculateTotal(selectedTier, delegateCount)
-    
     try {
-      const supabase = createClient()
-      const { error } = await supabase
-        .from('reservations')
-        .insert({
+      const res = await fetch('/api/register/delegate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           name: formData.fullName,
           email: formData.email,
           company: formData.company,
           phone: formData.phone,
-          tier: selectedTier.name,
-          status: 'pending',
-          reference: reference,
-          amount: amount,
+          tier: selectedTier.id,
           currency: 'USD',
-          special_requirements: formData.specialRequirements,
-          delegate_count: delegateCount
-        })
+          specialRequirements: formData.specialRequirements,
+          delegateCount,
+        }),
+      })
 
-      if (error) {
-        throw error
+      const result = await res.json()
+
+      if (!res.ok) {
+        throw new Error(result.error || 'Registration failed')
       }
 
-      // Simulate payment processing delay on uploader
-      setTimeout(() => {
-        setSubmittedTier(selectedTier)
-        setSubmittedDelegateCount(delegateCount)
-        setSubmittedReference(reference)
-        setIsSubmitting(false)
-        setPaymentSuccess(true)
-      }, 2000)
+      const serverData = result.data
+      setSubmittedTier(selectedTier)
+      setSubmittedDelegateCount(delegateCount)
+      setSubmittedReference(serverData?.reference || '')
+      setIsSubmitting(false)
+      setRegistrationSuccess(true)
     } catch (err) {
       setIsSubmitting(false)
       console.error('Registration submission failure:', err)
@@ -151,7 +145,7 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
           )}
 
           {/* STATE 2: Success Confirmation Page */}
-          {submittedTier && paymentSuccess && (
+          {submittedTier && registrationSuccess && (
             <motion.div
               key="success-state"
               initial={{ opacity: 0, scale: 0.95 }}
@@ -183,16 +177,16 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
                   "font-sans text-xs uppercase tracking-widest font-semibold",
                   submittedTier?.id === 'vip' ? "text-nbac-gold-light" : "text-nbac-emerald-light"
                 )}>
-                  Transaction Authenticated
+                  Registration Received
                 </span>
                 <h3 className="font-display text-2xl md:text-3xl font-bold text-nbac-text tracking-tight">
                   Welcome to NBAC
                 </h3>
                 <p className="font-sans text-sm text-nbac-body font-light leading-relaxed">
-                  Thank you, <span className="font-semibold text-nbac-text">{formData.fullName || 'Delegate'}</span>. Your delegate seat reservation for the <span className="font-semibold text-nbac-text">{submittedTier.name}</span> package has been securely requested. 
+                  Thank you, <span className="font-semibold text-nbac-text">{formData.fullName || 'Delegate'}</span>. Your delegate seat reservation for the <span className="font-semibold text-nbac-text">{submittedTier.name}</span> package has been securely recorded. 
                 </p>
                 <p className="font-sans text-xs text-nbac-muted font-light leading-relaxed">
-                  In a production environment, this would verify your payment of <span className="font-semibold text-nbac-text">{formatPrice(calculateTotal(submittedTier, submittedDelegateCount))}</span> via Paystack, save your record in Supabase, and dispatch your access passes via Resend.
+                  Your reservation of <span className="font-semibold text-nbac-text">{formatPrice(calculateTotal(submittedTier, submittedDelegateCount))}</span> is pending payment confirmation. Our team will be in touch with payment instructions shortly.
                 </p>
               </div>
 
@@ -228,7 +222,7 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
 
               <button
                 onClick={() => {
-                  setPaymentSuccess(false)
+                  setRegistrationSuccess(false)
                   setSubmittedTier(null)
                   setSubmittedDelegateCount(1)
                   setFormData({ fullName: '', email: '', company: '', phone: '', specialRequirements: '' })
@@ -242,7 +236,7 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
           )}
 
           {/* STATE 3: Active Form Panel */}
-          {selectedTier && !paymentSuccess && (
+          {selectedTier && !registrationSuccess && (
             <motion.div
               key="active-form"
               initial={{ opacity: 0, y: 10 }}

@@ -337,7 +337,7 @@ export function EventsSchedule({ sessions, eventId }: EventsScheduleProps) {
 
                       {/* Session Abstract */}
                       {session.abstract && (
-                        <p className="font-sans text-xs md:text-sm font-light text-nbac-body leading-relaxed mb-4">
+                        <p className="font-sans text-xs md:text-sm font-light text-nbac-body leading-relaxed mb-4 whitespace-pre-line">
                           {session.abstract}
                         </p>
                       )}
@@ -362,7 +362,7 @@ export function EventsSchedule({ sessions, eventId }: EventsScheduleProps) {
                                 onClick={(e) => handleSpeakerClick(speaker, e)}
                                 className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-nbac-canvas border border-nbac-border hover:border-nbac-emerald/30 text-nbac-text hover:text-nbac-emerald font-sans text-xs transition-all duration-200 cursor-pointer select-none group/chip"
                               >
-                                {speaker.avatar_url && (
+                                {speaker.avatar_url && speaker.id === 'segun-demuren' && (
                                   <div className="relative w-5 h-5 rounded-full overflow-hidden shrink-0 border border-nbac-border/50">
                                     <Image
                                       src={speaker.avatar_url}
