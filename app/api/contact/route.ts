@@ -95,18 +95,35 @@ export async function POST(request: NextRequest) {
     }
 
     // --- ALERTS PIPELINE ---
-    const emailResult = await sendEmailJS({
-      logContext: 'contact',
+    // 1. Send alert to admin (automatically defaults to CONTACT_ALERT_EMAIL)
+    const adminEmailResult = await sendEmailJS({
+      logContext: 'contact-admin',
       templateParams: {
         name: fullName,
-        title: inquiryType.toUpperCase().replace('_', ' '),
+        title: `NEW INQUIRY: ${inquiryType.toUpperCase().replace('_', ' ')}`,
         email,
         message: `Company: ${company || 'N/A'}\nPhone: ${phone || 'N/A'}\n\n${message}`,
       }
     });
 
-    if (!emailResult.success) {
-      console.warn('[Contact API] Email notification failed but DB write succeeded:', emailResult.error);
+    if (!adminEmailResult.success) {
+      console.warn('[Contact API] Admin email notification failed:', adminEmailResult.error);
+    }
+
+    // 2. Send confirmation copy to submitter's contact email
+    const clientEmailResult = await sendEmailJS({
+      logContext: 'contact-client',
+      templateParams: {
+        name: fullName,
+        title: `Inquiry Received: ${inquiryType.toUpperCase().replace('_', ' ')}`,
+        email,
+        to_email: email,
+        message: `Thank you for contacting us. We have received your inquiry:\n\n${message}`,
+      }
+    });
+
+    if (!clientEmailResult.success) {
+      console.warn('[Contact API] Client confirmation email failed:', clientEmailResult.error);
     }
 
     return NextResponse.json({ success: true }, { status: 200 });

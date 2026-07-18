@@ -12,8 +12,14 @@ export async function POST(request: Request) {
     }
 
     // Normalize addOns to a safe array — reject non-array truthy values
-    if (addOns != null && !Array.isArray(addOns)) {
-      return NextResponse.json({ error: 'Invalid input: addOns must be an array' }, { status: 400 });
+    if (
+      addOns != null &&
+      (!Array.isArray(addOns) || !addOns.every(item => typeof item === 'string'))
+    ) {
+      return NextResponse.json(
+        { error: 'Invalid input: addOns must be an array of strings' },
+        { status: 400 }
+      );
     }
     const safeAddOns: string[] = Array.isArray(addOns) ? addOns : [];
     const addOnsText = safeAddOns.length > 0 ? safeAddOns.join(', ') : 'None';
@@ -43,11 +49,12 @@ export async function POST(request: Request) {
     }
 
     // Send email alert via EmailJS
-    const emailResult = await sendEmailJS({
-      logContext: 'sponsor',
+    // 1. Send alert to admin (automatically defaults to CONTACT_ALERT_EMAIL)
+    const adminEmailResult = await sendEmailJS({
+      logContext: 'sponsor-admin',
       templateParams: {
         name: fullName,
-        title: `SPONSOR APPLICATION — ${tier}`,
+        title: `NEW SPONSOR APPLICATION — ${tier}`,
         email,
         message: [
           `New sponsor application received:`,
@@ -66,8 +73,37 @@ export async function POST(request: Request) {
       }
     });
 
-    if (!emailResult.success) {
-      console.warn('[Sponsor API] Email notification failed but DB write succeeded:', emailResult.error);
+    if (!adminEmailResult.success) {
+      console.warn('[Sponsor API] Admin email notification failed:', adminEmailResult.error);
+    }
+
+    // 2. Send confirmation copy to sponsor applicant's contact email
+    const clientEmailResult = await sendEmailJS({
+      logContext: 'sponsor-client',
+      templateParams: {
+        name: fullName,
+        title: `Sponsorship Application Received — ${tier}`,
+        email,
+        to_email: email,
+        message: [
+          `Thank you for applying to sponsor NBAC 2027. We have received your sponsor application:`,
+          ``,
+          `Company: ${companyName}`,
+          `Industry: ${industry || 'N/A'}`,
+          `Website: ${website || 'N/A'}`,
+          `Contact: ${fullName} (${designation || 'N/A'})`,
+          `Email: ${email}`,
+          `Phone: ${phone || 'N/A'}`,
+          `Sponsorship Tier: ${tier}`,
+          `Add-Ons: ${addOnsText}`,
+          `Track Count: ${trackCount || 1}`,
+          `Special Requirements: ${specialRequirements || 'None'}`,
+        ].join('\n'),
+      }
+    });
+
+    if (!clientEmailResult.success) {
+      console.warn('[Sponsor API] Client confirmation email failed:', clientEmailResult.error);
     }
 
     return NextResponse.json({ success: true, data });

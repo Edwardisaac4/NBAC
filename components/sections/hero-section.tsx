@@ -6,6 +6,7 @@ import Link from 'next/link'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { StatCounter } from '../shared/stat-counter'
+import { CONFERENCE_META } from '@/data/conference-stats'
 
 
 gsap.registerPlugin(ScrollTrigger)
@@ -462,7 +463,7 @@ export function HeroSection() {
         {/* Venue / Date Metadata */}
         <div className="hero-meta relative w-full h-14 sm:h-10 md:h-8 flex items-center justify-center opacity-0 select-none overflow-hidden">
           <p className="font-sans text-xs sm:text-sm md:text-lg text-white/90 tracking-wider font-medium max-w-2xl mx-auto text-center">
-            May 4-5, 2027 • Mariot Hotel Ikeja, Lagos, Nigeria
+            {CONFERENCE_META.date} • {CONFERENCE_META.venue_d1}, {CONFERENCE_META.location}
           </p>
         </div>
 
@@ -475,7 +476,7 @@ export function HeroSection() {
             <StatCounter value={300} suffix="+" label="Delegates" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
           </div>
           <div className="hero-stat-item opacity-0">
-            <StatCounter value={30} suffix="+" label="AeroLab Teams" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
+            <StatCounter value={30} suffix="+" label="AeroLab Applicant Teams" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
           </div>
           <div className="hero-stat-item opacity-0">
             <StatCounter value={8} suffix="" label="Sessions" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />

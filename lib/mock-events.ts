@@ -8,7 +8,6 @@ export const SPEAKERS: Record<string, Speaker> = {};
 
 const avatarMap: Record<string, string> = {
   'segun-demuren': '/images/SD ! NBAC.jpg',
-  'erica-tlg': '/images/Ann umeh NBAC.jpg',
 };
 
 SPEAKERS_ARRAY.forEach((s) => {
@@ -84,13 +83,9 @@ const getSessionSpeakers = (session: typeof SESSIONS[0]): Speaker[] => {
 const buildAbstract = (session: typeof SESSIONS[0]): string => {
   const parts = [session.subtitle || ''];
   if (session.keyAreas && session.keyAreas.length > 0) {
-    parts.push('\n\nKey Areas:\n' + session.keyAreas.map(k => `• ${k}`).join('\n'));
-  }
-  if (session.questions && session.questions.length > 0) {
-    parts.push('\n\nDiscussion Questions:\n' + session.questions.map((q, idx) => `${idx + 1}. ${q}`).join('\n'));
-  }
-  if (session.notes) {
-    parts.push(`\n\nNote: ${session.notes}`);
+    // Only take the first 2 key areas to keep the schedule cards compact and clean
+    const limitedKeyAreas = session.keyAreas.slice(0, 2);
+    parts.push('\nKey Areas:\n' + limitedKeyAreas.map(k => `• ${k}`).join('\n'));
   }
   return parts.join('\n').trim();
 };

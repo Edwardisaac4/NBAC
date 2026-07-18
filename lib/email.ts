@@ -24,6 +24,8 @@ export interface EmailJSParams {
   email: string;
   /** Maps to {{time}} in the template — auto-generated if omitted */
   time?: string;
+  /** Maps to {{to_email}} in the template — used to route the email dynamically */
+  to_email?: string;
   /** Any additional custom fields the template might use */
   [key: string]: unknown;
 }
@@ -66,6 +68,11 @@ export async function sendEmailJS(params: {
     });
   }
 
+  // Auto-populate to_email if not provided and CONTACT_ALERT_EMAIL is configured
+  if (!params.templateParams.to_email && process.env.CONTACT_ALERT_EMAIL) {
+    params.templateParams.to_email = process.env.CONTACT_ALERT_EMAIL.trim();
+  }
+
   const payload = {
     service_id: serviceId,
     template_id: finalTemplateId,
@@ -78,7 +85,7 @@ export async function sendEmailJS(params: {
   const timeoutId = setTimeout(() => controller.abort(), 10_000);
 
   try {
-    console.log(`${LOG_PREFIX}${ctx} Sending email to template "${finalTemplateId}" for "${params.templateParams.email}"...`);
+    console.log(`${LOG_PREFIX}${ctx} Sending email using template "${finalTemplateId}"...`);
 
     const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
       method: 'POST',

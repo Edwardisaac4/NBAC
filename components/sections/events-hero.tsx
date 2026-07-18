@@ -6,6 +6,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SectionEyebrow } from '../shared/section-eyebrow'
 import { Calendar, MapPin, Users } from 'lucide-react'
+import { CONFERENCE_META } from '@/data/conference-stats'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -116,7 +117,7 @@ export function EventsHero() {
       <div ref={contentRef} className="relative z-10 max-w-7xl mx-auto px-6 md:px-24 text-center">
         <div className="events-eyebrow opacity-0">
           <SectionEyebrow className="text-center justify-center">
-            May 4 - 5, 2027 • Mariot Hotel Ikeja, Lagos, Nigeria
+            {CONFERENCE_META.date} • {CONFERENCE_META.venue_d1}, {CONFERENCE_META.location}
           </SectionEyebrow>
         </div>
 

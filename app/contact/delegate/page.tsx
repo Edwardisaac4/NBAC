@@ -245,16 +245,16 @@ export default function DelegateRegistrationPage() {
                       "font-sans text-xs uppercase tracking-widest font-semibold",
                       isVipSubmitted ? "text-nbac-gold-light" : "text-nbac-emerald-light"
                     )}>
-                      Transaction Authenticated
+                      Registration Received
                     </span>
                     <h3 className="font-display text-2xl md:text-3xl font-bold text-nbac-text tracking-tight">
                       Welcome to NBAC
                     </h3>
                     <p className="font-sans text-sm text-nbac-body font-light leading-relaxed">
-                      Thank you, <span className="font-semibold text-nbac-text">{formData.fullName}</span>. Your delegate seat reservation for the <span className="font-semibold text-nbac-text">{submittedTier.name}</span> package has been processed successfully.
+                      Thank you, <span className="font-semibold text-nbac-text">{formData.fullName}</span>. Your delegate seat reservation for the <span className="font-semibold text-nbac-text">{submittedTier.name}</span> package has been securely recorded.
                     </p>
                     <p className="font-sans text-xs text-nbac-muted font-light leading-relaxed">
-                      In a production environment, this would verify your payment of <span className="font-semibold text-nbac-text">{formatPrice(calculateTotal(submittedTier, submittedDelegateCount))}</span> via Paystack, save your record in Supabase, and dispatch your access passes via EmailJS.
+                      Your reservation of <span className="font-semibold text-nbac-text">{formatPrice(calculateTotal(submittedTier, submittedDelegateCount))}</span> is pending payment confirmation. Our team will be in touch with payment instructions shortly.
                     </p>
                   </div>
 

@@ -24,7 +24,7 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
   
   // UI states for interactive feedback (simulating payment)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [paymentSuccess, setPaymentSuccess] = useState(false)
+  const [registrationSuccess, setRegistrationSuccess] = useState(false)
   const [submittedTier, setSubmittedTier] = useState<PassTierDetails | null>(null)
   const [submittedDelegateCount, setSubmittedDelegateCount] = useState<number>(1)
   const [submittedReference, setSubmittedReference] = useState<string>('')
@@ -88,7 +88,7 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
       setSubmittedDelegateCount(delegateCount)
       setSubmittedReference(serverData?.reference || '')
       setIsSubmitting(false)
-      setPaymentSuccess(true)
+      setRegistrationSuccess(true)
     } catch (err) {
       setIsSubmitting(false)
       console.error('Registration submission failure:', err)
@@ -145,7 +145,7 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
           )}
 
           {/* STATE 2: Success Confirmation Page */}
-          {submittedTier && paymentSuccess && (
+          {submittedTier && registrationSuccess && (
             <motion.div
               key="success-state"
               initial={{ opacity: 0, scale: 0.95 }}
@@ -177,16 +177,16 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
                   "font-sans text-xs uppercase tracking-widest font-semibold",
                   submittedTier?.id === 'vip' ? "text-nbac-gold-light" : "text-nbac-emerald-light"
                 )}>
-                  Transaction Authenticated
+                  Registration Received
                 </span>
                 <h3 className="font-display text-2xl md:text-3xl font-bold text-nbac-text tracking-tight">
                   Welcome to NBAC
                 </h3>
                 <p className="font-sans text-sm text-nbac-body font-light leading-relaxed">
-                  Thank you, <span className="font-semibold text-nbac-text">{formData.fullName || 'Delegate'}</span>. Your delegate seat reservation for the <span className="font-semibold text-nbac-text">{submittedTier.name}</span> package has been securely requested. 
+                  Thank you, <span className="font-semibold text-nbac-text">{formData.fullName || 'Delegate'}</span>. Your delegate seat reservation for the <span className="font-semibold text-nbac-text">{submittedTier.name}</span> package has been securely recorded. 
                 </p>
                 <p className="font-sans text-xs text-nbac-muted font-light leading-relaxed">
-                  In a production environment, this would verify your payment of <span className="font-semibold text-nbac-text">{formatPrice(calculateTotal(submittedTier, submittedDelegateCount))}</span> via Paystack, save your record in Supabase, and dispatch your access passes via EmailJS.
+                  Your reservation of <span className="font-semibold text-nbac-text">{formatPrice(calculateTotal(submittedTier, submittedDelegateCount))}</span> is pending payment confirmation. Our team will be in touch with payment instructions shortly.
                 </p>
               </div>
 
@@ -222,7 +222,7 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
 
               <button
                 onClick={() => {
-                  setPaymentSuccess(false)
+                  setRegistrationSuccess(false)
                   setSubmittedTier(null)
                   setSubmittedDelegateCount(1)
                   setFormData({ fullName: '', email: '', company: '', phone: '', specialRequirements: '' })
@@ -236,7 +236,7 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
           )}
 
           {/* STATE 3: Active Form Panel */}
-          {selectedTier && !paymentSuccess && (
+          {selectedTier && !registrationSuccess && (
             <motion.div
               key="active-form"
               initial={{ opacity: 0, y: 10 }}
