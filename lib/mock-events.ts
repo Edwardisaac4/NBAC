@@ -102,7 +102,7 @@ const day1Sessions: EventSession[] = day1List.map((s, index) => {
     title: s.title,
     abstract: buildAbstract(s),
     speakers: getSessionSpeakers(s),
-    location: CONFERENCE_META.venue_d1,
+    location: CONFERENCE_META.venue,
   };
 });
 
@@ -118,7 +118,7 @@ const day2Sessions: EventSession[] = day2List.map((s, index) => {
     title: s.title,
     abstract: buildAbstract(s),
     speakers: getSessionSpeakers(s),
-    location: CONFERENCE_META.venue_d2,
+    location: CONFERENCE_META.venue,
   };
 });
 
@@ -128,7 +128,7 @@ export const MOCK_EVENTS: EventDetails[] = [
     title: "NBAC 2027 Conference — Day 1",
     subtitle: "West Africa's Premier Aviation Assembly",
     date: "May 4, 2027",
-    location: CONFERENCE_META.venue_d1,
+    location: CONFERENCE_META.venue,
     description: "Day 1 of the flagship summit focusing on industry dialogue, regulatory frameworks, infrastructure ops, and financial structures in African aviation.",
     image_url: "/images/private_jet_runway_dusk.png",
     status: "featured",
@@ -139,7 +139,7 @@ export const MOCK_EVENTS: EventDetails[] = [
     title: "NBAC 2027 Conference — Day 2",
     subtitle: "Innovation, Sustainability & Leadership",
     date: "May 5, 2027",
-    location: CONFERENCE_META.venue_d2,
+    location: CONFERENCE_META.venue,
     description: "Day 2 of the flagship summit focusing on ecosystem scale, sustainability, women leadership in aviation, innovation & tech, and speed networking.",
     image_url: "/images/interior_cabin.jpg",
     status: "featured",
