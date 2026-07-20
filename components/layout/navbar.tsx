@@ -458,6 +458,13 @@ export function Navbar() {
                                 className="overflow-hidden flex flex-col pl-4 mt-2 gap-3 border-l border-nbac-border"
                               >
                                 <Link
+                                  href="/events"
+                                  onClick={toggleMobileMenu}
+                                  className="text-xs font-sans uppercase tracking-wider text-nbac-muted hover:text-nbac-emerald py-1 transition-colors text-left"
+                                >
+                                  Events
+                                </Link>
+                                <Link
                                   href="/speakers"
                                   onClick={toggleMobileMenu}
                                   className="text-xs font-sans uppercase tracking-wider text-nbac-muted hover:text-nbac-emerald py-1 transition-colors text-left"
@@ -612,6 +619,13 @@ export function Navbar() {
                               transition={{ duration: 0.2 }}
                               className="overflow-hidden flex flex-col gap-2 border-t border-nbac-border/50 pt-2"
                             >
+                              <Link
+                                href="/events"
+                                onClick={toggleMobileMenu}
+                                className="text-xs font-sans uppercase tracking-wider text-nbac-muted hover:text-nbac-emerald py-1 transition-colors text-left"
+                              >
+                                Events
+                              </Link>
                               <Link
                                 href="/speakers"
                                 onClick={toggleMobileMenu}

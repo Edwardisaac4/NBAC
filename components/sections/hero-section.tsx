@@ -463,7 +463,7 @@ export function HeroSection() {
         {/* Venue / Date Metadata */}
         <div className="hero-meta relative w-full h-14 sm:h-10 md:h-8 flex items-center justify-center opacity-0 select-none overflow-hidden">
           <p className="font-sans text-xs sm:text-sm md:text-lg text-white/90 tracking-wider font-medium max-w-2xl mx-auto text-center">
-            {CONFERENCE_META.date} • {CONFERENCE_META.venue_d1}, {CONFERENCE_META.location}
+            {CONFERENCE_META.date} • {CONFERENCE_META.venue}, {CONFERENCE_META.location}
           </p>
         </div>
 
@@ -492,7 +492,7 @@ export function HeroSection() {
         {/* CTAs */}
         <div className="hero-buttons flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto opacity-0">
           <Link href="/reservations" className="w-full sm:w-auto">
-            <button className="hero-shimmer w-full bg-gradient-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold hover:from-nbac-gold-light hover:to-nbac-gold text-[#0b0f10] font-sans font-bold px-6 md:px-8 py-2.5 md:py-3 rounded-full transition-all duration-300 shadow-lg shadow-nbac-gold/15 hover:shadow-nbac-gold/30 hover:scale-[1.02] active:scale-[0.98] text-sm uppercase tracking-widest cursor-pointer">
+            <button className="hero-shimmer w-full bg-linear-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold hover:from-nbac-gold-light hover:to-nbac-gold text-[#0b0f10] font-sans font-bold px-6 md:px-8 py-2.5 md:py-3 rounded-full transition-all duration-300 shadow-lg shadow-nbac-gold/15 hover:shadow-nbac-gold/30 hover:scale-[1.02] active:scale-[0.98] text-sm uppercase tracking-widest cursor-pointer">
               Secure Executive Pass
             </button>
           </Link>

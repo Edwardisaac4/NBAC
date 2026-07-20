@@ -49,6 +49,13 @@ export const EDITOR_TEMPLATES: Record<PostTemplate, { title: string; body: strin
 <p>Date, time, location within the venue.</p>`,
   },
 
+  visual_showcase: {
+    title: 'Visual Story Title',
+    body: `<p>This template is image-led. Upload a strong cover image above, then let the writing support the visual.</p>
+<h2>The Story</h2>
+<p>Write the full narrative here.</p>`,
+  },
+
   blank: {
     title: '',
     body: '',

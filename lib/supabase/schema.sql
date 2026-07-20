@@ -21,6 +21,7 @@ $$ LANGUAGE sql STABLE SECURITY INVOKER
 CREATE TABLE IF NOT EXISTS public.posts (
     id text PRIMARY KEY,
     title text NOT NULL,
+    slug text,
     type text NOT NULL,
     status text NOT NULL,
     author_id text,
@@ -30,6 +31,9 @@ CREATE TABLE IF NOT EXISTS public.posts (
     cover_image_url text,
     featured_image text,
     read_time text,
+    meta_title text,
+    meta_description text,
+    focus_keyword text,
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now()
 );
@@ -44,6 +48,9 @@ CREATE POLICY "Allow public read of published posts" ON public.posts
 CREATE POLICY "Allow admins full access to posts" ON public.posts
     FOR ALL USING (public.user_role() IN ('head_admin', 'editor'))
     WITH CHECK (public.user_role() IN ('head_admin', 'editor'));
+
+-- Auto-generate slug index for fast lookups
+CREATE INDEX IF NOT EXISTS posts_slug_idx ON public.posts (slug) WHERE status = 'published';
 
 -- -------------------------------------------------------------
 -- TABLE: reservations

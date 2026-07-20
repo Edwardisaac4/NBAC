@@ -1,12 +1,13 @@
-'use client';
+import { createClient } from '@/lib/supabase/server'
+import { redirect }     from 'next/navigation'
+import { StudioShell }  from '@/components/admin/content/studio-shell'
 
-import React from 'react';
-import { TemplatePicker } from '@/components/admin/content/template-picker';
+export default async function NewPostPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/admin/login')
 
-export default function NewPostTemplatePage() {
-  return (
-    <div className="min-h-screen bg-nbac-canvas text-nbac-text">
-      <TemplatePicker />
-    </div>
-  );
+  const authorName = user.user_metadata?.full_name ?? user.email ?? 'NBAC Team'
+
+  return <StudioShell mode="create" authorName={authorName} />
 }
