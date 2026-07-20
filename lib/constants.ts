@@ -27,7 +27,7 @@ export const STEERING_COMMITTEE_MEMBERS: CommitteeMember[] = [
     objectPosition: 'top',
   },
   {
-    name: 'Olubukunola Hundeyin',
+    name: 'OluBukunola Hudeyin',
     role: 'HEAD, QUALITY AND SAFETY',
     image: '/images/Bukky NBAC.jpg',
     objectPosition: 'top',
@@ -41,7 +41,7 @@ export const STEERING_COMMITTEE_MEMBERS: CommitteeMember[] = [
   {
     name: 'Seye Fasuyi',
     role: 'HEAD, HUMAN RESOURCES',
-    image: '/images/Seye NBAC.jpg',
+    image: '/images/Seye NBAC.jpeg',
     objectPosition: 'top',
   },
   {
@@ -70,24 +70,50 @@ export const ABOUT_COMMITTEE_MEMBERS: CommitteeMember[] = [
     role: 'CHAIRMAN',
     image: '/images/SD ! NBAC.jpg',
     objectPosition: 'top',
+    bio: `Olusegun Demuren brings visionary leadership and strategic expertise to EAN Aviation, driving its evolution as a leading force in Africa’s private aviation sector.
+
+He holds a B.Sc. in Information Systems from Marist College, New York, and has completed executive programs at Lagos Business School and the International Air Transport Association (IATA) in Singapore.
+
+His professional journey began as a Systems Analyst with renowned Wall Street firms Sanford C. Bernstein Inc. and Alliance Capital LLC, where he developed strong capabilities in investment strategy and systems integration.
+
+Combining technological insight with a deep understanding of the aviation industry, he has positioned EAN Aviation at the forefront of innovation, service excellence, and operational precision, establishing it as a trusted name across the continent.`
   },
   {
     name: 'Josephine Kolawole',
     role: 'HEAD, MARKETING',
     image: '/images/Josephine NBAC.jpg',
     objectPosition: 'top',
+    bio: `Josephine Kolawole is a marketing leader with nearly a decade of experience driving brand growth across the technology and aviation sectors. As Head of Marketing at EAN Aviation, she leads brand strategy, integrated marketing communications, digital marketing, and public relations, delivering initiatives that strengthen brand visibility and support business growth.
+
+Prior to this, she led regional marketing initiatives across Central Africa at HP, overseeing multi-market campaigns, go-to-market strategies, and channel marketing. Josephine is passionate about building brands that create measurable business impact through strategic thinking, stakeholder engagement, and data-driven execution. She is currently pursuing a PhD, reflecting her commitment to continuous learning and leadership.`
   },
   {
-    name: 'Olubukunola Hundeyin',
+    name: 'Olubukunola Hudeyin',
     role: 'HEAD, QUALITY AND SAFETY',
     image: '/images/Bukky NBAC.jpg',
     objectPosition: 'top',
+    bio: `Olubukunola Hundeyin is an accomplished Quality, Safety, and Compliance executive with nearly a decade of progressive leadership experience driving operational excellence, regulatory compliance, and continuous improvement within the aviation industry. As Head of Quality & Safety, she provides strategic leadership in quality assurance, safety management, compliance monitoring, and organizational performance, ensuring alignment with the Nigerian Civil Aviation Regulations (Nig. CARs), ICAO Standards and Recommended Practices (SARPs), and internationally recognized best practices.
+
+She holds a Bachelor's degree in Chemical Engineering from the University of Lagos and a Postgraduate Diploma in Quality Management from Robert Gordon University, Aberdeen, Scotland. A full member of the Nigerian Society of Engineers (NSE), Olubukunola combines technical expertise with strategic leadership to deliver sustainable business improvements and strengthen organizational resilience.
+
+Throughout her career, Olubukunola has led and contributed to high-impact quality, safety, and compliance initiatives across aviation operations. She has successfully driven the implementation and continual improvement of Quality Management Systems (QMS), strengthened compliance monitoring programmes, enhanced operational processes, and partnered with multidisciplinary teams to embed a culture of quality, safety, and accountability.
+
+Among her notable achievements is leading the successful maintenance of the International Standard for Business Aircraft Handling (IS-BAH) Stage II Certification through two consecutive certification cycles, demonstrating her commitment to operational excellence and international best practices. She also leads the implementation and continual enhancement of ISO-based Quality Management Systems, supporting improved organizational performance, customer satisfaction, and regulatory compliance.
+
+An American Society for Quality (ASQ) Certified Quality Auditor (CQA) and Certified Quality Improvement Associate (CQIA), Olubukunola also holds certifications in NEBOSH International General Certificate in Occupational Health and Safety, ISO 9001:2015 Lead Auditor, Quality Management Systems in Aviation, QMS Auditor/Lead Auditor, and Internal Auditing, reflecting her commitment to continuous professional development.
+
+Recognized for her collaborative leadership, integrity, and results-driven approach, Olubukunola is passionate about building high-performing teams, fostering a proactive safety culture, and implementing management systems that deliver measurable value. She remains committed to advancing quality and safety standards, strengthening regulatory compliance, and helping organizations achieve operational excellence in an evolving global aviation industry.`
   },
   {
     name: 'Boyede Oyegbami',
     role: 'HEAD, SALES',
     image: '/images/Boyede NBAC.jpg',
     objectPosition: 'top',
+    bio: `Boyede Oyegbami is an accomplished aviation commercial leader with over a decade of experience driving business growth, customer acquisition, and operational excellence across leading energy and aviation fueling companies in Nigeria.
+
+Prior to joining EAN, Boyede served as Aviation Commercial Manager at Eternal Plc, leading aviation business start-up, regulatory compliance, and end-to-end jet fuel operations, achieving milestones such as first into-plane fueling within a year and onboarding five airline customers in five months.
+
+He holds an MSc in Environmental Consultancy from Newcastle University (UK) and a BSc in Microbiology from Bowen University, complemented by certifications from IATA, the British Safety Council, and IEMA. Skilled in contract negotiations, customer relationship management, and strategic sales growth.`
   },
 ]
 
@@ -100,24 +126,17 @@ export const CONFERENCE_OBJECTIVES = [
 
 export const TARGET_AUDIENCE = [
   "High Net-worth Individuals (HNI's) who charter, own or intend to purchase/lease private jets.",
-  'Industry regulators (NCAA, Airport Authorities, Customs, Immigration and Ministry of Aviation).',
+  'Industry regulators (CAA, Airport Authorities, Customs, Immigration and Ministry of Aviation).',
   'Aircraft Manufacturers, Operators and Service Providers in the Business Aviation industry.',
   'National and international companies with business aviation interests.',
 ]
 
-export interface NavLink {
-  label: string;
-  href: string;
-}
-
-export const NAV_LINKS: NavLink[] = [
+export const NAV_LINKS = [
   { label: 'Home', href: '/' },
-  { label: 'Reservations', href: '/reservations' },
-  { label: 'Events', href: '/events' },
-  { label: 'Speakers', href: '/speakers' },
-  { label: 'Hotels & Flights', href: '/hotels' },
-  { label: 'News', href: '/news' },
-  { label: 'About', href: '/about' },
+  { label: 'About Us', href: '/about' },
+  { label: 'Program', href: '/program' },
+  { label: 'AeroLab', href: '/aerolab' },
+  { label: 'Gallery', href: '/gallery' },
   { label: 'Contact', href: '/contact' },
 ]
 

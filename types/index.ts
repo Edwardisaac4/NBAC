@@ -286,5 +286,6 @@ export interface CommitteeMember {
   role: string;
   image: string;
   objectPosition?: string;
+  bio?: string;
 }
 

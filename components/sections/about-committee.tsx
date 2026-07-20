@@ -1,10 +1,9 @@
-'use client'
-
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import { X } from 'lucide-react'
 import Image from 'next/image'
 import { SectionEyebrow } from '../shared/section-eyebrow'
 import { useMediaQuery } from '@/hooks/use-media-query'
@@ -15,6 +14,7 @@ gsap.registerPlugin(ScrollTrigger)
 export function AboutCommittee() {
   const containerRef = useRef<HTMLDivElement>(null)
   const isLaptop = useMediaQuery('(min-width: 1024px)', false)
+  const [selectedMember, setSelectedMember] = useState<typeof ABOUT_COMMITTEE_MEMBERS[number] | null>(null)
 
   useGSAP(
     () => {
@@ -63,6 +63,7 @@ export function AboutCommittee() {
             return (
               <motion.div
                 key={member.name}
+                onClick={() => setSelectedMember(member)}
                 className={`committee-card-reveal opacity-0 bg-nbac-panel border rounded-xl overflow-hidden shadow-md flex flex-col group h-full cursor-pointer transition-colors duration-300 ${
                   isPremium ? 'border-nbac-border hover:border-nbac-gold/40' : 'border-nbac-border hover:border-nbac-emerald/40'
                 }`}
@@ -119,6 +120,82 @@ export function AboutCommittee() {
           })}
         </div>
       </div>
+
+      {/* Bio Modal Overlay */}
+      <AnimatePresence>
+        {selectedMember && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedMember(null)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            />
+
+            {/* Modal Box */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+              className="relative w-full max-w-2xl bg-nbac-panel border border-nbac-border rounded-2xl overflow-hidden shadow-2xl z-10 flex flex-col md:flex-row max-h-[90vh] md:max-h-none overflow-y-auto md:overflow-visible"
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setSelectedMember(null)}
+                className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-[#0b0f10]/60 border border-nbac-border text-nbac-muted hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                aria-label="Close bio"
+              >
+                <X size={16} />
+              </button>
+
+              {/* Photo Area */}
+              <div className="relative w-full md:w-[40%] aspect-[4/5] md:aspect-auto shrink-0 bg-nbac-alt border-b md:border-b-0 md:border-r border-nbac-border">
+                <Image
+                  src={selectedMember.image}
+                  alt={selectedMember.name}
+                  fill
+                  className="object-cover"
+                  style={{ objectPosition: selectedMember.objectPosition || 'center' }}
+                  sizes="(max-w-7xl) 100vw, 30vw"
+                  quality={95}
+                />
+                <div className="absolute inset-0 bg-linear-to-t from-nbac-panel/90 via-transparent to-transparent opacity-60 pointer-events-none" />
+              </div>
+
+              {/* Details & Bio */}
+              <div className="p-8 flex flex-col justify-between overflow-y-auto">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-display text-2xl font-bold text-nbac-text tracking-wide">
+                      {selectedMember.name}
+                    </h3>
+                    <p className={`font-sans text-xs font-semibold tracking-widest mt-1.5 uppercase ${
+                      selectedMember.role === 'BOARD CHAIRMAN' || selectedMember.role === 'CHAIRMAN' || selectedMember.role === 'STRATEGIC DIRECTOR'
+                        ? 'text-nbac-gold-light'
+                        : 'text-nbac-emerald-light'
+                    }`}>
+                      {selectedMember.role}
+                    </p>
+                  </div>
+                  <div className="h-px bg-nbac-border" />
+                  <div className="font-sans text-sm md:text-base font-light text-nbac-body leading-relaxed max-w-prose space-y-4">
+                    {selectedMember.bio ? (
+                      selectedMember.bio.split('\n\n').map((paragraph, pIdx) => (
+                        <p key={pIdx}>{paragraph.trim()}</p>
+                      ))
+                    ) : (
+                      <p>Biography details are currently being updated.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </section>
   )
 }

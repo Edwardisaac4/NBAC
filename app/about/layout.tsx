@@ -1,14 +1,10 @@
-import type { Metadata } from 'next'
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'About NBAC',
-  description:
-    'Learn about the Nigerian Business Aviation Conference — mission, ' +
-    "2027 objectives, and the steering committee shaping West Africa's " +
-    'premier aviation event.',
-  alternates: { canonical: 'https://nbac.com.ng/about' },
-}
+  title: 'About Us',
+  description: 'Learn about the history, objectives, and steering committee of the Nigerian Business Aviation Conference (NBAC).',
+};
 
 export default function AboutLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+  return <>{children}</>;
 }

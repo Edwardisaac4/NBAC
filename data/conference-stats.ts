@@ -12,8 +12,7 @@ export const CONFERENCE_STATS = [
 export const CONFERENCE_META = {
   date:      'May 2027',
   location:  'Lagos, Nigeria',
-  venue_d1:  'Marriott, Lagos',
-  venue_d2:  'TBC, Lagos',
+  venue:  'Marriott, Lagos',
   organiser: 'EAN Aviation Limited',
 }
 

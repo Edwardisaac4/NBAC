@@ -19,79 +19,33 @@ const cormorant = Cormorant_Garamond({
 const siteUrl = "https://nbac.com.ng";
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://nbac.com.ng'),
-
+  metadataBase: new URL(siteUrl),
   title: {
-    default:  'Nigerian Business Aviation Conference 2027',
-    template: '%s — NBAC 2027',
+    default: "NBAC | Nigerian Business Aviation Conference",
+    template: "%s | NBAC",
   },
-
-  description:
-    "West Africa's premier business aviation conference. " +
-    "4–5 May 2027, Lagos, Nigeria. Bringing together operators, " +
-    "regulators, financiers, and innovators shaping the future " +
-    "of Nigerian aviation.",
-
+  description: "West Africa's premier business aviation conference combining elite panels, private aircraft displays, and high-level networking.",
   icons: {
     icon: "/images/logo-mark.jpg",
     shortcut: "/images/logo-mark.jpg",
     apple: "/images/logo-mark.jpg",
   },
-
-  keywords: [
-    'Nigerian Business Aviation Conference',
-    'NBAC 2027',
-    'business aviation Nigeria',
-    'West Africa aviation conference',
-    'aviation conference Lagos',
-    'private aviation Nigeria',
-    'business aviation West Africa',
-    'aviation conference 2027',
-    'Nigerian aviation events',
-    'business jet Nigeria',
-  ],
-
-  authors:   [{ name: 'Nigerian Business Aviation Conference' }],
-  creator:   'NBAC',
-  publisher: 'Nigerian Business Aviation Conference',
-
   openGraph: {
-    type:      'website',
-    locale:    'en_NG',
-    url:       'https://nbac.com.ng',
-    siteName:  'NBAC 2027',
-    title:     'Nigerian Business Aviation Conference 2027',
-    description:
-      "West Africa's premier business aviation conference. " +
-      "4–5 May 2027, Lagos, Nigeria.",
-    images: [{
-      url:    '/og/default.jpg',
-      width:  1200,
-      height: 630,
-      alt:    'NBAC 2027 — Nigerian Business Aviation Conference',
-    }],
+    siteName: "Nigerian Business Aviation Conference",
+    locale: "en_NG",
+    type: "website",
+    images: [
+      {
+        url: "/images/og-banner.png",
+        width: 1200,
+        height: 630,
+        alt: "NBAC - Nigerian Business Aviation Conference",
+      },
+    ],
   },
-
   twitter: {
-    card:        'summary_large_image',
-    title:       'Nigerian Business Aviation Conference 2027',
-    description: "West Africa's premier business aviation conference. 4–5 May 2027, Lagos.",
-    images:      ['/og/default.jpg'],
-  },
-
-  robots: {
-    index:  true,
-    follow: true,
-    googleBot: {
-      index:               true,
-      follow:              true,
-      'max-image-preview': 'large',
-      'max-snippet':       -1,
-    },
-  },
-
-  alternates: {
-    canonical: 'https://nbac.com.ng',
+    card: "summary_large_image",
+    images: ["/images/og-banner.png"],
   },
 };
 
