@@ -113,13 +113,6 @@ Prior to joining EAN, Boyede served as Aviation Commercial Manager at Eternal Pl
 
 He holds an MSc in Environmental Consultancy from Newcastle University (UK) and a BSc in Microbiology from Bowen University, complemented by certifications from IATA, the British Safety Council, and IEMA. Skilled in contract negotiations, customer relationship management, and strategic sales growth.`
   },
-  {
-    name: 'Ann Umeh',
-    role: 'HEAD, CLIENT RELATIONS',
-    image: '/images/ann-umeh-nbac.jpg',
-    objectPosition: 'top',
-    bio: `Ann Umeh leads Client Relations at EAN Aviation, ensuring exceptional customer experience, stakeholder engagement, and executive service delivery across all VIP client touchpoints.`
-  },
 ]
 
 export const CONFERENCE_OBJECTIVES = [
