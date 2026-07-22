@@ -115,6 +115,41 @@ Prior to joining EAN, Boyede served as Aviation Commercial Manager at Eternal Pl
 
 He holds an MSc in Environmental Consultancy from Newcastle University (UK) and a BSc in Microbiology from Bowen University, complemented by certifications from IATA, the British Safety Council, and IEMA. Skilled in contract negotiations, customer relationship management, and strategic sales growth.`
   },
+  {
+    name: 'Tunde Tunde-Awe',
+    role: 'HEAD, PMO',
+    image: '/images/tunde-awe-nbac.jpg',
+    objectPosition: 'top',
+    bio: `Tunde Tunde-Awe leads the Project Management Office (PMO) at EAN Aviation, overseeing strategic project implementation, operational alignment, and cross-functional execution for key corporate and industry initiatives.`
+  },
+  {
+    name: 'Seye Fasuyi',
+    role: 'HEAD, HUMAN RESOURCES',
+    image: '/images/seye-nbac.jpg',
+    objectPosition: 'top',
+    bio: `Seye Fasuyi is an experienced human resources leader with extensive expertise in talent acquisition, organizational development, and employee relations across the aviation sector. As Head of Human Resources at EAN Aviation, Seye leads strategic HR initiatives, talent management, and organizational culture development to ensure high performance and operational excellence.`
+  },
+  {
+    name: 'Ann Umeh',
+    role: 'HEAD, CLIENT RELATIONS',
+    image: '/images/ann-umeh-nbac.jpg',
+    objectPosition: 'top',
+    bio: `Ann Umeh leads Client Relations at EAN Aviation, ensuring exceptional customer experience, stakeholder engagement, and executive service delivery across all VIP client touchpoints.`
+  },
+  {
+    name: 'Stephanie Leonard',
+    role: 'MARKETING TEAM',
+    image: '/images/stephanie-nbac.jpeg',
+    objectPosition: 'top',
+    bio: `Stephanie Leonard is a key contributor to the marketing team at EAN Aviation, driving campaign execution, digital engagement, and brand awareness for the Nigerian Business Aviation Conference.`
+  },
+  {
+    name: 'Christine Emanuwa',
+    role: 'MARKETING TEAM',
+    image: '/images/christine-nbac.jpg',
+    objectPosition: 'top',
+    bio: `Christine Emanuwa contributes to brand communications, media relations, and event marketing initiatives for EAN Aviation and the NBAC conference.`
+  },
 ]
 
 export const CONFERENCE_OBJECTIVES = [
