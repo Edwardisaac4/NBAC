@@ -7,7 +7,7 @@ import { CONFERENCE_META } from "../data/conference-stats";
 export const SPEAKERS: Record<string, Speaker> = {};
 
 const avatarMap: Record<string, string> = {
-  'segun-demuren': '/images/SD ! NBAC.jpg',
+  'segun-demuren': '/images/sd-nbac.jpg',
 };
 
 SPEAKERS_ARRAY.forEach((s) => {

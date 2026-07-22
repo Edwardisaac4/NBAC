@@ -11,55 +11,55 @@ export const STEERING_COMMITTEE_MEMBERS: CommitteeMember[] = [
   {
     name: 'Segun Demuren',
     role: 'CHAIRMAN',
-    image: '/images/SD ! NBAC.jpg',
+    image: '/images/sd-nbac.jpg',
     objectPosition: 'top',
   },
   {
     name: 'Josephine Kolawole',
     role: 'HEAD, MARKETING',
-    image: '/images/Josephine NBAC.jpg',
+    image: '/images/josephine-nbac.jpg',
     objectPosition: 'top',
   },
   {
     name: 'Boyede Oyegbami',
     role: 'HEAD, SALES',
-    image: '/images/Boyede NBAC.jpg',
+    image: '/images/boyede-nbac.jpg',
     objectPosition: 'top',
   },
   {
     name: 'OluBukunola Hudeyin',
     role: 'HEAD, QUALITY AND SAFETY',
-    image: '/images/Bukky NBAC.jpg',
+    image: '/images/bukky-nbac.jpg',
     objectPosition: 'top',
   },
   {
     name: 'Tunde Tunde-Awe',
     role: 'HEAD, PMO',
-    image: '/images/Tunde Awe NBAC.jpg',
+    image: '/images/tunde-awe-nbac.jpg',
     objectPosition: 'top',
   },
   {
     name: 'Seye Fasuyi',
     role: 'HEAD, HUMAN RESOURCES',
-    image: '/images/Seye NBAC.jpg',
+    image: '/images/seye-nbac.jpg',
     objectPosition: 'top',
   },
   {
     name: 'Ann Umeh',
     role: 'HEAD, CLIENT RELATIONS',
-    image: '/images/Ann umeh NBAC.jpg',
+    image: '/images/ann-umeh-nbac.jpg',
     objectPosition: 'top',
   },
   {
     name: 'Stephanie Leonard',
     role: 'MARKETING TEAM',
-    image: '/images/Stephanie NBAC.jpeg',
+    image: '/images/stephanie-nbac.jpeg',
     objectPosition: 'top',
   },
   {
     name: 'Christine Emanuwa',
     role: 'MARKETING TEAM',
-    image: '/images/Christine NBAC.jpg',
+    image: '/images/christine-nbac.jpg',
     objectPosition: 'top',
   },
 ]
@@ -68,7 +68,7 @@ export const ABOUT_COMMITTEE_MEMBERS: CommitteeMember[] = [
   {
     name: 'Segun Demuren',
     role: 'CHAIRMAN',
-    image: '/images/SD ! NBAC.jpg',
+    image: '/images/sd-nbac.jpg',
     objectPosition: 'top',
     bio: `Olusegun Demuren brings visionary leadership and strategic expertise to EAN Aviation, driving its evolution as a leading force in Africa’s private aviation sector.
 
@@ -81,7 +81,7 @@ Combining technological insight with a deep understanding of the aviation indust
   {
     name: 'Josephine Kolawole',
     role: 'HEAD, MARKETING',
-    image: '/images/Josephine NBAC.jpg',
+    image: '/images/josephine-nbac.jpg',
     objectPosition: 'top',
     bio: `Josephine Kolawole is a marketing leader with nearly a decade of experience driving brand growth across the technology and aviation sectors. As Head of Marketing at EAN Aviation, she leads brand strategy, integrated marketing communications, digital marketing, and public relations, delivering initiatives that strengthen brand visibility and support business growth.
 
@@ -90,7 +90,7 @@ Prior to this, she led regional marketing initiatives across Central Africa at H
   {
     name: 'Olubukunola Hudeyin',
     role: 'HEAD, QUALITY AND SAFETY',
-    image: '/images/Bukky NBAC.jpg',
+    image: '/images/bukky-nbac.jpg',
     objectPosition: 'top',
     bio: `Olubukunola Hundeyin is an accomplished Quality, Safety, and Compliance executive with nearly a decade of progressive leadership experience driving operational excellence, regulatory compliance, and continuous improvement within the aviation industry. As Head of Quality & Safety, she provides strategic leadership in quality assurance, safety management, compliance monitoring, and organizational performance, ensuring alignment with the Nigerian Civil Aviation Regulations (Nig. CARs), ICAO Standards and Recommended Practices (SARPs), and internationally recognized best practices.
 
@@ -107,7 +107,7 @@ Recognized for her collaborative leadership, integrity, and results-driven appro
   {
     name: 'Boyede Oyegbami',
     role: 'HEAD, SALES',
-    image: '/images/Boyede NBAC.jpg',
+    image: '/images/boyede-nbac.jpg',
     objectPosition: 'top',
     bio: `Boyede Oyegbami is an accomplished aviation commercial leader with over a decade of experience driving business growth, customer acquisition, and operational excellence across leading energy and aviation fueling companies in Nigeria.
 

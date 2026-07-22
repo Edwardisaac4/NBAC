@@ -125,7 +125,7 @@ export function CommitteeSection() {
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                           style={{ objectPosition: member.objectPosition || 'center' }}
                           quality={90}
-                          priority={member.image === '/images/SD ! NBAC.jpg'}
+                          priority={member.image === '/images/sd-nbac.jpg'}
                         />
                       </div>
 

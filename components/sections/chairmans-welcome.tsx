@@ -69,7 +69,7 @@ export function ChairmansWelcome() {
         <div className="welcome-image opacity-0 w-full md:w-[40%] flex justify-center shrink-0">
           <div className="relative w-64 h-80 md:w-full md:h-[450px] rounded-xl overflow-hidden border border-nbac-border bg-nbac-deep shadow-2xl glass-card">
             <Image
-              src="/images/SD ! NBAC.jpg"
+              src="/images/sd-nbac.jpg"
               alt="Segun Demuren — Chairman, NBAC Steering Committee"
               fill
               className="object-cover object-top filter contrast-[1.02]"
