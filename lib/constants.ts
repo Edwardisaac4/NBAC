@@ -41,7 +41,7 @@ export const STEERING_COMMITTEE_MEMBERS: CommitteeMember[] = [
   {
     name: 'Seye Fasuyi',
     role: 'HEAD, HUMAN RESOURCES',
-    image: '/images/Seye NBAC.jpeg',
+    image: '/images/Seye NBAC.jpg',
     objectPosition: 'top',
   },
   {
