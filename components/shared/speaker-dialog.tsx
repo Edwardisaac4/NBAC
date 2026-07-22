@@ -60,7 +60,7 @@ export function SpeakerDialog({ speaker, sessions, isOpen, onClose }: SpeakerDia
             animate="visible"
             exit="exit"
             onClick={onClose}
-            className="fixed inset-0 bg-black/75 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/85 backdrop-blur-xl"
           />
 
           {/* Modal Container */}
@@ -70,103 +70,111 @@ export function SpeakerDialog({ speaker, sessions, isOpen, onClose }: SpeakerDia
             animate="visible"
             exit="exit"
             transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
-            className="relative w-full max-w-2xl bg-nbac-panel/95 border border-nbac-border rounded-xl shadow-2xl overflow-hidden z-10 glass-card"
-            style={{
-              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(197, 160, 89, 0.1)'
-            }}
+            className="relative w-full max-w-3xl bg-nbac-panel/95 border border-nbac-gold/30 rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] overflow-hidden z-10 backdrop-blur-2xl"
           >
             {/* Ambient Background Glow */}
-            <div className="absolute -top-24 -left-24 w-48 h-48 bg-nbac-gold/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-nbac-gold/5 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -top-24 -left-24 w-64 h-64 bg-nbac-gold/15 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-nbac-emerald/15 rounded-full blur-3xl pointer-events-none" />
 
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-nbac-canvas/40 hover:bg-nbac-canvas/80 text-nbac-text hover:text-nbac-gold flex items-center justify-center transition-all duration-200 cursor-pointer"
+              className="absolute top-4 right-4 z-30 w-10 h-10 rounded-full bg-black/50 border border-nbac-gold/40 text-nbac-muted hover:text-nbac-gold hover:bg-black/90 hover:scale-105 flex items-center justify-center transition-all duration-300 cursor-pointer shadow-lg"
               aria-label="Close Dialog"
             >
               <X size={18} />
             </button>
 
             {/* Content Scroll Area */}
-            <div className="max-h-[85vh] overflow-y-auto p-6 md:p-8">
+            <div className="max-h-[85vh] overflow-y-auto p-6 md:p-10 space-y-8">
               {/* Header Info */}
-              <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start mb-6 border-b border-nbac-border pb-6">
+              <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start border-b border-nbac-border/60 pb-8">
                 {/* Speaker Portrait */}
-                <div className="relative w-28 h-28 md:w-32 md:h-32 rounded-xl overflow-hidden border border-nbac-border shrink-0 bg-nbac-deep shadow-md">
+                <div className="relative w-32 h-32 md:w-36 md:h-36 rounded-2xl overflow-hidden border-2 border-nbac-gold/40 shrink-0 bg-nbac-deep shadow-xl group">
                   {speaker.avatar_url ? (
                     <Image
                       src={speaker.avatar_url}
                       alt={speaker.name}
                       fill
-                      className="object-cover"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
                       sizes="(max-width: 768px) 224px, 256px"
-                      quality={90}
+                      quality={95}
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-nbac-gold/10 text-nbac-gold text-3xl font-display font-semibold">
+                    <div className="w-full h-full flex items-center justify-center bg-nbac-gold/10 text-nbac-gold text-4xl font-display font-semibold">
                       {speaker.name.charAt(0)}
                     </div>
                   )}
                 </div>
 
                 {/* Name & Title */}
-                <div className="text-center md:text-left flex flex-col justify-center">
-                  <span className="font-sans text-xs uppercase tracking-widest font-semibold text-nbac-gold mb-1">
-                    FEATURED SPEAKER
-                  </span>
-                  <h3 className="font-display text-2xl md:text-3xl font-bold text-nbac-text tracking-tight mb-2">
+                <div className="text-center md:text-left flex flex-col justify-center space-y-2">
+                  <div className="flex items-center justify-center md:justify-start gap-2">
+                    <span className="h-2 w-2 rounded-full bg-nbac-gold animate-pulse" />
+                    <span className="font-sans text-xs uppercase tracking-widest font-bold text-nbac-gold">
+                      Featured Speaker
+                    </span>
+                  </div>
+                  <h3 className="font-display text-2xl md:text-4xl font-bold text-nbac-text tracking-tight">
                     {speaker.name}
                   </h3>
-                  <p className="font-sans text-sm md:text-base font-semibold text-nbac-body">
+                  <p className="font-sans text-sm md:text-base font-medium text-nbac-gold-light">
                     {speaker.title}
                   </p>
-                  <p className="font-sans text-xs uppercase tracking-wider text-nbac-muted font-medium mt-1">
-                    {speaker.company || speaker.organisation}
-                  </p>
+                  {(speaker.company || speaker.organisation) && (
+                    <span className="inline-flex items-center self-center md:self-start px-3 py-0.5 rounded-full bg-nbac-canvas border border-nbac-border text-xs text-nbac-muted font-medium">
+                      {speaker.company || speaker.organisation}
+                    </span>
+                  )}
                 </div>
               </div>
 
               {/* Bio Section */}
-              <div className="mb-8">
-                <h4 className="font-sans text-xs uppercase tracking-widest font-bold text-nbac-muted mb-3">
-                  BIOGRAPHY
+              <div className="space-y-3">
+                <h4 className="font-sans text-xs uppercase tracking-widest font-bold text-nbac-gold">
+                  Biography
                 </h4>
-                <p className="font-sans text-sm md:text-base font-light text-nbac-body leading-relaxed">
-                  {speaker.bio || "Biography details are being finalized. Check back soon for more information."}
-                </p>
+                <div className="font-sans text-sm md:text-base font-light text-nbac-body/90 leading-relaxed space-y-3">
+                  {speaker.bio ? (
+                    speaker.bio.split('\n\n').map((paragraph, pIdx) => (
+                      <p key={pIdx}>{paragraph.trim()}</p>
+                    ))
+                  ) : (
+                    <p className="italic text-nbac-muted">Biography details are currently being finalized.</p>
+                  )}
+                </div>
               </div>
 
               {/* Speaker Sessions Schedule */}
               {speakerSessions.length > 0 && (
-                <div>
-                  <h4 className="font-sans text-xs uppercase tracking-widest font-bold text-nbac-muted mb-4">
-                    SESSIONS & PRESENTATIONS
+                <div className="pt-4 border-t border-nbac-border/60">
+                  <h4 className="font-sans text-xs uppercase tracking-widest font-bold text-nbac-gold mb-4">
+                    Sessions & Presentations
                   </h4>
                   <div className="flex flex-col gap-3">
                     {speakerSessions.map(session => (
                       <div 
                         key={session.id} 
-                        className="p-4 rounded-lg bg-nbac-canvas/50 border border-nbac-border border-l-4 border-l-nbac-gold hover:border-l-nbac-gold-light transition-all"
+                        className="p-5 rounded-2xl bg-nbac-canvas/60 border border-nbac-border border-l-4 border-l-nbac-gold hover:border-l-nbac-gold-light transition-all shadow-md"
                       >
-                        <span className="inline-block bg-nbac-gold/15 text-nbac-gold text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm mb-2">
+                        <span className="inline-block bg-nbac-gold/15 text-nbac-gold text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full mb-2">
                           {session.category}
                         </span>
-                        <h5 className="font-sans text-sm font-semibold text-nbac-text leading-tight mb-2">
+                        <h5 className="font-sans text-base font-semibold text-nbac-text leading-tight mb-2">
                           {session.title}
                         </h5>
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-nbac-muted">
-                          <span className="flex items-center gap-1">
-                            <Calendar size={12} className="text-nbac-gold-light" />
+                        <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-nbac-muted">
+                          <span className="flex items-center gap-1.5">
+                            <Calendar size={13} className="text-nbac-gold" />
                             {formatDayName(session.day)}
                           </span>
-                          <span className="flex items-center gap-1">
-                            <Clock size={12} className="text-nbac-gold-light" />
+                          <span className="flex items-center gap-1.5">
+                            <Clock size={13} className="text-nbac-gold" />
                             {session.start_time} - {session.end_time}
                           </span>
                           {session.location && (
-                            <span className="flex items-center gap-1">
-                              <MapPin size={12} className="text-nbac-gold-light" />
+                            <span className="flex items-center gap-1.5">
+                              <MapPin size={13} className="text-nbac-gold" />
                               {session.location}
                             </span>
                           )}

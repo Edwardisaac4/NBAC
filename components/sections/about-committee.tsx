@@ -124,72 +124,102 @@ export function AboutCommittee() {
       {/* Bio Modal Overlay */}
       <AnimatePresence>
         {selectedMember && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 overflow-y-auto">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedMember(null)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+              className="fixed inset-0 bg-black/85 backdrop-blur-xl"
             />
 
             {/* Modal Box */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.94, y: 24 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-              className="relative w-full max-w-2xl bg-nbac-panel border border-nbac-border rounded-2xl overflow-hidden shadow-2xl z-10 flex flex-col md:flex-row max-h-[90vh] md:max-h-none overflow-y-auto md:overflow-visible"
+              exit={{ opacity: 0, scale: 0.94, y: 24 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 360 }}
+              className="relative w-full max-w-3xl bg-nbac-panel/95 border border-nbac-gold/30 rounded-3xl overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.85)] z-10 flex flex-col md:flex-row max-h-[88vh] backdrop-blur-2xl"
             >
+              {/* Background Luxury Ambient Lighting */}
+              <div className="absolute top-0 right-0 w-80 h-80 bg-nbac-gold/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+              <div className="absolute bottom-0 left-0 w-80 h-80 bg-nbac-emerald/10 rounded-full blur-3xl pointer-events-none -ml-20 -mb-20" />
+
               {/* Close Button */}
               <button
                 onClick={() => setSelectedMember(null)}
-                className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-[#0b0f10]/60 border border-nbac-border text-nbac-muted hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                className="absolute top-4 right-4 z-30 w-10 h-10 rounded-full bg-black/50 border border-nbac-gold/40 text-nbac-muted hover:text-nbac-gold hover:bg-black/90 hover:scale-105 flex items-center justify-center transition-all duration-300 cursor-pointer shadow-lg"
                 aria-label="Close bio"
               >
-                <X size={16} />
+                <X size={18} />
               </button>
 
-              {/* Photo Area */}
-              <div className="relative w-full md:w-[40%] aspect-[4/5] md:aspect-auto shrink-0 bg-nbac-alt border-b md:border-b-0 md:border-r border-nbac-border">
+              {/* Photo Column */}
+              <div className="relative w-full md:w-[42%] aspect-[4/5] md:aspect-auto shrink-0 bg-nbac-alt border-b md:border-b-0 md:border-r border-nbac-border/60 overflow-hidden group">
                 <Image
                   src={selectedMember.image}
                   alt={selectedMember.name}
                   fill
-                  className="object-cover"
-                  style={{ objectPosition: selectedMember.objectPosition || 'center' }}
-                  sizes="(max-w-7xl) 100vw, 30vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  style={{ objectPosition: selectedMember.objectPosition || 'top' }}
+                  sizes="(max-width: 768px) 100vw, 42vw"
                   quality={95}
                 />
-                <div className="absolute inset-0 bg-linear-to-t from-nbac-panel/90 via-transparent to-transparent opacity-60 pointer-events-none" />
+                {/* Dark Vignette Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-nbac-panel via-nbac-panel/20 to-transparent opacity-90 md:opacity-60 pointer-events-none" />
+                
+                {/* Floating Member Badge */}
+                <div className="absolute bottom-4 left-4 right-4 z-10 p-3 rounded-xl bg-nbac-panel/80 border border-nbac-gold/30 backdrop-blur-md">
+                  <p className="font-sans text-[10px] uppercase tracking-widest font-bold text-nbac-gold">
+                    Steering Committee
+                  </p>
+                  <p className="font-sans text-xs font-semibold text-nbac-text truncate">
+                    {selectedMember.name}
+                  </p>
+                </div>
               </div>
 
-              {/* Details & Bio */}
-              <div className="p-8 flex flex-col justify-between overflow-y-auto">
-                <div className="space-y-4">
+              {/* Details & Bio Scroll Column */}
+              <div className="p-6 md:p-10 flex flex-col justify-between overflow-y-auto w-full space-y-6">
+                <div className="space-y-6">
+                  {/* Title Header */}
                   <div>
-                    <h3 className="font-display text-2xl font-bold text-nbac-text tracking-wide">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="h-2 w-2 rounded-full bg-nbac-gold animate-pulse" />
+                      <span className="font-sans text-xs font-bold tracking-widest uppercase text-nbac-gold">
+                        Executive Leadership
+                      </span>
+                    </div>
+                    <h3 className="font-display text-2xl md:text-4xl font-bold text-nbac-text tracking-tight leading-snug">
                       {selectedMember.name}
                     </h3>
-                    <p className={`font-sans text-xs font-semibold tracking-widest mt-1.5 uppercase ${
-                      selectedMember.role === 'BOARD CHAIRMAN' || selectedMember.role === 'CHAIRMAN' || selectedMember.role === 'STRATEGIC DIRECTOR'
-                        ? 'text-nbac-gold-light'
-                        : 'text-nbac-emerald-light'
-                    }`}>
+                    <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full bg-nbac-gold/10 border border-nbac-gold/30 text-nbac-gold-light text-xs font-semibold tracking-wider uppercase">
                       {selectedMember.role}
-                    </p>
+                    </div>
                   </div>
-                  <div className="h-px bg-nbac-border" />
-                  <div className="font-sans text-sm md:text-base font-light text-nbac-body leading-relaxed max-w-prose space-y-4">
+
+                  {/* Accent Line */}
+                  <div className="h-0.5 w-full bg-gradient-to-r from-nbac-gold/40 via-nbac-border to-transparent rounded-full" />
+
+                  {/* Bio Paragraphs */}
+                  <div className="font-sans text-sm md:text-base text-nbac-body/90 leading-relaxed space-y-4 font-light">
                     {selectedMember.bio ? (
                       selectedMember.bio.split('\n\n').map((paragraph, pIdx) => (
-                        <p key={pIdx}>{paragraph.trim()}</p>
+                        <p key={pIdx} className={pIdx === 0 ? "first-letter:text-3xl first-letter:font-serif first-letter:font-bold first-letter:text-nbac-gold first-letter:mr-1 first-letter:float-left" : ""}>
+                          {paragraph.trim()}
+                        </p>
                       ))
                     ) : (
-                      <p>Biography details are currently being updated.</p>
+                      <p className="italic text-nbac-muted">Biography details are currently being updated.</p>
                     )}
                   </div>
+                </div>
+
+                {/* Footer Tag */}
+                <div className="pt-4 border-t border-nbac-border/60 flex items-center justify-between text-xs text-nbac-muted">
+                  <span>Nigerian Business Aviation Conference</span>
+                  <span className="text-nbac-gold font-semibold">NBAC 2027</span>
                 </div>
               </div>
             </motion.div>
