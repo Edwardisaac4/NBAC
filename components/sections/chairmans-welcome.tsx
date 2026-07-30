@@ -66,7 +66,7 @@ export function ChairmansWelcome() {
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12 md:gap-16">
         
         {/* Left Side: Chairman Portrait */}
-        <div className="welcome-image opacity-0 w-full md:w-[40%] flex justify-center shrink-0">
+        <div className="welcome-image w-full md:w-[40%] flex justify-center shrink-0">
           <div className="relative w-64 h-80 md:w-full md:h-[450px] rounded-xl overflow-hidden border border-nbac-border bg-nbac-deep shadow-2xl glass-card">
             <Image
               src="/images/sd-nbac.jpg"
@@ -90,7 +90,7 @@ export function ChairmansWelcome() {
         </div>
 
         {/* Right Side: Welcome Letter */}
-        <div className="welcome-content opacity-0 w-full md:w-[60%] flex flex-col justify-center">
+        <div className="welcome-content w-full md:w-[60%] flex flex-col justify-center">
           <SectionEyebrow>CHAIRMAN&apos;S ADDRESS</SectionEyebrow>
           
           <h2 className="font-display text-3xl md:text-4xl font-bold text-nbac-text tracking-tight leading-tight mt-4 mb-8">

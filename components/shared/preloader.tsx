@@ -25,20 +25,25 @@ export function Preloader() {
     preloaderShownStore.getServerSnapshot
   )
 
+  const isMounted = useSyncExternalStore(
+    preloaderShownStore.subscribe,
+    () => typeof window !== 'undefined',
+    () => false
+  )
   const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
-    if (!isAlreadyShown) {
+    if (isMounted && !isAlreadyShown) {
       document.body.style.overflow = 'hidden'
       return () => {
         document.body.style.overflow = ''
       }
     }
-  }, [isAlreadyShown])
+  }, [isMounted, isAlreadyShown])
 
   useGSAP(
     () => {
-      if (isAlreadyShown || !isVisible) return
+      if (!isMounted || isAlreadyShown || !isVisible) return
 
       const tl = gsap.timeline({
         onComplete: () => {
@@ -50,15 +55,14 @@ export function Preloader() {
 
       tl.to(containerRef.current, {
         opacity: 0,
-        duration: 0.35,
+        duration: 0.2,
         ease: 'power2.out',
-        delay: 0.05,
       })
     },
-    { dependencies: [isAlreadyShown, isVisible] }
+    { dependencies: [isMounted, isAlreadyShown, isVisible] }
   )
 
-  if (isAlreadyShown || !isVisible) return null
+  if (!isMounted || isAlreadyShown || !isVisible) return null
 
   return (
     <div

@@ -103,11 +103,11 @@ export function StateSection() {
       <div className="max-w-7xl mx-auto flex flex-col items-center">
         {/* Header */}
         <div className="text-center mb-16 md:mb-24 space-y-3 max-w-2xl">
-          <SectionEyebrow className="state-eyebrow opacity-0">Market Landscape</SectionEyebrow>
-          <h2 className="state-heading opacity-0 font-display text-3xl md:text-5xl font-bold text-nbac-text tracking-tight">
+          <SectionEyebrow className="state-eyebrow">Market Landscape</SectionEyebrow>
+          <h2 className="state-heading font-display text-3xl md:text-5xl font-bold text-nbac-text tracking-tight">
             The State of Nigerian Business Aviation
           </h2>
-          <div className="state-divider h-1 w-24 bg-nbac-gold mx-auto rounded-full mt-4 origin-center opacity-0" />
+          <div className="state-divider h-1 w-24 bg-nbac-gold mx-auto rounded-full mt-4 origin-center" />
         </div>
 
         {/* Pillars Grid */}
@@ -117,7 +117,7 @@ export function StateSection() {
             return (
               <motion.div
                 key={pillar.title}
-                className={`reveal-item opacity-0 bg-nbac-panel border rounded-lg p-8 border-l-4 flex gap-6 ${
+                className={`reveal-item bg-nbac-panel border rounded-lg p-8 border-l-4 flex gap-6 ${
                   pillar.highlighted
                     ? 'border-nbac-border border-l-nbac-gold shadow-[0_0_20px_rgba(197,160,89,0.08)]'
                     : 'border-nbac-border border-l-nbac-emerald/40'

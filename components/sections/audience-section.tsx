@@ -102,11 +102,11 @@ export function AudienceSection() {
       <div className="max-w-7xl mx-auto flex flex-col items-center">
         {/* Header */}
         <div className="text-center mb-16 md:mb-24 space-y-3 max-w-2xl">
-          <SectionEyebrow className="aud-eyebrow opacity-0">Strategic Cohorts</SectionEyebrow>
-          <h2 className="aud-heading opacity-0 font-display text-3xl md:text-5xl font-bold text-nbac-text tracking-tight">
+          <SectionEyebrow className="aud-eyebrow">Strategic Cohorts</SectionEyebrow>
+          <h2 className="aud-heading font-display text-3xl md:text-5xl font-bold text-nbac-text tracking-tight">
             This Conference Is For...
           </h2>
-          <div className="aud-divider h-1 w-24 bg-nbac-gold mx-auto rounded-full mt-4 origin-center opacity-0" />
+          <div className="aud-divider h-1 w-24 bg-nbac-gold mx-auto rounded-full mt-4 origin-center" />
         </div>
 
         {/* Audience Grid */}
@@ -117,7 +117,7 @@ export function AudienceSection() {
             return (
               <motion.div
                 key={audience.title}
-                className={`audience-card opacity-0 bg-nbac-panel border rounded-lg p-6 flex flex-col justify-between h-full transition-colors duration-300 ${
+                className={`audience-card bg-nbac-panel border rounded-lg p-6 flex flex-col justify-between h-full transition-colors duration-300 ${
                   isHNWI
                     ? 'border-nbac-gold/30 border-l-4 border-l-nbac-gold bg-nbac-gold/[0.01] hover:border-nbac-gold/50'
                     : 'border-nbac-border hover:border-nbac-emerald/50'

@@ -86,11 +86,11 @@ export function CommitteeSection() {
       <div className="max-w-7xl mx-auto flex flex-col items-center relative">
         {/* Header */}
         <div className="text-center mb-20 md:mb-28 space-y-3 max-w-2xl relative w-full">
-          <SectionEyebrow className="comm-eyebrow opacity-0">Leadership &amp; Vision</SectionEyebrow>
-          <h2 className="comm-heading opacity-0 font-display text-3xl md:text-5xl font-bold text-nbac-text tracking-tight">
+          <SectionEyebrow className="comm-eyebrow">Leadership &amp; Vision</SectionEyebrow>
+          <h2 className="comm-heading font-display text-3xl md:text-5xl font-bold text-nbac-text tracking-tight">
             Steering Committee
           </h2>
-          <div className="comm-divider h-1 w-24 bg-nbac-gold mx-auto rounded-full mt-4 origin-center opacity-0" />
+          <div className="comm-divider h-1 w-24 bg-nbac-gold mx-auto rounded-full mt-4 origin-center" />
         </div>
 
         {/* Slider Wrapper */}
@@ -105,7 +105,7 @@ export function CommitteeSection() {
                 return (
                   <div
                     key={`${member.name}-${index}`}
-                    className="committee-card opacity-0 w-[280px] shrink-0 pl-6 md:pl-8 py-4 flex flex-col items-center relative group"
+                    className="committee-card w-[280px] shrink-0 pl-6 md:pl-8 py-4 flex flex-col items-center relative group"
                   >
                     <motion.div
                       className="w-full flex flex-col items-center"
