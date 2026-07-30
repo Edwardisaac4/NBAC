@@ -5,6 +5,7 @@ import { useGSAP } from '@gsap/react'
 import Link from 'next/link'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import Image from 'next/image'
 import { StatCounter } from '../shared/stat-counter'
 import { CONFERENCE_META } from '@/data/conference-stats'
 
@@ -105,19 +106,16 @@ export function HeroSection() {
       }
 
       /* ── 1. Entrance Timeline ──────────────────────────── */
-      const isFirstLoad = !sessionStorage.getItem('nbac-preloader-shown')
-      const delayOffset = isFirstLoad ? 1.8 : 0
-
       const tl = gsap.timeline({
         defaults: { ease: 'power3.out' },
-        delay: delayOffset
+        delay: 0
       })
 
-      // Background zooms in from 1.3 → 1.1 with a cinematic reveal
+      // Background zooms in from 1.2 → 1.1 with a smooth reveal
       tl.fromTo(
         bgRef.current,
-        { scale: 1.3, opacity: 0 },
-        { scale: 1.1, opacity: 1, duration: 1.8, ease: 'power2.out' }
+        { scale: 1.2, opacity: 0.8 },
+        { scale: 1.1, opacity: 1, duration: 1.2, ease: 'power2.out' }
       )
 
       // Eyebrow drops in — letter-spacing narrows for a "focus" feel
@@ -386,16 +384,25 @@ export function HeroSection() {
     >
       {/* ── Background Image Layer ─────────────────────── */}
       <div className="absolute inset-0 z-0">
-        <div ref={bgRef} className="absolute inset-0 w-full h-full opacity-0 scale-110" style={{ willChange: 'transform' }}>
+        <div ref={bgRef} className="absolute inset-0 w-full h-full opacity-100 scale-110" style={{ willChange: 'transform' }}>
           {bgImages.map((src, index) => (
             <div
               key={src}
-              className="hero-bg-slide absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat"
+              className="hero-bg-slide absolute inset-0 w-full h-full"
               style={{
-                backgroundImage: `url("${src}")`,
                 opacity: index === 0 ? 1 : 0,
               }}
-            />
+            >
+              <Image
+                src={src}
+                alt="Nigerian Business Aviation Conference Hero Background"
+                fill
+                priority={index === 0}
+                sizes="100vw"
+                quality={75}
+                className="object-cover object-center"
+              />
+            </div>
           ))}
         </div>
 

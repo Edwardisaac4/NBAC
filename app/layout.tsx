@@ -7,13 +7,15 @@ import { ToastProvider } from "@/components/shared/toast";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
+  display: "swap",
 });
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
   variable: "--font-display",
-  weight: ["300", "400", "500", "600", "700"],
-  style: ["normal", "italic"],
+  weight: ["400", "600", "700"],
+  style: ["normal"],
+  display: "swap",
 });
 
 const siteUrl = "https://nbac.com.ng";
