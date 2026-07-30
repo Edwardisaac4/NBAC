@@ -74,7 +74,7 @@ export function ChairmansWelcome() {
               fill
               className="object-cover object-top filter contrast-[1.02]"
               sizes="(max-width: 768px) 256px, 450px"
-              quality={90}
+              quality={75}
             />
             {/* Ambient lighting glow */}
             <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f10]/80 via-transparent to-transparent pointer-events-none" />

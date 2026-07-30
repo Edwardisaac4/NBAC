@@ -124,7 +124,8 @@ export function CommitteeSection() {
                           height={448}
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                           style={{ objectPosition: member.objectPosition || 'center' }}
-                          quality={90}
+                          quality={75}
+                          sizes="(max-width: 768px) 176px, 224px"
                           priority={member.image === '/images/sd-nbac.jpg'}
                         />
                       </div>

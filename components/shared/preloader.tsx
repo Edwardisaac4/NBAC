@@ -48,39 +48,12 @@ export function Preloader() {
         },
       })
 
-      // 1. Logo scales and fades in
-      tl.fromTo(
-        logoRef.current,
-        { scale: 0.8, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 0.8, ease: 'back.out(1.7)' }
-      )
-
-      // 2. Text fades and slides in
-      tl.fromTo(
-        textRef.current,
-        { y: 15, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.6, ease: 'power2.out' },
-        '-=0.4'
-      )
-
-      // 3. Progress bar animates to 100%
-      tl.fromTo(
-        barRef.current,
-        { width: '0%' },
-        { width: '100%', duration: 1.2, ease: 'power1.inOut' },
-        '-=0.3'
-      )
-
-      // 4. Fade out the entire preloader container
-      tl.to(
-        containerRef.current,
-        {
-          opacity: 0,
-          scale: 1.05,
-          duration: 0.6,
-          ease: 'power2.inOut',
-        }
-      )
+      tl.to(containerRef.current, {
+        opacity: 0,
+        duration: 0.35,
+        ease: 'power2.out',
+        delay: 0.05,
+      })
     },
     { dependencies: [isAlreadyShown, isVisible] }
   )
