@@ -4,8 +4,9 @@ import { useRef } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { SectionEyebrow } from '../shared/section-eyebrow'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -22,7 +23,7 @@ export function ExperienceSection() {
 
       if (prefersReduced) {
         gsap.set(
-          ['.reveal-left', '.reveal-right', '.exp-eyebrow', '.exp-heading', '.exp-body', '.exp-list-item'],
+          ['.reveal-left', '.reveal-right', '.exp-eyebrow', '.exp-heading', '.exp-body', '.exp-list-item', '.exp-btn'],
           { opacity: 1, x: 0, y: 0 }
         )
         return
@@ -73,6 +74,11 @@ export function ExperienceSection() {
         .fromTo('.exp-list-item',
           { opacity: 0, x: 24 },
           { opacity: 1, x: 0, duration: 0.6, stagger: 0.12, ease: 'power2.out' },
+          '-=0.3'
+        )
+        .fromTo('.exp-btn',
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' },
           '-=0.3'
         )
 
@@ -135,6 +141,16 @@ export function ExperienceSection() {
               </li>
             ))}
           </ul>
+
+          <div className="exp-btn pt-4">
+            <Link
+              href="/about"
+              className="inline-flex items-center gap-2 bg-nbac-emerald hover:bg-nbac-emerald-dark text-white font-sans font-medium px-6 py-3 rounded-full text-xs uppercase tracking-wider transition-all duration-300 shadow-lg shadow-nbac-emerald/20 hover:shadow-nbac-emerald/30 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+            >
+              <span>Read More</span>
+              <ArrowRight size={16} />
+            </Link>
+          </div>
         </div>
       </div>
     </section>

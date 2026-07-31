@@ -13,63 +13,6 @@ export const STEERING_COMMITTEE_MEMBERS: CommitteeMember[] = [
     role: "CHAIRMAN",
     image: "/images/sd-nbac.jpg",
     objectPosition: "top",
-  },
-  {
-    name: "Josephine Kolawole",
-    role: "HEAD, MARKETING",
-    image: "/images/josephine-nbac.jpg",
-    objectPosition: "top",
-  },
-  {
-    name: "Boyede Oyegbami",
-    role: "HEAD, SALES",
-    image: "/images/boyede-nbac.jpg",
-    objectPosition: "top",
-  },
-  {
-    name: "OluBukunola Hudeyin",
-    role: "HEAD, QUALITY AND SAFETY",
-    image: "/images/bukky-nbac.jpg",
-    objectPosition: "top",
-  },
-  {
-    name: "Tunde Tunde-Awe",
-    role: "HEAD, PMO",
-    image: "/images/tunde-awe-nbac.jpg",
-    objectPosition: "top",
-  },
-  {
-    name: "Seye Fasuyi",
-    role: "HEAD, HUMAN RESOURCES",
-    image: "/images/seye-nbac.jpg",
-    objectPosition: "top",
-  },
-  {
-    name: "Ann Umeh",
-    role: "HEAD, CLIENT RELATIONS",
-    image: "/images/ann-umeh-nbac.jpg",
-    objectPosition: "top",
-  },
-  {
-    name: "Stephanie Leonard",
-    role: "MARKETING TEAM",
-    image: "/images/stephanie-nbac.jpeg",
-    objectPosition: "top",
-  },
-  {
-    name: "Christine Emanuwa",
-    role: "MARKETING TEAM",
-    image: "/images/christine-nbac.jpg",
-    objectPosition: "top",
-  },
-];
-
-export const ABOUT_COMMITTEE_MEMBERS: CommitteeMember[] = [
-  {
-    name: "Segun Demuren",
-    role: "CHAIRMAN",
-    image: "/images/sd-nbac.jpg",
-    objectPosition: "top",
     bio: `Olusegun Demuren brings visionary leadership and strategic expertise to EAN Aviation, driving its evolution as a leading force in Africa’s private aviation sector.
 
 He holds a B.Sc. in Information Systems from Marist College, New York, and has completed executive programs at Lagos Business School and the International Air Transport Association (IATA) in Singapore.
@@ -80,14 +23,27 @@ Combining technological insight with a deep understanding of the aviation indust
   },
   {
     name: "Josephine Kolawole",
-    role: "HEAD, MARKETING",
+    role: "",
     image: "/images/josephine-nbac.jpg",
     objectPosition: "top",
-    bio: `Josephine Kolawole is a marketing leader with nearly a decade of experience driving brand growth across the technology and aviation sectors. As Head of Marketing at EAN Aviation, she leads brand strategy, integrated marketing communications, digital marketing, and public relations, delivering initiatives that strengthen brand visibility and support business growth. Prior to this, she led regional marketing initiatives across Central Africa at HP, overseeing multi-market campaigns, go-to-market strategies, and channel marketing. Josephine is passionate about building brands that create measurable business impact through strategic thinking, stakeholder engagement, and data-driven execution. She is currently pursuing a PhD, reflecting her commitment to continuous learning and leadership.`,
+    bio: `Josephine Kolawole is a marketing leader with nearly a decade of experience driving brand growth across the technology and aviation sectors. As Head of Marketing at EAN Aviation, she leads brand strategy, integrated marketing communications, digital marketing, and public relations, delivering initiatives that strengthen brand visibility and support business growth.
+
+Prior to this, she led regional marketing initiatives across Central Africa at HP, overseeing multi-market campaigns, go-to-market strategies, and channel marketing. Josephine is passionate about building brands that create measurable business impact through strategic thinking, stakeholder engagement, and data-driven execution. She is currently pursuing a PhD, reflecting her commitment to continuous learning and leadership.`,
   },
   {
-    name: "Olubukunola Hudeyin",
-    role: "HEAD, QUALITY AND SAFETY",
+    name: "Boyede Oyegbami",
+    role: "",
+    image: "/images/boyede-nbac.jpg",
+    objectPosition: "top",
+    bio: `Boyede Oyegbami is an accomplished aviation commercial leader with over a decade of experience driving business growth, customer acquisition, and operational excellence across leading energy and aviation fueling companies in Nigeria.
+
+Prior to joining EAN, Boyede served as Aviation Commercial Manager at Eternal Plc, leading aviation business start-up, regulatory compliance, and end-to-end jet fuel operations, achieving milestones such as first into-plane fueling within a year and onboarding five airline customers in five months.
+
+He holds an MSc in Environmental Consultancy from Newcastle University (UK) and a BSc in Microbiology from Bowen University, complemented by certifications from IATA, the British Safety Council, and IEMA. Skilled in contract negotiations, customer relationship management, and strategic sales growth.`,
+  },
+  {
+    name: "OluBukunola Hudeyin",
+    role: "",
     image: "/images/bukky-nbac.jpg",
     objectPosition: "top",
     bio: `Olubukunola Hundeyin is an accomplished Quality, Safety, and Compliance executive with nearly a decade of progressive leadership experience driving operational excellence, regulatory compliance, and continuous improvement within the aviation industry. As Head of Quality & Safety, she provides strategic leadership in quality assurance, safety management, compliance monitoring, and organizational performance, ensuring alignment with the Nigerian Civil Aviation Regulations (Nig. CARs), ICAO Standards and Recommended Practices (SARPs), and internationally recognized best practices.
@@ -103,17 +59,53 @@ An American Society for Quality (ASQ) Certified Quality Auditor (CQA) and Certif
 Recognized for her collaborative leadership, integrity, and results-driven approach, Olubukunola is passionate about building high-performing teams, fostering a proactive safety culture, and implementing management systems that deliver measurable value. She remains committed to advancing quality and safety standards, strengthening regulatory compliance, and helping organizations achieve operational excellence in an evolving global aviation industry.`,
   },
   {
-    name: "Boyede Oyegbami",
-    role: "HEAD, SALES",
-    image: "/images/boyede-nbac.jpg",
+    name: "Tunde Tunde-Awe",
+    role: "",
+    image: "/images/tunde-awe-nbac.jpg",
     objectPosition: "top",
-    bio: `Boyede Oyegbami is an accomplished aviation commercial leader with over a decade of experience driving business growth, customer acquisition, and operational excellence across leading energy and aviation fueling companies in Nigeria.
+    bio: `Tunde oversees a multi-programme portfolio at EAN Aviation Group spanning aviation infrastructure development, charter operations, digital transformation, and new business development. He is building the PMO’s maturity as a strategic function within EAN.
 
-Prior to joining EAN, Boyede served as Aviation Commercial Manager at Eternal Plc, leading aviation business start-up, regulatory compliance, and end-to-end jet fuel operations, achieving milestones such as first into-plane fueling within a year and onboarding five airline customers in five months.
+His strengths lie in critical thinking, stakeholder management, and problem-solving, aligning consultants, regulators, and internal teams toward shared outcomes. He brings hands-on execution to corporate goals, closing the gap between strategy and delivery.
 
-He holds an MSc in Environmental Consultancy from Newcastle University (UK) and a BSc in Microbiology from Bowen University, complemented by certifications from IATA, the British Safety Council, and IEMA. Skilled in contract negotiations, customer relationship management, and strategic sales growth.`,
+Tunde holds a BSc in Geology and is PRINCE2 Practitioner certified, with executive education in Systems Thinking (MIT), Developing and Financing Infrastructure Projects (Brickstone Africa), and AI Infrastructure & Operations (NVIDIA). He is currently completing the Senior Management Programme at Lagos Business School.`,
+  },
+  {
+    name: "Seye Fasuyi",
+    role: "",
+    image: "/images/seye-nbac.jpg",
+    objectPosition: "top",
+    bio: `Seye Fasuyi brings over a decade of experience as a dynamic HR Business Partner, specializing in talent acquisition, organizational development, and change management across sectors such as entertainment, healthcare, communications, and technology. His passion lies in empowering individuals and organizations to reach their fullest potential while delivering tangible value to stakeholders. Before joining EAN Aviation, Seye led effective HR initiatives that enhanced performance and organizational effectiveness.
+
+He holds a B.Sc. in English from the University of Ilorin. Seye’s leadership is characterized by strategic insight, stakeholder collaboration, and an unwavering commitment to cultivating a high-performance culture.`,
+  },
+  {
+    name: "Ann Umeh",
+    role: "",
+    image: "/images/ann-umeh-nbac.jpg",
+    objectPosition: "top",
+    bio: `Ann Umeh is a dedicated Customer Relations professional known for building meaningful client connections and enhancing service excellence.
+
+She earned a bachelor’s degree in Computer Science from Lagos State University (LASU) and began her aviation career with a leading support service operator in Nigeria. Through her tenure as a Customer Relations Officer, Ann developed a robust foundation in client engagement and service management. She has since sharpened her skills with specialized training in project management, PLST, and leadership development.
+
+At EAN Aviation, Ann combines technical knowledge with a people-first approach to deliver seamless customer experiences that uphold the brand’s elite standards of service and responsiveness.`,
+  },
+  {
+    name: "Stephanie Leonard",
+    role: "",
+    image: "/images/stephanie-nbac.jpeg",
+    objectPosition: "top",
+    bio: `Stephanie Leonard plays a key role in campaign strategy, media relations, and brand activation for the Nigerian Business Aviation Conference. She brings expertise in digital storytelling, event marketing, and delegate engagement, contributing to NBAC's position as West Africa's leading business aviation platform.`,
+  },
+  {
+    name: "Christine Emanuwa",
+    role: "",
+    image: "/images/christine-nbac.jpg",
+    objectPosition: "top",
+    bio: `Christine Emanuwa specializes in digital communications, sponsor integration, and creative media asset management for NBAC. She supports end-to-end marketing execution, delegate communications, and press engagement to maximize event reach and partner visibility.`,
   },
 ];
+
+export const ABOUT_COMMITTEE_MEMBERS: CommitteeMember[] = STEERING_COMMITTEE_MEMBERS;
 
 export const CONFERENCE_OBJECTIVES = [
   "Raise awareness of the growing business aviation industry in Nigeria and provide a forum for all stakeholders to exchange views.",

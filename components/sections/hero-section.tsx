@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useSyncExternalStore } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useGSAP } from '@gsap/react'
 import Link from 'next/link'
 import gsap from 'gsap'
@@ -9,15 +9,7 @@ import Image from 'next/image'
 import { StatCounter } from '../shared/stat-counter'
 import { CONFERENCE_META } from '@/data/conference-stats'
 
-
 gsap.registerPlugin(ScrollTrigger)
-
-const emptySubscribe = () => () => {}
-const clientStore = {
-  subscribe: emptySubscribe,
-  getSnapshot: () => typeof window !== 'undefined',
-  getServerSnapshot: () => false,
-}
 
 /* ── Particle Configuration ─────────────────────────── */
 const PARTICLE_COUNT = 18
@@ -50,7 +42,7 @@ function generateParticles() {
     color: PARTICLE_COLORS[i % PARTICLE_COLORS.length],
     driftX: (random() - 0.5) * 120,  // horizontal drift range px
     driftY: -40 - random() * 80,     // float upward 40–120px
-    duration: 6 + random() * 8,      // 6–14s per loop
+    duration: 14 + random() * 14,    // 14–28s per loop (luxurious slow float)
     delay: random() * 5,             // stagger start
   }))
 }
@@ -62,9 +54,11 @@ const phrases = [
 ]
 
 const bgImages = [
-  "/images/hero_jet.jpg",
-  "/images/interior_cabin.jpg",
-  "/images/private_jet_runway_dusk.png"
+  "/images/sliders/slider 1.jpg",
+  "/images/sliders/slider 2.jpg",
+  "/images/sliders/AfRS_NBAC17_Day1_0001.jpg",
+  "/images/sliders/AfRS_NBAC17_Day1_0014.jpg",
+  "/images/sliders/AfRS_NBAC17_Day1_0056.jpg",
 ]
 
 /* Each word in the heading — break: true means a <br/> follows that word */
@@ -84,12 +78,16 @@ export function HeroSection() {
   const lightSweepRef = useRef<HTMLDivElement>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
 
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0)
   const [particles] = useState<ReturnType<typeof generateParticles>>(() => generateParticles())
-  const isMounted = useSyncExternalStore(
-    clientStore.subscribe,
-    clientStore.getSnapshot,
-    clientStore.getServerSnapshot
-  )
+
+  useEffect(() => {
+    if (bgImages.length <= 1) return
+    const timer = setInterval(() => {
+      setCurrentSlideIndex((prev) => (prev + 1) % bgImages.length)
+    }, 10000) // 10 seconds per slide for a relaxed, majestic presentation
+    return () => clearInterval(timer)
+  }, [])
 
   useGSAP(
     () => {
@@ -275,8 +273,8 @@ export function HeroSection() {
             .to(eyebrowRef.current, {
               opacity: 0,
               y: -10,
-              duration: 0.6,
-              delay: 4,
+              duration: 0.8,
+              delay: 7.5,
               onComplete: () => {
                 if (eyebrowRef.current) {
                   eyebrowRef.current.textContent = phrase
@@ -286,48 +284,13 @@ export function HeroSection() {
             .to(eyebrowRef.current, {
               opacity: 1,
               y: 0,
-              duration: 0.6,
+              duration: 0.8,
             })
         })
       }
 
-      /* ── 5. Background Image Carousel ──────────────────── */
-      const slides = gsap.utils.toArray('.hero-bg-slide') as HTMLElement[]
-      let currentSlide = 0
-
-      const playCarousel = () => {
-        const nextSlide = (currentSlide + 1) % slides.length
-        const crossfade = gsap.timeline()
-
-        crossfade.to(slides[currentSlide], {
-          opacity: 0,
-          scale: 1.05,
-          duration: 1.5,
-          ease: 'power2.inOut',
-        })
-
-        crossfade.to(
-          slides[nextSlide],
-          {
-            opacity: 1,
-            scale: 1,
-            duration: 1.5,
-            ease: 'power2.inOut',
-          },
-          0
-        )
-
-        currentSlide = nextSlide
-        gsap.delayedCall(6, playCarousel)
-      }
-
-      /* ── Start loops after entrance completes ──────────── */
+      /* ── Start eyebrow loop after entrance completes ──── */
       tl.call(startEyebrowLoop)
-      tl.call(() => {
-        if (slides.length > 1) {
-          gsap.delayedCall(5, playCarousel)
-        }
-      })
     },
     { scope: containerRef }
   )
@@ -397,28 +360,25 @@ export function HeroSection() {
       {/* ── Background Image Layer ─────────────────────── */}
       <div className="absolute inset-0 z-0">
         <div ref={bgRef} className="absolute inset-0 w-full h-full opacity-100 scale-110" style={{ willChange: 'transform' }}>
-          {bgImages.map((src, index) => {
-            if (index > 0 && !isMounted) return null
-            return (
-              <div
-                key={src}
-                className="hero-bg-slide absolute inset-0 w-full h-full"
-                style={{
-                  opacity: index === 0 ? 1 : 0,
-                }}
-              >
-                <Image
-                  src={src}
-                  alt="Nigerian Business Aviation Conference Hero Background"
-                  fill
-                  priority={index === 0}
-                  sizes="100vw"
-                  quality={75}
-                  className="object-cover object-center"
-                />
-              </div>
-            )
-          })}
+          {bgImages.map((src, index) => (
+            <div
+              key={src}
+              className="hero-bg-slide absolute inset-0 w-full h-full transition-opacity duration-[2500ms] ease-in-out pointer-events-none"
+              style={{
+                opacity: index === currentSlideIndex ? 1 : 0,
+              }}
+            >
+              <Image
+                src={src}
+                alt="Nigerian Business Aviation Conference Hero Background"
+                fill
+                priority={index === 0}
+                sizes="100vw"
+                quality={75}
+                className="object-cover object-center"
+              />
+            </div>
+          ))}
         </div>
 
         {/* Dark overlay to ensure background images are always rich and text is legible */}
