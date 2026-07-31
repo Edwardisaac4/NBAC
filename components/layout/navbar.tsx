@@ -194,18 +194,6 @@ export function Navbar() {
                         >
                           Blog
                         </Link>
-                        <Link
-                          href="/privacy"
-                          className="px-4 py-2 font-sans text-[11px] uppercase tracking-wider text-nbac-body hover:text-nbac-emerald hover:bg-nbac-emerald/5 rounded-lg transition-all duration-200"
-                        >
-                          Privacy Policy
-                        </Link>
-                        <Link
-                          href="/terms"
-                          className="px-4 py-2 font-sans text-[11px] uppercase tracking-wider text-nbac-body hover:text-nbac-emerald hover:bg-nbac-emerald/5 rounded-lg transition-all duration-200"
-                        >
-                          Terms of Use
-                        </Link>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -405,20 +393,6 @@ export function Navbar() {
                                 >
                                   Blog
                                 </Link>
-                                <Link
-                                  href="/privacy"
-                                  onClick={toggleMobileMenu}
-                                  className="text-xs font-sans uppercase tracking-wider text-nbac-muted hover:text-nbac-emerald py-1 transition-colors text-left"
-                                >
-                                  Privacy Policy
-                                </Link>
-                                <Link
-                                  href="/terms"
-                                  onClick={toggleMobileMenu}
-                                  className="text-xs font-sans uppercase tracking-wider text-nbac-muted hover:text-nbac-emerald py-1 transition-colors text-left"
-                                >
-                                  Terms of Use
-                                </Link>
                               </motion.div>
                             )}
                           </AnimatePresence>
@@ -560,20 +534,6 @@ export function Navbar() {
                                 className="text-xs font-sans uppercase tracking-wider text-nbac-muted hover:text-nbac-emerald py-1 transition-colors text-left"
                               >
                                 Blog
-                              </Link>
-                              <Link
-                                href="/privacy"
-                                onClick={toggleMobileMenu}
-                                className="text-xs font-sans uppercase tracking-wider text-nbac-muted hover:text-nbac-emerald py-1 transition-colors text-left"
-                              >
-                                Privacy Policy
-                              </Link>
-                              <Link
-                                href="/terms"
-                                onClick={toggleMobileMenu}
-                                className="text-xs font-sans uppercase tracking-wider text-nbac-muted hover:text-nbac-emerald py-1 transition-colors text-left"
-                              >
-                                Terms of Use
                               </Link>
                             </motion.div>
                           )}

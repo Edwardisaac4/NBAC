@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useGSAP } from '@gsap/react'
 import Link from 'next/link'
 import gsap from 'gsap'
@@ -8,7 +8,6 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Image from 'next/image'
 import { StatCounter } from '../shared/stat-counter'
 import { CONFERENCE_META } from '@/data/conference-stats'
-
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -43,7 +42,7 @@ function generateParticles() {
     color: PARTICLE_COLORS[i % PARTICLE_COLORS.length],
     driftX: (random() - 0.5) * 120,  // horizontal drift range px
     driftY: -40 - random() * 80,     // float upward 40–120px
-    duration: 6 + random() * 8,      // 6–14s per loop
+    duration: 14 + random() * 14,    // 14–28s per loop (luxurious slow float)
     delay: random() * 5,             // stagger start
   }))
 }
@@ -55,9 +54,11 @@ const phrases = [
 ]
 
 const bgImages = [
-  "/images/hero_jet.jpg",
-  "/images/interior_cabin.jpg",
-  "/images/private_jet_runway_dusk.png"
+  "/images/sliders/slider 1.jpg",
+  "/images/sliders/slider 2.jpg",
+  "/images/sliders/AfRS_NBAC17_Day1_0001.jpg",
+  "/images/sliders/AfRS_NBAC17_Day1_0014.jpg",
+  "/images/sliders/AfRS_NBAC17_Day1_0056.jpg",
 ]
 
 /* Each word in the heading — break: true means a <br/> follows that word */
@@ -77,7 +78,16 @@ export function HeroSection() {
   const lightSweepRef = useRef<HTMLDivElement>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
 
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0)
   const [particles] = useState<ReturnType<typeof generateParticles>>(() => generateParticles())
+
+  useEffect(() => {
+    if (bgImages.length <= 1) return
+    const timer = setInterval(() => {
+      setCurrentSlideIndex((prev) => (prev + 1) % bgImages.length)
+    }, 10000) // 10 seconds per slide for a relaxed, majestic presentation
+    return () => clearInterval(timer)
+  }, [])
 
   useGSAP(
     () => {
@@ -263,8 +273,8 @@ export function HeroSection() {
             .to(eyebrowRef.current, {
               opacity: 0,
               y: -10,
-              duration: 0.6,
-              delay: 4,
+              duration: 0.8,
+              delay: 7.5,
               onComplete: () => {
                 if (eyebrowRef.current) {
                   eyebrowRef.current.textContent = phrase
@@ -274,48 +284,13 @@ export function HeroSection() {
             .to(eyebrowRef.current, {
               opacity: 1,
               y: 0,
-              duration: 0.6,
+              duration: 0.8,
             })
         })
       }
 
-      /* ── 5. Background Image Carousel ──────────────────── */
-      const slides = gsap.utils.toArray('.hero-bg-slide') as HTMLElement[]
-      let currentSlide = 0
-
-      const playCarousel = () => {
-        const nextSlide = (currentSlide + 1) % slides.length
-        const crossfade = gsap.timeline()
-
-        crossfade.to(slides[currentSlide], {
-          opacity: 0,
-          scale: 1.05,
-          duration: 1.5,
-          ease: 'power2.inOut',
-        })
-
-        crossfade.to(
-          slides[nextSlide],
-          {
-            opacity: 1,
-            scale: 1,
-            duration: 1.5,
-            ease: 'power2.inOut',
-          },
-          0
-        )
-
-        currentSlide = nextSlide
-        gsap.delayedCall(6, playCarousel)
-      }
-
-      /* ── Start loops after entrance completes ──────────── */
+      /* ── Start eyebrow loop after entrance completes ──── */
       tl.call(startEyebrowLoop)
-      tl.call(() => {
-        if (slides.length > 1) {
-          gsap.delayedCall(5, playCarousel)
-        }
-      })
     },
     { scope: containerRef }
   )
@@ -388,9 +363,9 @@ export function HeroSection() {
           {bgImages.map((src, index) => (
             <div
               key={src}
-              className="hero-bg-slide absolute inset-0 w-full h-full"
+              className="hero-bg-slide absolute inset-0 w-full h-full transition-opacity duration-[2500ms] ease-in-out pointer-events-none"
               style={{
-                opacity: index === 0 ? 1 : 0,
+                opacity: index === currentSlideIndex ? 1 : 0,
               }}
             >
               <Image
@@ -448,7 +423,7 @@ export function HeroSection() {
         {/* Eyebrow */}
         <span
           ref={eyebrowRef}
-          className="font-sans text-xs md:text-sm uppercase tracking-[0.3em] font-semibold text-nbac-gold-light block opacity-0 select-none"
+          className="font-sans text-xs md:text-sm uppercase tracking-[0.3em] font-semibold text-nbac-gold-light block select-none"
         >
           {phrases[0]}
         </span>
@@ -461,14 +436,14 @@ export function HeroSection() {
         >
           {headingWords.map((word, i) => (
             <span key={i}>
-              <span className="hero-word inline-block opacity-0">{word.text}</span>
+              <span className="hero-word inline-block">{word.text}</span>
               {word.break ? <br className="hidden sm:inline" /> : ' '}
             </span>
           ))}
         </h1>
 
         {/* Venue / Date Metadata */}
-        <div className="hero-meta relative w-full h-14 sm:h-10 md:h-8 flex items-center justify-center opacity-0 select-none overflow-hidden">
+        <div className="hero-meta relative w-full h-14 sm:h-10 md:h-8 flex items-center justify-center select-none overflow-hidden">
           <p className="font-sans text-xs sm:text-sm md:text-lg text-white/90 tracking-wider font-medium max-w-2xl mx-auto text-center">
             {CONFERENCE_META.date} • {CONFERENCE_META.venue}, {CONFERENCE_META.location}
           </p>
@@ -477,27 +452,27 @@ export function HeroSection() {
         {/* Stats Row */}
         <div ref={statsRowRef} className="grid grid-cols-2 sm:grid-cols-4 gap-y-6 gap-x-4 sm:gap-x-8 md:gap-x-12 lg:gap-x-16 py-4 md:py-6 w-full max-w-4xl mx-auto my-2 md:my-3 relative" style={{ willChange: 'transform' }}>
           {/* Top divider — grows from center */}
-          <div className="hero-divider-line absolute top-0 left-0 right-0 h-px bg-white/15 origin-center opacity-0" />
+          <div className="hero-divider-line absolute top-0 left-0 right-0 h-px bg-white/15 origin-center" />
 
-          <div className="hero-stat-item opacity-0">
+          <div className="hero-stat-item">
             <StatCounter value={300} suffix="+" label="Delegates" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
           </div>
-          <div className="hero-stat-item opacity-0">
+          <div className="hero-stat-item">
             <StatCounter value={30} suffix="+" label="AeroLab Applicant Teams" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
           </div>
-          <div className="hero-stat-item opacity-0">
+          <div className="hero-stat-item">
             <StatCounter value={8} suffix="" label="Sessions" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
           </div>
-          <div className="hero-stat-item opacity-0">
+          <div className="hero-stat-item">
             <StatCounter value={6} suffix="" label="Panel Sessions" duration={1.5} numberClassName="text-white" labelClassName="text-white/70" />
           </div>
 
           {/* Bottom divider — grows from center */}
-          <div className="hero-divider-line absolute bottom-0 left-0 right-0 h-px bg-white/15 origin-center opacity-0" />
+          <div className="hero-divider-line absolute bottom-0 left-0 right-0 h-px bg-white/15 origin-center" />
         </div>
 
         {/* CTAs */}
-        <div className="hero-buttons flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto opacity-0">
+        <div className="hero-buttons flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
           <Link href="/reservations" className="w-full sm:w-auto">
             <button className="hero-shimmer w-full bg-linear-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold hover:from-nbac-gold-light hover:to-nbac-gold text-[#0b0f10] font-sans font-bold px-6 md:px-8 py-2.5 md:py-3 rounded-full transition-all duration-300 shadow-lg shadow-nbac-gold/15 hover:shadow-nbac-gold/30 hover:scale-[1.02] active:scale-[0.98] text-sm uppercase tracking-widest cursor-pointer">
               Secure Executive Pass

@@ -884,6 +884,36 @@ export async function POST(request: Request) {
 
 ---
 
+## 13. PERFORMANCE OPTIMIZATION & SPEED MANDATES
+
+To ensure the platform loads instantly and performs smoothly on all devices—even under constrained or low-bandwidth African mobile network environments—every agent MUST enforce the following performance guidelines:
+
+1. **Hardware Acceleration & GPU Offloading**:
+   - Only animate composite properties (`transform: translate3d/scale/rotate` and `opacity`).
+   - Never animate layout properties (`height`, `width`, `top`, `left`, `margin`, `padding`) in scroll-driven GSAP or Framer Motion timelines.
+   - Use `willChange: 'transform'` or `willChange: 'opacity'` on heavy animated containers (e.g. Hero backgrounds, parallax elements).
+
+2. **Responsive Image Optimization (`next/image`)**:
+   - Always supply exact `sizes` props for responsive width selection (e.g., `sizes="(max-width: 768px) 100vw, 50vw"`).
+   - Keep image quality capped at `quality={75}` for standard images and `quality={85}` max for hero assets.
+   - Set `priority={true}` ONLY for critical LCP hero images; set `loading="lazy"` for all below-the-fold media.
+
+3. **Low-Bandwidth & Slow Network Resilience**:
+   - Keep public pages fully static or SSG-rendered with zero blocking client-side data fetches.
+   - Marquee animations (`animate-marquee`) MUST use pure CSS `@keyframes` hardware acceleration—never JavaScript intervals or frame loops.
+   - All interactive forms and action buttons must feature instant optimistic UI states and double-submit guards to prevent laggy multi-payload submissions.
+
+4. **DOM Structure & Layer Minimization**:
+   - Limit heavy CSS `backdrop-blur-*` filters to fixed top-level containers (Navbar, Modal backdrop). Avoid nesting blurs inside repeated grid items.
+   - Always scope GSAP timelines using `useGSAP` scope context so animations are cleanly garbage collected on unmount.
+   - Use `React.memo` or clean component boundaries for large data lists to minimize re-render cycles.
+
+5. **Device & Power Adaptability**:
+   - Always honor `window.matchMedia('(prefers-reduced-motion: reduce)')` by providing zero-animation static fallbacks.
+   - Keep ambient particle effects under 20 elements and restrict heavy visual sweeps on low-tier mobile viewports.
+
+---
+
 ## 15. WHAT NOT TO DO
 
 - Do NOT build delegate accounts, a delegate portal, or any delegate-facing auth.

@@ -4,8 +4,9 @@ import { useRef } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { SectionEyebrow } from '../shared/section-eyebrow'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -22,8 +23,8 @@ export function ExperienceSection() {
 
       if (prefersReduced) {
         gsap.set(
-          ['.reveal-left', '.reveal-right', '.exp-eyebrow', '.exp-heading', '.exp-body', '.exp-list-item'],
-          { opacity: 1, x: 0, y: 0 }
+          ['.reveal-left', '.reveal-right', '.exp-eyebrow', '.exp-heading', '.exp-body', '.exp-list-item', '.exp-btn'],
+          { autoAlpha: 1, x: 0, y: 0 }
         )
         return
       }
@@ -75,6 +76,11 @@ export function ExperienceSection() {
           { opacity: 1, x: 0, duration: 0.6, stagger: 0.12, ease: 'power2.out' },
           '-=0.3'
         )
+        .fromTo('.exp-btn',
+          { autoAlpha: 0, y: 20 },
+          { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power2.out' },
+          '-=0.3'
+        )
 
       /* ── Subtle parallax on the image ─────────────────── */
       gsap.to(imageRef.current, {
@@ -101,7 +107,7 @@ export function ExperienceSection() {
     <section ref={containerRef} className="py-20 md:py-32 bg-nbac-canvas overflow-hidden px-6 md:px-24">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-center">
         {/* Left Side: Cabin Image */}
-        <div className="reveal-left opacity-0 order-2 lg:order-1 relative w-full aspect-video lg:aspect-[4/3] rounded-xl overflow-hidden border border-nbac-border shadow-2xl shadow-nbac-emerald/5 group">
+        <div className="reveal-left order-2 lg:order-1 relative w-full aspect-video lg:aspect-[4/3] rounded-xl overflow-hidden border border-nbac-border shadow-2xl shadow-nbac-emerald/5 group">
           {/* Subtle green ambient lighting underneath */}
           <div className="absolute -top-10 -left-10 w-40 h-40 bg-nbac-emerald/5 blur-[85px] rounded-full" />
           <div ref={imageRef} className="w-full h-full absolute inset-0" style={{ willChange: 'transform' }}>
@@ -118,23 +124,33 @@ export function ExperienceSection() {
 
         {/* Right Side: Copy & List */}
         <div className="reveal-right order-1 lg:order-2 space-y-6 max-w-xl">
-          <SectionEyebrow className="exp-eyebrow opacity-0">Exclusive Experience</SectionEyebrow>
-          <h2 className="exp-heading opacity-0 font-display text-3xl md:text-5xl font-bold text-nbac-text tracking-tight leading-tight">
+          <SectionEyebrow className="exp-eyebrow">Exclusive Experience</SectionEyebrow>
+          <h2 className="exp-heading font-display text-3xl md:text-5xl font-bold text-nbac-text tracking-tight leading-tight">
             One Sky, Many Stakeholders:
             Building a Connected Business Aviation
             Ecosystem
           </h2>
-          <p className="exp-body opacity-0 font-sans text-base font-light text-nbac-body leading-relaxed">
+          <p className="exp-body font-sans text-base font-light text-nbac-body leading-relaxed">
             NBAC 2027 is the only platform where the decision-makers of West African aviation congregate to discuss the future of the industry while experiencing the latest in aeronautical engineering.
           </p>
           <ul className="space-y-4 pt-4">
             {items.map((item) => (
-              <li key={item} className="exp-list-item opacity-0 flex items-center gap-4 text-nbac-text font-sans text-sm font-light">
+              <li key={item} className="exp-list-item flex items-center gap-4 text-nbac-text font-sans text-sm font-light">
                 <CheckCircle2 className="text-nbac-emerald h-5 w-5 flex-shrink-0" />
                 <span>{item}</span>
               </li>
             ))}
           </ul>
+
+          <div className="exp-btn pt-4">
+            <Link
+              href="/about"
+              className="inline-flex items-center gap-2 bg-nbac-emerald hover:bg-nbac-emerald-dark text-white font-sans font-medium px-6 py-3 rounded-full text-xs uppercase tracking-wider transition-all duration-300 shadow-lg shadow-nbac-emerald/20 hover:shadow-nbac-emerald/30 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+            >
+              <span>Read More</span>
+              <ArrowRight size={16} />
+            </Link>
+          </div>
         </div>
       </div>
     </section>
