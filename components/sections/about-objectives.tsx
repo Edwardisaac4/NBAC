@@ -4,7 +4,7 @@ import { useRef } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Target, Coins, ShieldCheck, Building2, CheckCircle2, Sparkles } from 'lucide-react'
 import { SectionEyebrow } from '../shared/section-eyebrow'
 
@@ -76,6 +76,7 @@ export const DETAILED_OBJECTIVES: DescriptiveObjective[] = [
 
 export function AboutObjectives() {
   const sectionRef = useRef<HTMLElement>(null)
+  const shouldReduceMotion = useReducedMotion()
 
   useGSAP(
     () => {
@@ -130,7 +131,6 @@ export function AboutObjectives() {
 
   const cardHover = {
     y: -8,
-    boxShadow: '0 20px 50px rgba(16, 185, 129, 0.12)',
   }
 
   return (
@@ -164,8 +164,8 @@ export function AboutObjectives() {
             return (
               <motion.div
                 key={obj.number}
-                className="obj-card relative overflow-hidden group rounded-2xl border border-nbac-border/70 bg-linear-to-br from-nbac-panel/95 via-nbac-panel to-nbac-emerald/[0.04] backdrop-blur-xl p-8 md:p-10 flex flex-col justify-between transition-all duration-500 hover:border-nbac-emerald/40 hover:bg-nbac-panel"
-                whileHover={cardHover}
+                className="obj-card relative overflow-hidden group rounded-2xl border border-nbac-border/70 bg-linear-to-br from-nbac-panel/95 via-nbac-panel to-nbac-emerald/[0.04] p-8 md:p-10 flex flex-col justify-between transition-all duration-500 hover:border-nbac-emerald/40 hover:bg-nbac-panel"
+                whileHover={shouldReduceMotion ? undefined : cardHover}
                 transition={{ duration: 0.35, ease: 'easeOut' }}
               >
                 {/* Executive Top Accent Border (Kept & Enhanced) */}

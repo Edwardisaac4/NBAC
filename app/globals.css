@@ -245,6 +245,12 @@
     animation: marquee 55s linear infinite;
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .animate-marquee {
+      animation: none !important;
+    }
+  }
+
   .animate-marquee:hover {
     animation-play-state: paused;
   }

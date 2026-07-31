@@ -24,7 +24,7 @@ export function ExperienceSection() {
       if (prefersReduced) {
         gsap.set(
           ['.reveal-left', '.reveal-right', '.exp-eyebrow', '.exp-heading', '.exp-body', '.exp-list-item', '.exp-btn'],
-          { opacity: 1, x: 0, y: 0 }
+          { autoAlpha: 1, x: 0, y: 0 }
         )
         return
       }
@@ -77,8 +77,8 @@ export function ExperienceSection() {
           '-=0.3'
         )
         .fromTo('.exp-btn',
-          { opacity: 0, y: 20 },
-          { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' },
+          { autoAlpha: 0, y: 20 },
+          { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power2.out' },
           '-=0.3'
         )
 

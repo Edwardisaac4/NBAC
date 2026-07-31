@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -15,7 +15,55 @@ gsap.registerPlugin(ScrollTrigger)
 
 export function CommitteeSection() {
   const containerRef = useRef<HTMLDivElement>(null)
+  const modalRef = useRef<HTMLDivElement>(null)
   const [selectedMember, setSelectedMember] = useState<CommitteeMember | null>(null)
+
+  useEffect(() => {
+    if (!selectedMember) return
+
+    const previousActiveElement = document.activeElement as HTMLElement | null
+    if (modalRef.current) {
+      modalRef.current.focus()
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedMember(null)
+        return
+      }
+
+      if (e.key === 'Tab' && modalRef.current) {
+        const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+        if (focusableElements.length === 0) return
+
+        const firstElement = focusableElements[0]
+        const lastElement = focusableElements[focusableElements.length - 1]
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault()
+            lastElement.focus()
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault()
+            lastElement.focus()
+          }
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
+        previousActiveElement.focus()
+      }
+    }
+  }, [selectedMember])
 
   // Duplicate the list of members to ensure seamless infinite looping marquee
   const duplicatedMembers = [
@@ -183,11 +231,16 @@ export function CommitteeSection() {
 
             {/* Modal Card Container */}
             <motion.div
+              ref={modalRef}
+              tabIndex={-1}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="member-modal-title"
               initial={{ opacity: 0, scale: 0.94, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.94, y: 16 }}
               transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-              className="relative w-full max-w-3xl bg-linear-to-b from-nbac-panel via-nbac-panel to-nbac-canvas border border-nbac-gold/30 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.8)] overflow-hidden z-10 my-auto"
+              className="relative w-full max-w-3xl bg-linear-to-b from-nbac-panel via-nbac-panel to-nbac-canvas border border-nbac-gold/30 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.8)] overflow-hidden z-10 my-auto focus:outline-none"
             >
               {/* Top Luxury Gradient Bar */}
               <div className="h-1.5 w-full bg-linear-to-r from-nbac-gold via-nbac-emerald to-nbac-gold" />
@@ -231,7 +284,7 @@ export function CommitteeSection() {
                       </div>
                     ) : null}
 
-                    <h3 className="font-display text-3xl sm:text-4xl font-bold text-nbac-text tracking-tight leading-tight">
+                    <h3 id="member-modal-title" className="font-display text-3xl sm:text-4xl font-bold text-nbac-text tracking-tight leading-tight">
                       {selectedMember.name}
                     </h3>
 
