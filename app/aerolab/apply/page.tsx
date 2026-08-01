@@ -204,7 +204,7 @@ export default function AeroLabApplyPage() {
                         return (
                           <label
                             key={track.id}
-                            className={`cursor-pointer rounded-xl p-4 md:p-5 border transition-all duration-200 text-left flex flex-col justify-between ${
+                            className={`cursor-pointer rounded-xl p-4 md:p-5 border transition-all duration-200 text-left flex flex-col justify-between has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-nbac-gold/70 has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-nbac-canvas ${
                               isSelected
                                 ? 'bg-nbac-panel border-nbac-gold shadow-[0_0_20px_rgba(196,149,42,0.15)] ring-1 ring-nbac-gold/50'
                                 : 'bg-nbac-panel/30 border-nbac-border/60 hover:border-nbac-border hover:bg-nbac-panel/60'

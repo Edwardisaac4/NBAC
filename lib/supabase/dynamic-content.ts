@@ -61,6 +61,7 @@ function rowToPassTier(row: TicketTierRow): PassTierDetails {
     badge: row.badge ?? undefined,
     price: row.price,
     currency: (row.currency as PassTierDetails['currency']) || 'USD',
+    description: row.description ?? undefined,
     privileges: row.privileges ?? [],
     billingModel: row.billing_model as PassTierDetails['billingModel'],
     includedDelegates: row.included_delegates,

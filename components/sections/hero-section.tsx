@@ -529,12 +529,12 @@ export function HeroSection() {
               key={idx}
               onClick={() => setCurrentSlideIndex(idx)}
               className={`transition-all duration-300 rounded-full cursor-pointer ${idx === currentSlideIndex
-                  ? 'w-6 h-1.5 bg-nbac-gold shadow-[0_0_8px_rgba(196,149,42,0.8)]'
-                  : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/80'
+                ? 'w-6 h-1.5 bg-nbac-gold shadow-[0_0_8px_rgba(196,149,42,0.8)]'
+                : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/80'
                 }`}
               aria-label={`Go to slide ${idx + 1}`}
-            />
-          ))}
+              aria-pressed={idx === currentSlideIndex}
+            />))}
         </div>
 
         <button

@@ -32,9 +32,9 @@ export default function SponsorContactPage() {
       const foundTier = activeTiers.find(t => t.id === (tierParam || 'bronze')) || activeTiers[0] || null
       if (foundTier) {
         setSelectedTier(foundTier)
-      }
-      if (tierParam) {
-        setIsTierLocked(true)
+        if (tierParam) {
+          setIsTierLocked(true)
+        }
       }
     }
     load()

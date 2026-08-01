@@ -113,6 +113,15 @@ export default function AdminSponsorsManagerPage() {
       toast.error('Tier ID, Name, and Description are required.');
       return;
     }
+    if (isNew) {
+      const exists = tiers.some(
+        (t) => t.id.trim().toLowerCase() === editing.id.trim().toLowerCase()
+      );
+      if (exists) {
+        toast.error(`A sponsor tier with ID "${editing.id.trim()}" already exists.`);
+        return;
+      }
+    }
     setSaving(true);
     const result = await upsertSponsorTier(editing);
     setSaving(false);

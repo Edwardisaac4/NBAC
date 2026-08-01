@@ -6,9 +6,20 @@ import crypto from 'crypto';
 
 // In-memory rate limiting: max 5 requests per 15 minutes per IP
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_MAP_MAX = 1000;
 
 function isRateLimited(ip: string, limit = 5, windowMs = 15 * 60 * 1000): boolean {
   const now = Date.now();
+
+  // Prune expired entries when map exceeds max size
+  if (rateLimitMap.size >= RATE_LIMIT_MAP_MAX) {
+    for (const [key, record] of rateLimitMap) {
+      if (now > record.resetTime) {
+        rateLimitMap.delete(key);
+      }
+    }
+  }
+
   const record = rateLimitMap.get(ip);
   if (!record || now > record.resetTime) {
     rateLimitMap.set(ip, { count: 1, resetTime: now + windowMs });
@@ -63,7 +74,7 @@ export async function POST(request: Request) {
 
     // Input type & bounds validation
     const parsedTrackId = Number(trackId);
-    if (!Number.isFinite(parsedTrackId) || parsedTrackId < 1 || parsedTrackId > 5) {
+    if (!Number.isFinite(parsedTrackId) || !Number.isInteger(parsedTrackId) || parsedTrackId < 1 || parsedTrackId > 5) {
       return NextResponse.json(
         { error: 'Invalid trackId. Must be an integer between 1 and 5.' },
         { status: 400 }
@@ -71,7 +82,7 @@ export async function POST(request: Request) {
     }
 
     const parsedMemberCount = Number(memberCount || 3);
-    if (!Number.isFinite(parsedMemberCount) || parsedMemberCount < 1 || parsedMemberCount > 10) {
+    if (!Number.isFinite(parsedMemberCount) || !Number.isInteger(parsedMemberCount) || parsedMemberCount < 1 || parsedMemberCount > 10) {
       return NextResponse.json(
         { error: 'Invalid memberCount. Must be an integer between 1 and 10.' },
         { status: 400 }
@@ -97,6 +108,18 @@ export async function POST(request: Request) {
     }
     if (memberRoster && String(memberRoster).length > 2000) {
       return NextResponse.json({ error: 'Member roster is too long (max 2000 chars).' }, { status: 400 });
+    }
+    if (String(leaderEmail).length > 254) {
+      return NextResponse.json({ error: 'Leader email is too long (max 254 chars).' }, { status: 400 });
+    }
+    if (leaderPhone && String(leaderPhone).length > 30) {
+      return NextResponse.json({ error: 'Phone number is too long (max 30 chars).' }, { status: 400 });
+    }
+    if (organization && String(organization).length > 200) {
+      return NextResponse.json({ error: 'Organization name is too long (max 200 chars).' }, { status: 400 });
+    }
+    if (String(repoOrPortfolioUrl).length > 2048) {
+      return NextResponse.json({ error: 'Repo/Portfolio URL is too long (max 2048 chars).' }, { status: 400 });
     }
 
     // Email validation
@@ -153,7 +176,7 @@ export async function POST(request: Request) {
       }
 
       // Check if relation missing error (PGRST205 or 42P01) -> Fallback to reservations
-      if (appError.code === 'PGRST205' || appError.code === '42P01' || appError.message.includes('relation') || appError.message.includes('does not exist')) {
+      if (appError.code === 'PGRST205' || appError.code === '42P01') {
         console.error('[AeroLab API] ALERT: aerolab_applications table missing! Executing fallback to reservations table:', appError.message);
         
         const { error: resError } = await supabase

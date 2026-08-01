@@ -79,6 +79,7 @@ export default function AdminAeroLabPage() {
   const toast = useToast();
   const [applications, setApplications] = useState<AeroLabApplication[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [selectedTrack, setSelectedTrack] = useState<string>('all');
   const [selectedApp, setSelectedApp] = useState<AeroLabApplication | null>(null);
@@ -95,8 +96,9 @@ export default function AdminAeroLabPage() {
           .select('*')
           .order('created_at', { ascending: false });
 
-        if (!aeroError && aeroData && active) {
-          const safeData: AeroLabApplication[] = (aeroData as Record<string, unknown>[]).map((app) => ({
+        let primaryApps: AeroLabApplication[] = [];
+        if (!aeroError && aeroData) {
+          primaryApps = (aeroData as Record<string, unknown>[]).map((app) => ({
             id: String(app.id || ''),
             reference: String(app.reference || ''),
             team_name: String(app.team_name || 'Team Entry'),
@@ -114,20 +116,18 @@ export default function AdminAeroLabPage() {
             status: (app.status as AeroLabApplication['status']) || 'pending',
             created_at: String(app.created_at || new Date().toISOString()),
           }));
-          setApplications(safeData);
-          setLoading(false);
-          return;
         }
 
-        // 2. Fallback to 'reservations' table where reference starts with AEROLAB or tier contains AeroLab
+        // 2. Also fetch from 'reservations' table where reference starts with AEROLAB or tier contains AeroLab
         const { data: resData, error: resError } = await supabase
           .from('reservations')
           .select('*')
           .or('reference.ilike.AEROLAB%,tier.ilike.%AeroLab%')
           .order('created_at', { ascending: false });
 
-        if (!resError && resData && active) {
-          const mapped: AeroLabApplication[] = (resData as Record<string, unknown>[]).map((row) => {
+        let fallbackApps: AeroLabApplication[] = [];
+        if (!resError && resData) {
+          fallbackApps = (resData as Record<string, unknown>[]).map((row) => {
             const reqs = row.special_requirements ? String(row.special_requirements) : null;
             const parsed = parseSpecialRequirements(reqs);
             const tierStr = row.tier ? String(row.tier) : '';
@@ -153,10 +153,26 @@ export default function AdminAeroLabPage() {
               created_at: String(row.created_at || new Date().toISOString()),
             };
           });
-          setApplications(mapped);
+        }
+
+        if (!active) return;
+
+        // Merge: primary apps take precedence, exclude fallback entries whose reference already exists
+        if (primaryApps.length > 0 || fallbackApps.length > 0) {
+          const primaryRefs = new Set(primaryApps.map(a => a.reference));
+          const deduped = [
+            ...primaryApps,
+            ...fallbackApps.filter(a => !primaryRefs.has(a.reference)),
+          ];
+          setApplications(deduped);
+        } else if (aeroError && resError) {
+          // Both queries failed — set error state
+          console.error('Failed to load AeroLab applications:', aeroError.message, resError.message);
+          setFetchError('Unable to load AeroLab applications. Both data sources returned errors.');
         }
       } catch (err) {
         console.error('Failed to load AeroLab applications:', err);
+        setFetchError('An unexpected error occurred while loading AeroLab applications.');
       } finally {
         if (active) setLoading(false);
       }
@@ -315,6 +331,10 @@ export default function AdminAeroLabPage() {
         {loading ? (
           <div className="p-12 text-center text-nbac-muted font-sans text-xs">
             Loading AeroLab applications…
+          </div>
+        ) : fetchError ? (
+          <div className="p-12 text-center text-red-400 font-sans text-xs">
+            {fetchError}
           </div>
         ) : filteredApps.length === 0 ? (
           <div className="p-12 text-center text-nbac-muted font-sans text-xs">

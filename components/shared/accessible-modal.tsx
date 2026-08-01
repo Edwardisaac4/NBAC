@@ -27,6 +27,7 @@ export function AccessibleModal({
   useEffect(() => {
     if (isOpen) {
       previousFocusRef.current = document.activeElement as HTMLElement;
+      const prevOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
 
       // Focus the modal or first focusable element
@@ -43,12 +44,13 @@ export function AccessibleModal({
         }
       }, 50);
 
-      return () => clearTimeout(timer);
-    } else {
-      document.body.style.overflow = '';
-      if (previousFocusRef.current) {
-        previousFocusRef.current.focus();
-      }
+      return () => {
+        clearTimeout(timer);
+        document.body.style.overflow = prevOverflow;
+        if (previousFocusRef.current) {
+          previousFocusRef.current.focus();
+        }
+      };
     }
   }, [isOpen]);
 
@@ -118,7 +120,7 @@ export function AccessibleModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
-            className={`relative z-10 w-full ${maxWidthClass} bg-[#0b0f10] border border-nbac-gold/30 rounded-2xl shadow-2xl p-6 md:p-8 overflow-hidden font-sans text-left max-h-[85vh] overflow-y-auto outline-hidden`}
+            className={`relative z-10 w-full ${maxWidthClass} bg-[#0b0f10] border border-nbac-gold/30 rounded-2xl shadow-2xl p-6 md:p-8 font-sans text-left max-h-[85vh] overflow-y-auto outline-hidden`}
           >
             <button
               onClick={onClose}

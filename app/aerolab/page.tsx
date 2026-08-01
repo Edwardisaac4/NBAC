@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
@@ -290,6 +290,18 @@ const PRIZES = [
 export default function AeroLabPage() {
   const containerRef = useRef<HTMLDivElement>(null)
   const [selectedStep, setSelectedStep] = useState<number | null>(null)
+  const modalHeadingRef = useRef<HTMLHeadingElement>(null)
+
+  // Focus modal heading when selectedStep changes (phase navigation)
+  useEffect(() => {
+    if (selectedStep !== null) {
+      // Small delay to let the modal content remount
+      const timer = setTimeout(() => {
+        modalHeadingRef.current?.focus();
+      }, 60);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedStep]);
 
   useGSAP(
     () => {
@@ -591,7 +603,16 @@ export default function AeroLabPage() {
             <div className="hidden lg:block relative py-12 mt-10">
               {/* Horizontal line running across the center */}
               <div className="absolute top-1/2 left-[5%] right-[5%] h-0.5 bg-nbac-border -translate-y-1/2" />
-              <div className="absolute top-1/2 left-[5%] h-0.5 bg-nbac-emerald -translate-y-1/2 timeline-progress-line" style={{ width: '90%' }} />
+              {(() => {
+                // Derive progress width from completed phases — Phase 1 is 'open', remaining are future
+                const COMPLETED_PHASES = 1;
+                const progressPercent = TIMELINE_STEPS.length > 1
+                  ? (COMPLETED_PHASES / (TIMELINE_STEPS.length - 1)) * 90
+                  : 0;
+                return (
+                  <div className="absolute top-1/2 left-[5%] h-0.5 bg-nbac-emerald -translate-y-1/2 timeline-progress-line" style={{ width: `${progressPercent}%` }} />
+                );
+              })()}
 
               <div className="grid grid-cols-6 gap-6 relative">
                 {TIMELINE_STEPS.map((step, idx) => {
@@ -601,21 +622,22 @@ export default function AeroLabPage() {
                       key={idx} 
                       type="button"
                       onClick={() => setSelectedStep(step.id)}
-                      className="timeline-step flex flex-col items-center relative cursor-pointer group text-left w-full focus:outline-none"
+                      aria-haspopup="dialog"
+                      className="timeline-step flex flex-col items-center relative cursor-pointer group text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nbac-gold/70 focus-visible:ring-offset-2 focus-visible:ring-offset-nbac-canvas rounded-lg"
                     >
                       {/* Top Card Box */}
                       {isTop ? (
                         <div className="h-44 flex flex-col justify-end w-full mb-6">
-                          <div className="bg-nbac-panel/40 border border-nbac-emerald/30 group-hover:border-nbac-gold/60 p-4 md:p-5 rounded-lg glass-card text-left transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_10px_25px_rgba(196,149,42,0.15)]">
+                          <div className="bg-nbac-panel/40 border border-nbac-emerald/30 group-hover:border-nbac-gold/60 group-focus-visible:border-nbac-gold/60 p-4 md:p-5 rounded-lg glass-card text-left transition-all duration-300 group-hover:-translate-y-1 group-focus-visible:-translate-y-1 group-hover:shadow-[0_10px_25px_rgba(196,149,42,0.15)] group-focus-visible:shadow-[0_10px_25px_rgba(196,149,42,0.15)]">
                             <div className="flex items-center justify-between mb-1.5">
                               <span className="font-sans text-[9px] font-bold uppercase tracking-wider text-nbac-gold bg-nbac-gold/10 px-2 py-0.5 rounded border border-nbac-gold/20">
                                 Phase 0{step.id}
                               </span>
-                              <span className="text-[10px] font-medium text-nbac-muted group-hover:text-nbac-gold transition-colors flex items-center gap-0.5">
+                              <span className="text-[10px] font-medium text-nbac-muted group-hover:text-nbac-gold group-focus-visible:text-nbac-gold transition-colors flex items-center gap-0.5">
                                 Details <ArrowRight className="w-2.5 h-2.5 group-hover:translate-x-0.5 transition-transform" />
                               </span>
                             </div>
-                            <h4 className="font-sans font-bold text-sm text-nbac-text mb-1.5 group-hover:text-nbac-gold-light transition-colors">{step.title}</h4>
+                            <h4 className="font-sans font-bold text-sm text-nbac-text mb-1.5 group-hover:text-nbac-gold-light group-focus-visible:text-nbac-gold-light transition-colors">{step.title}</h4>
                             <p className="font-sans font-light text-xs text-nbac-body leading-relaxed line-clamp-3">{step.desc}</p>
                           </div>
                         </div>
@@ -626,33 +648,33 @@ export default function AeroLabPage() {
                       {/* Dot & Connectors */}
                       <div className="relative z-10 flex flex-col items-center">
                         {isTop ? (
-                          <div className="w-px h-6 bg-nbac-emerald/40 group-hover:bg-nbac-gold/60 transition-colors" />
+                          <div className="w-px h-6 bg-nbac-emerald/40 group-hover:bg-nbac-gold/60 group-focus-visible:bg-nbac-gold/60 transition-colors" />
                         ) : null}
 
                         {/* Outer Dot */}
-                        <div className="timeline-dot w-5 h-5 rounded-full bg-[#101415] border-2 border-nbac-emerald group-hover:border-nbac-gold flex items-center justify-center shadow-[0_0_10px_rgba(16,185,129,0.3)] group-hover:shadow-[0_0_15px_rgba(196,149,42,0.5)] transition-all transform group-hover:scale-125">
+                        <div className="timeline-dot w-5 h-5 rounded-full bg-[#101415] border-2 border-nbac-emerald group-hover:border-nbac-gold group-focus-visible:border-nbac-gold flex items-center justify-center shadow-[0_0_10px_rgba(16,185,129,0.3)] group-hover:shadow-[0_0_15px_rgba(196,149,42,0.5)] group-focus-visible:shadow-[0_0_15px_rgba(196,149,42,0.5)] transition-all transform group-hover:scale-125 group-focus-visible:scale-125">
                           {/* Inner Dot */}
-                          <div className="w-2 h-2 rounded-full bg-nbac-emerald group-hover:bg-nbac-gold transition-colors" />
+                          <div className="w-2 h-2 rounded-full bg-nbac-emerald group-hover:bg-nbac-gold group-focus-visible:bg-nbac-gold transition-colors" />
                         </div>
 
                         {!isTop ? (
-                          <div className="w-px h-6 bg-nbac-emerald/40 group-hover:bg-nbac-gold/60 transition-colors" />
+                          <div className="w-px h-6 bg-nbac-emerald/40 group-hover:bg-nbac-gold/60 group-focus-visible:bg-nbac-gold/60 transition-colors" />
                         ) : null}
                       </div>
 
                       {/* Bottom Card Box */}
                       {!isTop ? (
                         <div className="h-44 flex flex-col justify-start w-full mt-6">
-                          <div className="bg-nbac-panel/40 border border-nbac-emerald/30 group-hover:border-nbac-gold/60 p-4 md:p-5 rounded-lg glass-card text-left transition-all duration-300 group-hover:translate-y-1 group-hover:shadow-[0_10px_25px_rgba(196,149,42,0.15)]">
+                          <div className="bg-nbac-panel/40 border border-nbac-emerald/30 group-hover:border-nbac-gold/60 group-focus-visible:border-nbac-gold/60 p-4 md:p-5 rounded-lg glass-card text-left transition-all duration-300 group-hover:translate-y-1 group-focus-visible:translate-y-1 group-hover:shadow-[0_10px_25px_rgba(196,149,42,0.15)] group-focus-visible:shadow-[0_10px_25px_rgba(196,149,42,0.15)]">
                             <div className="flex items-center justify-between mb-1.5">
                               <span className="font-sans text-[9px] font-bold uppercase tracking-wider text-nbac-gold bg-nbac-gold/10 px-2 py-0.5 rounded border border-nbac-gold/20">
                                 Phase 0{step.id}
                               </span>
-                              <span className="text-[10px] font-medium text-nbac-muted group-hover:text-nbac-gold transition-colors flex items-center gap-0.5">
+                              <span className="text-[10px] font-medium text-nbac-muted group-hover:text-nbac-gold group-focus-visible:text-nbac-gold transition-colors flex items-center gap-0.5">
                                 Details <ArrowRight className="w-2.5 h-2.5 group-hover:translate-x-0.5 transition-transform" />
                               </span>
                             </div>
-                            <h4 className="font-sans font-bold text-sm text-nbac-text mb-1.5 group-hover:text-nbac-gold-light transition-colors">{step.title}</h4>
+                            <h4 className="font-sans font-bold text-sm text-nbac-text mb-1.5 group-hover:text-nbac-gold-light group-focus-visible:text-nbac-gold-light transition-colors">{step.title}</h4>
                             <p className="font-sans font-light text-xs text-nbac-body leading-relaxed line-clamp-3">{step.desc}</p>
                           </div>
                         </div>
@@ -676,7 +698,8 @@ export default function AeroLabPage() {
                     key={idx} 
                     type="button"
                     onClick={() => setSelectedStep(step.id)}
-                    className="timeline-step relative flex items-start gap-6 cursor-pointer group text-left w-full focus:outline-none"
+                    className="timeline-step relative flex items-start gap-6 cursor-pointer group text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nbac-gold/70 focus-visible:ring-offset-2 focus-visible:ring-offset-nbac-canvas rounded-lg"
+                    aria-haspopup="dialog"
                   >
                     {/* Node Dot */}
                     <div className="timeline-dot absolute -left-5.25 top-1.5 w-5 h-5 rounded-full bg-[#101415] border-2 border-nbac-emerald group-hover:border-nbac-gold flex items-center justify-center z-10 shadow-[0_0_10px_rgba(16,185,129,0.3)] transition-all">
@@ -718,7 +741,7 @@ export default function AeroLabPage() {
             const hasNext = selectedStep !== null && selectedStep < TIMELINE_STEPS.length;
 
             return (
-              <div>
+              <div key={`phase-${selectedStep}`}>
                 {/* Header */}
                 <div className="flex items-start justify-between border-b border-nbac-border/60 pb-5 mb-5 pr-8">
                   <div>
@@ -730,7 +753,7 @@ export default function AeroLabPage() {
                         {step.status}
                       </span>
                     </div>
-                    <h3 id="phase-modal-title" className="font-sans text-2xl md:text-3xl font-bold text-nbac-text leading-tight">
+                    <h3 id="phase-modal-title" ref={modalHeadingRef} tabIndex={-1} className="font-sans text-2xl md:text-3xl font-bold text-nbac-text leading-tight outline-hidden">
                       {step.title}
                     </h3>
                     <p className="text-xs text-nbac-muted font-medium mt-1.5 flex items-center gap-1.5">
