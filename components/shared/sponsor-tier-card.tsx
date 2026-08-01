@@ -123,14 +123,9 @@ export function SponsorTierCard({ tier, isSelected, onSelect }: SponsorTierCardP
           </span>
         )
       case 'limited':
-        let label = 'Limited Slots'
-        if (tier.id === 'title') label = 'ONE AVAILABLE - EXCLUSIVE'
-        else if (tier.id === 'platinum') label = 'TWO AVAILABLE'
-        else if (tier.id === 'gold') label = 'THREE AVAILABLE'
-        else if (tier.id === 'silver') label = 'FIVE AVAILABLE'
         return (
           <span className={cn("text-[10px] font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full select-none", themeColor.badgeBg)}>
-            {label}
+            Applications Open
           </span>
         )
       case 'sold_out':

@@ -33,6 +33,7 @@ export default function AdminLayout({
     if (path === '/admin') return 'Overview Dashboard';
     if (path.startsWith('/admin/content')) return 'Content Manager';
     if (path.startsWith('/admin/reservations')) return 'Reservations Intake';
+    if (path.startsWith('/admin/aerolab')) return 'AeroLab Applications';
     if (path.startsWith('/admin/media')) return 'Media Gallery';
     if (path.startsWith('/admin/logs')) return 'Security Audit Logs';
     if (path.startsWith('/admin/profile')) return 'My Profile';
