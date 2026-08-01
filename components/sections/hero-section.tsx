@@ -8,6 +8,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Image from 'next/image'
 import { StatCounter } from '../shared/stat-counter'
 import { CONFERENCE_META } from '@/data/conference-stats'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -80,6 +81,28 @@ export function HeroSection() {
 
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0)
   const [particles] = useState<ReturnType<typeof generateParticles>>(() => generateParticles())
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null)
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart({ x: e.touches[0].clientX, y: e.touches[0].clientY })
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStart === null) return
+    const touch = e.changedTouches[0]
+    const diffX = touchStart.x - touch.clientX
+    const diffY = touchStart.y - touch.clientY
+    if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX > 0) {
+        // Swiped left -> Next slide
+        setCurrentSlideIndex((prev) => (prev + 1) % bgImages.length)
+      } else {
+        // Swiped right -> Previous slide
+        setCurrentSlideIndex((prev) => (prev - 1 + bgImages.length) % bgImages.length)
+      }
+    }
+    setTouchStart(null)
+  }
 
   useEffect(() => {
     if (bgImages.length <= 1) return
@@ -355,15 +378,17 @@ export function HeroSection() {
   return (
     <section
       ref={containerRef}
-      className="relative min-h-[90vh] md:min-h-screen flex flex-col items-center justify-center text-center px-6 overflow-hidden pt-24 md:pt-28 pb-8 md:pb-10"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      className="relative min-h-[90vh] md:min-h-screen flex flex-col items-center justify-center text-center px-6 overflow-hidden pt-24 md:pt-28 pb-14 md:pb-16 select-none"
     >
       {/* ── Background Image Layer ─────────────────────── */}
       <div className="absolute inset-0 z-0">
-        <div ref={bgRef} className="absolute inset-0 w-full h-full opacity-100 scale-110" style={{ willChange: 'transform' }}>
+        <div ref={bgRef} className="absolute inset-0 w-full h-full opacity-100 scale-100 sm:scale-105 md:scale-110" style={{ willChange: 'transform' }}>
           {bgImages.map((src, index) => (
             <div
               key={src}
-              className="hero-bg-slide absolute inset-0 w-full h-full transition-opacity duration-[2500ms] ease-in-out pointer-events-none"
+              className="hero-bg-slide absolute inset-0 w-full h-full transition-opacity duration-[2000ms] ease-in-out pointer-events-none"
               style={{
                 opacity: index === currentSlideIndex ? 1 : 0,
               }}
@@ -374,15 +399,15 @@ export function HeroSection() {
                 fill
                 priority={index === 0}
                 sizes="100vw"
-                quality={75}
-                className="object-cover object-center"
+                quality={85}
+                className="object-cover object-[50%_30%] sm:object-center transition-all duration-1000"
               />
             </div>
           ))}
         </div>
 
-        {/* Dark overlay to ensure background images are always rich and text is legible */}
-        <div className="absolute inset-0 bg-black/45 z-10" />
+        {/* Dark overlay optimized for mobile clarity and high text contrast */}
+        <div className="absolute inset-0 bg-linear-to-b from-black/60 via-black/35 to-black/70 sm:bg-black/45 z-10" />
 
         {/* ── Ambient Floating Particles ──────────────── */}
         {particles.map((p) => (
@@ -484,7 +509,41 @@ export function HeroSection() {
             className="w-full sm:w-auto inline-flex justify-center border border-white/20 text-white hover:bg-white/10 hover:border-white/40 font-sans font-medium px-6 md:px-8 py-2.5 md:py-3 rounded-full transition-colors backdrop-blur-sm text-sm uppercase tracking-widest cursor-pointer"
           >
             Download Brochure
-          </a>        </div>
+          </a>
+        </div>
+      </div>
+
+      {/* ── Mobile & Desktop Background Slide Indicators & Swipe Controls ── */}
+      <div className="absolute bottom-3 md:bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 select-none">
+        <button
+          onClick={() => setCurrentSlideIndex((prev) => (prev - 1 + bgImages.length) % bgImages.length)}
+          className="text-white/60 hover:text-nbac-gold transition-colors p-1 cursor-pointer"
+          aria-label="Previous Slide"
+        >
+          <ChevronLeft size={14} />
+        </button>
+
+        <div className="flex items-center gap-1.5">
+          {bgImages.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentSlideIndex(idx)}
+              className={`transition-all duration-300 rounded-full cursor-pointer ${idx === currentSlideIndex
+                ? 'w-6 h-1.5 bg-nbac-gold shadow-[0_0_8px_rgba(196,149,42,0.8)]'
+                : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/80'
+                }`}
+              aria-label={`Go to slide ${idx + 1}`}
+              aria-pressed={idx === currentSlideIndex}
+            />))}
+        </div>
+
+        <button
+          onClick={() => setCurrentSlideIndex((prev) => (prev + 1) % bgImages.length)}
+          className="text-white/60 hover:text-nbac-gold transition-colors p-1 cursor-pointer"
+          aria-label="Next Slide"
+        >
+          <ChevronRight size={14} />
+        </button>
       </div>
     </section>
   )

@@ -7,30 +7,41 @@ import Link from 'next/link'
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { SPONSOR_TIERS, SPONSOR_ADD_ONS } from '@/lib/constants'
+import { fetchSponsorTiers } from '@/lib/supabase/dynamic-content'
 import { SponsorTierDetails } from '@/types'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/components/shared/toast'
 
 export default function SponsorContactPage() {
   const toast = useToast()
+  const [tiers, setTiers] = useState<SponsorTierDetails[]>(SPONSOR_TIERS)
   const [selectedTier, setSelectedTier] = useState<SponsorTierDetails | null>(null)
   const [isTierLocked, setIsTierLocked] = useState(false)
 
   useEffect(() => {
+    let active = true
     const params = new URLSearchParams(window.location.search)
     const tierParam = params.get('tier')
-    const foundTier = SPONSOR_TIERS.find(t => t.id === (tierParam || 'bronze')) || null
 
-    const timer = setTimeout(() => {
+    async function load() {
+      const data = await fetchSponsorTiers()
+      if (!active) return
+      const activeTiers = data && data.length > 0 ? data : SPONSOR_TIERS
+      setTiers(activeTiers)
+
+      const foundTier = activeTiers.find(t => t.id === (tierParam || 'bronze')) || activeTiers[0] || null
       if (foundTier) {
         setSelectedTier(foundTier)
+        if (tierParam) {
+          setIsTierLocked(true)
+        }
       }
-      if (tierParam) {
-        setIsTierLocked(true)
-      }
-    }, 0)
+    }
+    load()
 
-    return () => clearTimeout(timer)
+    return () => {
+      active = false
+    }
   }, [])
   
   const [formData, setFormData] = useState({
@@ -62,7 +73,7 @@ export default function SponsorContactPage() {
 
   const handleTierChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const tierId = e.target.value
-    const foundTier = SPONSOR_TIERS.find(t => t.id === tierId)
+    const foundTier = tiers.find(t => t.id === tierId)
     if (foundTier) {
       setSelectedTier(foundTier)
     }
@@ -353,7 +364,7 @@ export default function SponsorContactPage() {
                             isTierLocked ? "cursor-not-allowed opacity-70" : "cursor-pointer"
                           )}
                         >
-                          {SPONSOR_TIERS.map((t) => (
+                          {tiers.map((t) => (
                             <option key={t.id} value={t.id} className="bg-nbac-panel text-nbac-text">
                               {t.name} ({formatPrice(t.price)} USD)
                             </option>

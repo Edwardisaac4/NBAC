@@ -102,6 +102,7 @@ export interface PassTierDetails {
   name: string;
   price: number;
   currency: 'USD';
+  description?: string;
   privileges: string[];
   availability: 'available' | 'limited' | 'sold_out';
   badge?: string;

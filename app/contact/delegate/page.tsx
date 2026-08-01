@@ -7,30 +7,41 @@ import Link from 'next/link'
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { PASS_TIERS } from '@/lib/constants'
+import { fetchTicketTiers } from '@/lib/supabase/dynamic-content'
 import { PassTierDetails } from '@/types'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/components/shared/toast'
 
 export default function DelegateRegistrationPage() {
   const toast = useToast()
+  const [tiers, setTiers] = useState<PassTierDetails[]>(PASS_TIERS)
   const [selectedTier, setSelectedTier] = useState<PassTierDetails | null>(null)
   const [isTierLocked, setIsTierLocked] = useState(false)
 
   useEffect(() => {
+    let active = true
     const params = new URLSearchParams(window.location.search)
     const tierParam = params.get('tier')
-    const foundTier = PASS_TIERS.find(t => t.id === (tierParam || 'vip')) || null
 
-    const timer = setTimeout(() => {
+    async function load() {
+      const data = await fetchTicketTiers()
+      if (!active) return
+      const activeTiers = data && data.length > 0 ? data : PASS_TIERS
+      setTiers(activeTiers)
+
+      const foundTier = activeTiers.find(t => t.id === (tierParam || 'vip')) || activeTiers[0] || null
       if (foundTier) {
         setSelectedTier(foundTier)
         if (tierParam) {
           setIsTierLocked(true)
         }
       }
-    }, 0)
+    }
+    load()
 
-    return () => clearTimeout(timer)
+    return () => {
+      active = false
+    }
   }, [])
 
   const [formData, setFormData] = useState({
@@ -58,7 +69,7 @@ export default function DelegateRegistrationPage() {
 
   const handleTierChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const tierId = e.target.value
-    const foundTier = PASS_TIERS.find(t => t.id === tierId)
+    const foundTier = tiers.find(t => t.id === tierId)
     if (foundTier) {
       setSelectedTier(foundTier)
     }
@@ -388,7 +399,7 @@ export default function DelegateRegistrationPage() {
                             isVipSelected ? "focus:border-nbac-gold focus:ring-1 focus:ring-nbac-gold/30" : "focus:border-nbac-emerald focus:ring-1 focus:ring-nbac-emerald/30"
                           )}
                         >
-                          {PASS_TIERS.map((t) => (
+                          {tiers.map((t) => (
                             <option key={t.id} value={t.id} className="bg-nbac-panel text-nbac-text">
                               {t.name} ({formatPrice(t.price)} USD)
                             </option>

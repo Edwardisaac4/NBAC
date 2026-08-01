@@ -137,8 +137,7 @@ export const SPONSOR_TIERS: SponsorTierDetails[] = [
     price: 55000,
     currency: "USD",
     availability: "limited",
-    badge: "Exclusive Sponsor (1 Available)",
-    slotsAvailable: 1,
+    badge: "Exclusive Title Partner",
     description:
       "The conference co-owner. Your brand sits alongside NBAC 2027 in every context.",
     brandingPrivileges: [
@@ -171,8 +170,7 @@ export const SPONSOR_TIERS: SponsorTierDetails[] = [
     price: 40000,
     currency: "USD",
     availability: "limited",
-    badge: "Premium Partner (2 Available)",
-    slotsAvailable: 2,
+    badge: "Premium Partner",
     description:
       "The premium conference partner. Highly visible, strongly positioned, with meaningful content access.",
     brandingPrivileges: [
@@ -203,8 +201,7 @@ export const SPONSOR_TIERS: SponsorTierDetails[] = [
     price: 30000,
     currency: "USD",
     availability: "limited",
-    badge: "Elite Partner (3 Available)",
-    slotsAvailable: 3,
+    badge: "Elite Partner",
     description:
       "A strong, respected presence at the conference with genuine audience engagement opportunities.",
     brandingPrivileges: [
@@ -234,8 +231,7 @@ export const SPONSOR_TIERS: SponsorTierDetails[] = [
     price: 20000,
     currency: "USD",
     availability: "limited",
-    badge: "Associate Partner (5 Available)",
-    slotsAvailable: 5,
+    badge: "Associate Partner",
     description:
       "Visible, credible and commercially present — the right entry point for companies building their NBAC relationship.",
     brandingPrivileges: [
@@ -263,7 +259,7 @@ export const SPONSOR_TIERS: SponsorTierDetails[] = [
     price: 10000,
     currency: "USD",
     availability: "available",
-    badge: "Member Partner (Open Tiers)",
+    badge: "Member Partner",
     description:
       "A credible entry point into the NBAC 2027 community — visibility, access and association with Nigeria's premier business aviation event.",
     brandingPrivileges: [

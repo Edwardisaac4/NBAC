@@ -134,11 +134,7 @@ export function SponsorBentoCard({ tier, onViewBenefits }: SponsorBentoCardProps
 
     let label = 'Open'
     if (tier.availability === 'limited') {
-      if (tier.id === 'title') label = '1 Slot Available'
-      else if (tier.id === 'platinum') label = '2 Slots Available'
-      else if (tier.id === 'gold') label = '3 Slots Available'
-      else if (tier.id === 'silver') label = '5 Slots Available'
-      else label = 'Limited Slots'
+      label = 'Applications Open'
     }
 
     return (

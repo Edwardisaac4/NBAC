@@ -11,7 +11,10 @@ import {
   Lock, 
   User, 
   LogOut,
-  X
+  X,
+  Award,
+  Ticket,
+  Handshake
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAdminRole } from '@/hooks/use-admin-role';
@@ -88,6 +91,24 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       label: 'Reservations',
       href: '/admin/reservations',
       icon: Users,
+      roles: ['head_admin', 'editor']
+    },
+    {
+      label: 'AeroLab Intake',
+      href: '/admin/aerolab',
+      icon: Award,
+      roles: ['head_admin', 'editor']
+    },
+    {
+      label: 'Ticket Tiers',
+      href: '/admin/tickets',
+      icon: Ticket,
+      roles: ['head_admin', 'editor']
+    },
+    {
+      label: 'Sponsor Packages',
+      href: '/admin/sponsors-manager',
+      icon: Handshake,
       roles: ['head_admin', 'editor']
     },
     {
