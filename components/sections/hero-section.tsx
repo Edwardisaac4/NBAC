@@ -81,18 +81,19 @@ export function HeroSection() {
 
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0)
   const [particles] = useState<ReturnType<typeof generateParticles>>(() => generateParticles())
-  const [touchStartX, setTouchStartX] = useState<number | null>(null)
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null)
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStartX(e.touches[0].clientX)
+    setTouchStart({ x: e.touches[0].clientX, y: e.touches[0].clientY })
   }
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX === null) return
-    const touchEndX = e.changedTouches[0].clientX
-    const diff = touchStartX - touchEndX
-    if (Math.abs(diff) > 40) {
-      if (diff > 0) {
+    if (touchStart === null) return
+    const touch = e.changedTouches[0]
+    const diffX = touchStart.x - touch.clientX
+    const diffY = touchStart.y - touch.clientY
+    if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX > 0) {
         // Swiped left -> Next slide
         setCurrentSlideIndex((prev) => (prev + 1) % bgImages.length)
       } else {
@@ -100,7 +101,7 @@ export function HeroSection() {
         setCurrentSlideIndex((prev) => (prev - 1 + bgImages.length) % bgImages.length)
       }
     }
-    setTouchStartX(null)
+    setTouchStart(null)
   }
 
   useEffect(() => {
@@ -527,11 +528,10 @@ export function HeroSection() {
             <button
               key={idx}
               onClick={() => setCurrentSlideIndex(idx)}
-              className={`transition-all duration-300 rounded-full cursor-pointer ${
-                idx === currentSlideIndex 
-                  ? 'w-6 h-1.5 bg-nbac-gold shadow-[0_0_8px_rgba(196,149,42,0.8)]' 
+              className={`transition-all duration-300 rounded-full cursor-pointer ${idx === currentSlideIndex
+                  ? 'w-6 h-1.5 bg-nbac-gold shadow-[0_0_8px_rgba(196,149,42,0.8)]'
                   : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/80'
-              }`}
+                }`}
               aria-label={`Go to slide ${idx + 1}`}
             />
           ))}

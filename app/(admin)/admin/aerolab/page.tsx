@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FileDown, Search, ArrowUpRight, CheckCircle2, AlertCircle, XCircle, X, Award, Users, Filter, Calendar, ExternalLink } from 'lucide-react';
+import { FileDown, Search, ArrowUpRight, Filter, ExternalLink } from 'lucide-react';
 import { useAdminRole } from '@/hooks/use-admin-role';
 import { RoleBanner } from '@/components/admin/role-banner';
 import { createClient } from '@/lib/supabase/client';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/components/shared/toast';
+import { TRACKS } from '@/lib/aerolab-tracks';
+import { isValidHttpUrl } from '@/lib/utils';
+import { AccessibleModal } from '@/components/shared/accessible-modal';
 
 interface AeroLabApplication {
   id: string;
@@ -29,6 +31,49 @@ interface AeroLabApplication {
 
 const getCsvFilename = () => `nbac_aerolab_applications_${Date.now()}.csv`;
 
+function parseSpecialRequirements(reqs?: string | null) {
+  if (!reqs) {
+    return {
+      proposal_title: 'AeroLab Proposal',
+      concept_note: 'No concept note provided',
+      repo_portfolio_url: undefined,
+      member_roster: undefined,
+    };
+  }
+
+  let proposal_title = 'AeroLab Proposal';
+  let concept_note = reqs;
+  let repo_portfolio_url: string | undefined = undefined;
+  let member_roster: string | undefined = undefined;
+
+  const repoMatch = reqs.match(/REPO\/DEMO:\s*(https?:\/\/[^\s\n]+)/i);
+  if (repoMatch) {
+    repo_portfolio_url = repoMatch[1].trim();
+  }
+
+  const proposalMatch = reqs.match(/PROPOSAL:\s*([^\n\r]+)/i);
+  if (proposalMatch) {
+    proposal_title = proposalMatch[1].trim();
+  }
+
+  const rosterMatch = reqs.match(/ROSTER:\s*([^\n\r]+)/i);
+  if (rosterMatch) {
+    member_roster = rosterMatch[1].trim();
+  }
+
+  const conceptMatch = reqs.match(/CONCEPT:\s*([\s\S]+?)(?=\n[A-Z]+:|$)/i);
+  if (conceptMatch) {
+    concept_note = conceptMatch[1].trim();
+  }
+
+  return {
+    proposal_title,
+    concept_note,
+    repo_portfolio_url,
+    member_roster,
+  };
+}
+
 export default function AdminAeroLabPage() {
   useAdminRole();
   const toast = useToast();
@@ -43,15 +88,33 @@ export default function AdminAeroLabPage() {
     async function fetchApplications() {
       try {
         const supabase = createClient();
-        
+
         // 1. Try fetching from 'aerolab_applications' table
         const { data: aeroData, error: aeroError } = await supabase
           .from('aerolab_applications')
           .select('*')
           .order('created_at', { ascending: false });
 
-        if (!aeroError && aeroData && aeroData.length > 0 && active) {
-          setApplications(aeroData as AeroLabApplication[]);
+        if (!aeroError && aeroData && active) {
+          const safeData: AeroLabApplication[] = (aeroData as Record<string, unknown>[]).map((app) => ({
+            id: String(app.id || ''),
+            reference: String(app.reference || ''),
+            team_name: String(app.team_name || 'Team Entry'),
+            leader_name: String(app.leader_name || 'Unknown'),
+            leader_email: String(app.leader_email || ''),
+            leader_phone: app.leader_phone ? String(app.leader_phone) : undefined,
+            organization: app.organization ? String(app.organization) : undefined,
+            track_id: Number(app.track_id || 1),
+            track_title: String(app.track_title || 'Track Challenge'),
+            member_count: Number(app.member_count || 3),
+            member_roster: app.member_roster ? String(app.member_roster) : undefined,
+            proposal_title: String(app.proposal_title || 'AeroLab Proposal'),
+            concept_note: String(app.concept_note || ''),
+            repo_portfolio_url: app.repo_portfolio_url ? String(app.repo_portfolio_url) : undefined,
+            status: (app.status as AeroLabApplication['status']) || 'pending',
+            created_at: String(app.created_at || new Date().toISOString()),
+          }));
+          setApplications(safeData);
           setLoading(false);
           return;
         }
@@ -64,23 +127,32 @@ export default function AdminAeroLabPage() {
           .order('created_at', { ascending: false });
 
         if (!resError && resData && active) {
-          const mapped: AeroLabApplication[] = resData.map((row: any) => ({
-            id: row.id,
-            reference: row.reference || `AEROLAB-${row.id.slice(0, 8)}`,
-            team_name: row.company || row.name || 'Team Entry',
-            leader_name: row.name,
-            leader_email: row.email,
-            leader_phone: row.phone,
-            organization: row.company,
-            track_id: parseInt(row.tier?.match(/Track (\d+)/)?.[1] || '1', 10),
-            track_title: row.tier || 'Track Challenge',
-            member_count: row.delegate_count || 3,
-            member_roster: row.special_requirements,
-            proposal_title: row.special_requirements?.split('\n')?.[0]?.replace('PROPOSAL: ', '') || 'AeroLab Proposal',
-            concept_note: row.special_requirements || 'No concept note provided',
-            status: row.status === 'paid' ? 'shortlisted' : 'pending',
-            created_at: row.created_at
-          }));
+          const mapped: AeroLabApplication[] = (resData as Record<string, unknown>[]).map((row) => {
+            const reqs = row.special_requirements ? String(row.special_requirements) : null;
+            const parsed = parseSpecialRequirements(reqs);
+            const tierStr = row.tier ? String(row.tier) : '';
+            const matchedTrackId = parseInt(tierStr.match(/Track (\d+)/)?.[1] || '1', 10);
+            const matchedTrackObj = TRACKS.find(t => t.id === matchedTrackId);
+
+            return {
+              id: String(row.id || ''),
+              reference: String(row.reference || `AEROLAB-${String(row.id || '').slice(0, 8)}`),
+              team_name: String(row.company || row.name || 'Team Entry'),
+              leader_name: String(row.name || 'Unknown'),
+              leader_email: String(row.email || ''),
+              leader_phone: row.phone ? String(row.phone) : undefined,
+              organization: row.company ? String(row.company) : undefined,
+              track_id: matchedTrackId,
+              track_title: matchedTrackObj ? matchedTrackObj.title : (tierStr || 'Track Challenge'),
+              member_count: Number(row.delegate_count || 3),
+              member_roster: parsed.member_roster,
+              proposal_title: parsed.proposal_title,
+              concept_note: parsed.concept_note,
+              repo_portfolio_url: parsed.repo_portfolio_url,
+              status: row.status === 'paid' ? 'shortlisted' : 'pending',
+              created_at: String(row.created_at || new Date().toISOString()),
+            };
+          });
           setApplications(mapped);
         }
       } catch (err) {
@@ -91,23 +163,33 @@ export default function AdminAeroLabPage() {
     }
 
     fetchApplications();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Filter logic
   const filteredApps = applications.filter((app) => {
-    const matchesSearch = 
-      app.team_name.toLowerCase().includes(search.toLowerCase()) ||
-      app.leader_name.toLowerCase().includes(search.toLowerCase()) ||
-      app.leader_email.toLowerCase().includes(search.toLowerCase()) ||
-      app.reference.toLowerCase().includes(search.toLowerCase()) ||
-      app.proposal_title.toLowerCase().includes(search.toLowerCase());
+    const leaderName = (app.leader_name || '').toLowerCase();
+    const leaderEmail = (app.leader_email || '').toLowerCase();
+    const teamName = (app.team_name || '').toLowerCase();
+    const ref = (app.reference || '').toLowerCase();
+    const title = (app.proposal_title || '').toLowerCase();
+    const searchLower = search.toLowerCase();
+
+    const matchesSearch =
+      teamName.includes(searchLower) ||
+      leaderName.includes(searchLower) ||
+      leaderEmail.includes(searchLower) ||
+      ref.includes(searchLower) ||
+      title.includes(searchLower);
 
     const matchesTrack = selectedTrack === 'all' || app.track_id.toString() === selectedTrack;
 
     return matchesSearch && matchesTrack;
   });
 
-  // Export CSV Function
   const exportCsv = () => {
     if (filteredApps.length === 0) {
       toast.error('No applications available to export.');
@@ -131,31 +213,39 @@ export default function AdminAeroLabPage() {
       'Concept Note'
     ];
 
+    const csvCell = (value: unknown) => {
+      const text = value === null || value === undefined ? '' : String(value);
+      const safe = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
+      return `"${safe.replace(/"/g, '""').replace(/\r?\n/g, ' ')}"`;
+    };
+
     const rows = filteredApps.map(app => [
-      `"${app.reference}"`,
-      `"${app.team_name.replace(/"/g, '""')}"`,
-      `"${app.leader_name.replace(/"/g, '""')}"`,
-      `"${app.leader_email.replace(/"/g, '""')}"`,
-      `"${(app.leader_phone || '').replace(/"/g, '""')}"`,
-      `"${(app.organization || '').replace(/"/g, '""')}"`,
+      csvCell(app.reference),
+      csvCell(app.team_name),
+      csvCell(app.leader_name),
+      csvCell(app.leader_email),
+      csvCell(app.leader_phone),
+      csvCell(app.organization),
       app.track_id,
-      `"${app.track_title.replace(/"/g, '""')}"`,
+      csvCell(app.track_title),
       app.member_count,
-      `"${app.proposal_title.replace(/"/g, '""')}"`,
-      app.status,
-      `"${new Date(app.created_at).toLocaleDateString()}"`,
-      `"${(app.repo_portfolio_url || '').replace(/"/g, '""')}"`,
-      `"${(app.concept_note || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`
+      csvCell(app.proposal_title),
+      csvCell(app.status),
+      csvCell(new Date(app.created_at).toISOString()),
+      csvCell(app.repo_portfolio_url),
+      csvCell(app.concept_note)
     ]);
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', getCsvFilename());
+    link.href = url;
+    link.download = getCsvFilename();
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 
     toast.success(`Exported ${filteredApps.length} AeroLab applications to CSV.`);
   };
@@ -165,35 +255,31 @@ export default function AdminAeroLabPage() {
       <RoleBanner />
 
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-nbac-border/60 pb-5">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="p-1.5 rounded-lg bg-nbac-gold/10 text-nbac-gold border border-nbac-gold/20">
-              <Award className="w-4 h-4" />
-            </span>
-            <span className="font-sans text-xs font-bold uppercase tracking-wider text-nbac-gold">
-              Hackathon Intake Vault
-            </span>
-          </div>
-          <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-nbac-text">
-            AeroLab Applications
-          </h1>
-          <p className="font-sans text-xs text-nbac-muted font-light mt-1">
-            Manage, evaluate, and export submitted hackathon team entries across all 5 challenge tracks.
+          <span className="font-sans text-xs uppercase tracking-widest font-semibold text-nbac-emerald-light">
+            Hackathon Management
+          </span>
+          <h2 className="font-display text-2xl font-bold text-nbac-text mt-1">
+            AeroLab Submissions & Intake
+          </h2>
+          <p className="font-sans text-xs text-nbac-muted mt-1">
+            View, filter, and export AeroLab team proposals and technical concept notes.
           </p>
         </div>
 
         <button
           onClick={exportCsv}
-          className="bg-nbac-emerald hover:bg-nbac-emerald-dark text-white font-sans font-bold text-xs px-5 py-2.5 rounded-lg transition-colors flex items-center gap-2 uppercase tracking-wider shrink-0 cursor-pointer shadow-md"
+          disabled={filteredApps.length === 0}
+          className="bg-nbac-gold hover:bg-nbac-gold-light text-[#0b0f10] disabled:opacity-40 font-sans font-bold px-5 py-2.5 rounded-lg transition-all flex items-center gap-2 text-xs uppercase tracking-wider cursor-pointer"
         >
-          <FileDown className="w-4 h-4" />
-          <span>Export CSV / Excel</span>
+          <FileDown size={16} />
+          <span>Export CSV ({filteredApps.length})</span>
         </button>
       </div>
 
-      {/* Filter Bar */}
-      <div className="flex flex-col md:flex-row items-center gap-4 bg-nbac-panel/40 border border-nbac-border p-4 rounded-xl">
+      {/* Controls Bar: Search & Track Filter */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-nbac-panel border border-nbac-border rounded-lg p-4">
         {/* Search */}
         <div className="relative flex-1 w-full">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-nbac-muted" />
@@ -215,75 +301,70 @@ export default function AdminAeroLabPage() {
             className="bg-[#0b0f10] border border-nbac-border text-nbac-text text-xs rounded-lg px-3 py-2.5 focus:outline-none focus:border-nbac-gold cursor-pointer"
           >
             <option value="all">All Tracks (1–5)</option>
-            <option value="1">Track 01 — Regulatory Clearance</option>
-            <option value="2">Track 02 — Finance & Leasing</option>
-            <option value="3">Track 03 — SAF & Carbon</option>
-            <option value="4">Track 04 — AI & Flight Ops</option>
-            <option value="5">Track 05 — Workforce & Training</option>
+            {TRACKS.map((t) => (
+              <option key={t.id} value={t.id.toString()}>
+                Track 0{t.id} — {t.title}
+              </option>
+            ))}
           </select>
         </div>
       </div>
 
       {/* Data Table */}
-      <div className="bg-nbac-panel/30 border border-nbac-border rounded-xl overflow-hidden shadow-xl">
+      <div className="bg-nbac-panel border border-nbac-border rounded-lg overflow-hidden select-none">
         {loading ? (
           <div className="p-12 text-center text-nbac-muted font-sans text-xs">
-            <div className="w-8 h-8 rounded-full border-2 border-nbac-emerald border-t-transparent animate-spin mx-auto mb-3" />
-            <span>Loading AeroLab Applications...</span>
+            Loading AeroLab applications…
           </div>
         ) : filteredApps.length === 0 ? (
-          <div className="p-12 text-center text-nbac-muted font-sans text-xs space-y-2">
-            <AlertCircle className="w-8 h-8 text-nbac-gold mx-auto" />
-            <p className="font-semibold text-nbac-text">No AeroLab Applications Found</p>
-            <p className="text-nbac-muted">Try clearing search filters or submitting a test entry at /aerolab/apply.</p>
+          <div className="p-12 text-center text-nbac-muted font-sans text-xs">
+            No AeroLab applications found matching your filters.
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left font-sans text-xs border-collapse">
+            <table className="w-full text-left border-collapse font-sans text-xs">
               <thead>
-                <tr className="bg-[#0b0f10] border-b border-nbac-border text-nbac-muted uppercase tracking-wider font-semibold text-[10px]">
-                  <th className="py-3.5 px-4">Reference</th>
-                  <th className="py-3.5 px-4">Team & Leader</th>
-                  <th className="py-3.5 px-4">Track</th>
-                  <th className="py-3.5 px-4">Members</th>
-                  <th className="py-3.5 px-4">Proposal Title</th>
-                  <th className="py-3.5 px-4">Date</th>
-                  <th className="py-3.5 px-4 text-right">Action</th>
+                <tr className="border-b border-nbac-border bg-[#0b0f10]/40 text-nbac-muted uppercase tracking-wider font-semibold text-[11px]">
+                  <th className="p-4 pl-6">Reference</th>
+                  <th className="p-4">Team & Leader</th>
+                  <th className="p-4">Track</th>
+                  <th className="p-4">Proposal</th>
+                  <th className="p-4">Members</th>
+                  <th className="p-4">Submitted</th>
+                  <th className="p-4 pr-6 text-right">View</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-nbac-border/40 text-nbac-body">
                 {filteredApps.map((app) => (
-                  <tr 
+                  <tr
                     key={app.id}
                     onClick={() => setSelectedApp(app)}
                     className="hover:bg-nbac-panel/60 transition-colors cursor-pointer group"
                   >
-                    <td className="py-3.5 px-4 font-mono text-[11px] font-bold text-nbac-gold">
+                    <td className="p-4 pl-6 font-mono font-semibold text-nbac-gold">
                       {app.reference}
                     </td>
-                    <td className="py-3.5 px-4">
-                      <div className="font-bold text-nbac-text group-hover:text-nbac-gold-light transition-colors">
-                        {app.team_name}
-                      </div>
-                      <div className="text-[11px] text-nbac-muted">
-                        {app.leader_name} ({app.leader_email})
+                    <td className="p-4">
+                      <div className="font-bold text-nbac-text">{app.team_name}</div>
+                      <div className="text-nbac-muted text-[11px]">
+                        {app.leader_name} • {app.leader_email}
                       </div>
                     </td>
-                    <td className="py-3.5 px-4">
-                      <span className="font-sans text-[10px] font-bold uppercase tracking-wider text-nbac-emerald bg-nbac-emerald/10 border border-nbac-emerald/20 px-2.5 py-0.5 rounded-full inline-block">
+                    <td className="p-4">
+                      <span className="inline-block px-2 py-0.5 rounded bg-nbac-emerald/10 border border-nbac-emerald/20 text-nbac-emerald-light font-semibold text-[10px] uppercase tracking-wider">
                         Track 0{app.track_id}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 font-medium text-nbac-text">
-                      {app.member_count} Members
-                    </td>
-                    <td className="py-3.5 px-4 max-w-xs truncate font-medium text-nbac-text">
+                    <td className="p-4 max-w-xs truncate font-medium text-nbac-text">
                       {app.proposal_title}
                     </td>
-                    <td className="py-3.5 px-4 text-nbac-muted text-[11px]">
+                    <td className="p-4 text-center">
+                      <span className="font-semibold text-nbac-text">{app.member_count}</span>
+                    </td>
+                    <td className="p-4 text-nbac-muted">
                       {new Date(app.created_at).toLocaleDateString()}
                     </td>
-                    <td className="py-3.5 px-4 text-right">
+                    <td className="p-4 pr-6 text-right">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -304,116 +385,104 @@ export default function AdminAeroLabPage() {
       </div>
 
       {/* Modal Drawer for Viewing Application Details */}
-      <AnimatePresence>
+      <AccessibleModal
+        isOpen={selectedApp !== null}
+        onClose={() => setSelectedApp(null)}
+        titleId="selected-app-title"
+        ariaLabel="Application Details"
+      >
         {selectedApp && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedApp(null)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            />
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative z-10 w-full max-w-2xl bg-[#0b0f10] border border-nbac-gold/30 rounded-2xl shadow-2xl p-6 md:p-8 overflow-hidden font-sans text-left max-h-[85vh] overflow-y-auto"
-            >
-              {/* Header */}
-              <div className="flex items-start justify-between border-b border-nbac-border/60 pb-5 mb-5">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="font-mono text-xs font-bold text-nbac-gold bg-nbac-gold/10 px-2.5 py-0.5 rounded border border-nbac-gold/20">
-                      {selectedApp.reference}
-                    </span>
-                    <span className="font-sans text-[10px] font-bold uppercase tracking-wider text-nbac-emerald bg-nbac-emerald/10 border border-nbac-emerald/20 px-2.5 py-0.5 rounded-full">
-                      Track 0{selectedApp.track_id}
-                    </span>
-                  </div>
-                  <h3 className="font-sans text-2xl font-bold text-nbac-text leading-tight">
-                    {selectedApp.team_name}
-                  </h3>
-                  <p className="text-xs text-nbac-muted font-medium mt-1">
-                    Leader: {selectedApp.leader_name} ({selectedApp.leader_email})
-                  </p>
+          <div>
+            {/* Header */}
+            <div className="flex items-start justify-between border-b border-nbac-border/60 pb-5 mb-5">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="font-mono text-xs font-bold text-nbac-gold bg-nbac-gold/10 px-2.5 py-0.5 rounded border border-nbac-gold/20">
+                    {selectedApp.reference}
+                  </span>
+                  <span className="font-sans text-[10px] font-bold uppercase tracking-wider text-nbac-emerald bg-nbac-emerald/10 border border-nbac-emerald/20 px-2.5 py-0.5 rounded-full">
+                    Track 0{selectedApp.track_id}
+                  </span>
                 </div>
+                <h3 id="selected-app-title" className="font-sans text-2xl font-bold text-nbac-text leading-tight">
+                  {selectedApp.team_name}
+                </h3>
+                <p className="text-xs text-nbac-muted font-medium mt-1">
+                  Leader: {selectedApp.leader_name} ({selectedApp.leader_email})
+                </p>
+              </div>
+            </div>
 
-                <button
-                  onClick={() => setSelectedApp(null)}
-                  className="p-2 text-nbac-muted hover:text-nbac-text hover:bg-nbac-panel rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+            {/* Body */}
+            <div className="space-y-6">
+              {/* Meta details grid */}
+              <div className="grid grid-cols-2 gap-4 bg-[#12181a] border border-nbac-border/60 rounded-xl p-4 text-xs">
+                <div>
+                  <span className="text-nbac-muted uppercase tracking-wider text-[10px] font-semibold block mb-0.5">Organization</span>
+                  <span className="font-medium text-nbac-text">{selectedApp.organization || 'N/A'}</span>
+                </div>
+                <div>
+                  <span className="text-nbac-muted uppercase tracking-wider text-[10px] font-semibold block mb-0.5">Phone</span>
+                  <span className="font-medium text-nbac-text">{selectedApp.leader_phone || 'N/A'}</span>
+                </div>
+                <div>
+                  <span className="text-nbac-muted uppercase tracking-wider text-[10px] font-semibold block mb-0.5">Team Size</span>
+                  <span className="font-medium text-nbac-text">{selectedApp.member_count} Members</span>
+                </div>
+                <div>
+                  <span className="text-nbac-muted uppercase tracking-wider text-[10px] font-semibold block mb-0.5">Submitted Date</span>
+                  <span className="font-medium text-nbac-text">{new Date(selectedApp.created_at).toLocaleString()}</span>
+                </div>
               </div>
 
-              {/* Body */}
-              <div className="space-y-6">
-                {/* Meta details grid */}
-                <div className="grid grid-cols-2 gap-4 bg-[#12181a] border border-nbac-border/60 rounded-xl p-4 text-xs">
-                  <div>
-                    <span className="text-nbac-muted uppercase tracking-wider text-[10px] font-semibold block mb-0.5">Organization</span>
-                    <span className="font-medium text-nbac-text">{selectedApp.organization || 'N/A'}</span>
-                  </div>
-                  <div>
-                    <span className="text-nbac-muted uppercase tracking-wider text-[10px] font-semibold block mb-0.5">Phone</span>
-                    <span className="font-medium text-nbac-text">{selectedApp.leader_phone || 'N/A'}</span>
-                  </div>
-                  <div>
-                    <span className="text-nbac-muted uppercase tracking-wider text-[10px] font-semibold block mb-0.5">Team Size</span>
-                    <span className="font-medium text-nbac-text">{selectedApp.member_count} Members</span>
-                  </div>
-                  <div>
-                    <span className="text-nbac-muted uppercase tracking-wider text-[10px] font-semibold block mb-0.5">Submitted Date</span>
-                    <span className="font-medium text-nbac-text">{new Date(selectedApp.created_at).toLocaleString()}</span>
-                  </div>
-                </div>
+              {/* Proposal Title */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-nbac-gold mb-1">Proposal Title</h4>
+                <p className="text-base font-bold text-nbac-text">{selectedApp.proposal_title}</p>
+              </div>
 
-                {/* Proposal Title */}
-                <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-nbac-gold mb-1">Proposal Title</h4>
-                  <p className="text-base font-bold text-nbac-text">{selectedApp.proposal_title}</p>
+              {/* Concept Note */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-nbac-emerald mb-2">Concept Note & Architecture</h4>
+                <div className="bg-[#12181a] border border-nbac-border/60 rounded-xl p-4 text-xs font-light text-nbac-body leading-relaxed whitespace-pre-wrap">
+                  {selectedApp.concept_note}
                 </div>
+              </div>
 
-                {/* Concept Note */}
+              {/* Team Roster */}
+              {selectedApp.member_roster && (
                 <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-nbac-emerald mb-2">Concept Note & Architecture</h4>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-nbac-gold mb-2">Team Roster</h4>
                   <div className="bg-[#12181a] border border-nbac-border/60 rounded-xl p-4 text-xs font-light text-nbac-body leading-relaxed whitespace-pre-wrap">
-                    {selectedApp.concept_note}
+                    {selectedApp.member_roster}
                   </div>
                 </div>
+              )}
 
-                {/* Team Roster */}
-                {selectedApp.member_roster && (
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-nbac-gold mb-2">Team Roster</h4>
-                    <div className="bg-[#12181a] border border-nbac-border/60 rounded-xl p-4 text-xs font-light text-nbac-body leading-relaxed whitespace-pre-wrap">
-                      {selectedApp.member_roster}
-                    </div>
-                  </div>
-                )}
-
-                {/* Repo / Portfolio Link */}
-                {selectedApp.repo_portfolio_url && (
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-nbac-emerald mb-1">Code Repo / Figma / Demo</h4>
-                    <a
-                      href={selectedApp.repo_portfolio_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-nbac-emerald hover:underline font-mono inline-flex items-center gap-1"
-                    >
-                      <span>{selectedApp.repo_portfolio_url}</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </div>
-                )}
-              </div>
-            </motion.div>
+              {/* Repo / Portfolio Link with scheme validation */}
+              {isValidHttpUrl(selectedApp.repo_portfolio_url) ? (
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-nbac-emerald mb-1">Code Repo / Figma / Demo</h4>
+                  <a
+                    href={selectedApp.repo_portfolio_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-nbac-emerald hover:underline font-mono inline-flex items-center gap-1"
+                  >
+                    <span>{selectedApp.repo_portfolio_url}</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              ) : selectedApp.repo_portfolio_url ? (
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-nbac-emerald mb-1">Code Repo / Figma / Demo</h4>
+                  <span className="text-xs text-nbac-muted font-mono">{selectedApp.repo_portfolio_url}</span>
+                </div>
+              ) : null}
+            </div>
           </div>
         )}
-      </AnimatePresence>
+      </AccessibleModal>
     </div>
   );
 }

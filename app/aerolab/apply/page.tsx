@@ -1,71 +1,19 @@
 'use client'
 
-import { useState } from 'react'
-import { Navbar } from "@/components/layout/navbar"
-import { Footer } from "@/components/layout/footer"
-import { SectionEyebrow } from "@/components/shared/section-eyebrow"
+import React, { useState } from 'react'
+import { Navbar } from '@/components/layout/navbar'
+import { Footer } from '@/components/layout/footer'
+import { SectionEyebrow } from '@/components/shared/section-eyebrow'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Plane, 
-  Coins, 
-  Leaf, 
-  Cpu, 
-  GraduationCap, 
-  CheckCircle2, 
-  ArrowRight, 
-  ArrowLeft, 
-  Users, 
-  Sparkles, 
+import {
+  Sparkles,
+  CheckCircle2,
   AlertCircle,
-  FileCode2,
-  Building2,
   Send,
   Check
 } from 'lucide-react'
 import Link from 'next/link'
-
-const TRACKS = [
-  {
-    id: 1,
-    title: "The Clearance Problem",
-    obj: "OBJ 01: Regulatory",
-    icon: Plane,
-    color: "border-blue-500/40 text-blue-400 bg-blue-500/10",
-    desc: "Streamline overflight permits, landing approvals, and multi-agency clearance workflows across Nigerian and West African airspace."
-  },
-  {
-    id: 2,
-    title: "Aircraft Finance & Fractional Leasing",
-    obj: "OBJ 02: Financial",
-    icon: Coins,
-    color: "border-amber-500/40 text-amber-400 bg-amber-500/10",
-    desc: "Fintech solutions for fractional ownership, escrow, aircraft leasing risk modeling, and cross-border aviation payments in NGN/USD."
-  },
-  {
-    id: 3,
-    title: "Sustainable Aviation Fuel (SAF) Tracking",
-    obj: "OBJ 03: Sustainability",
-    icon: Leaf,
-    color: "border-emerald-500/40 text-emerald-400 bg-emerald-500/10",
-    desc: "Carbon accounting, SAF supply chain verification, and emissions reporting for business jet operators across African hubs."
-  },
-  {
-    id: 4,
-    title: "AI Maintenance & Flight Operations",
-    obj: "OBJ 04: Technology",
-    icon: Cpu,
-    color: "border-purple-500/40 text-purple-400 bg-purple-500/10",
-    desc: "Predictive maintenance scheduling, real-time parts inventory tracking, and AI flight dispatch optimization for NCAA AMO operators."
-  },
-  {
-    id: 5,
-    title: "Aviation Workforce & Training Pipeline",
-    obj: "OBJ 05: Human Capital",
-    icon: GraduationCap,
-    color: "border-teal-500/40 text-teal-400 bg-teal-500/10",
-    desc: "Digital platforms for pilot/engineer certification tracking, VR/AR maintenance training, and African aviation talent matching."
-  }
-]
+import { TRACKS } from '@/lib/aerolab-tracks'
 
 export default function AeroLabApplyPage() {
   const [selectedTrackId, setSelectedTrackId] = useState<number>(1)
@@ -119,34 +67,29 @@ export default function AeroLabApplyPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          trackId: selectedTrackId,
           teamName: teamName.trim(),
           leaderName: leaderName.trim(),
           leaderEmail: leaderEmail.trim(),
-          leaderPhone: leaderPhone.trim(),
-          organization: organization.trim(),
-          trackId: selectedTrack.id,
-          trackTitle: selectedTrack.title,
+          leaderPhone: leaderPhone.trim() || undefined,
+          organization: organization.trim() || undefined,
           memberCount,
-          memberRoster: memberRoster.trim(),
+          memberRoster: memberRoster.trim() || undefined,
           proposalTitle: proposalTitle.trim(),
           conceptNote: conceptNote.trim(),
-          repoOrPortfolioUrl: repoOrPortfolioUrl.trim()
-        })
+          repoOrPortfolioUrl: repoOrPortfolioUrl.trim(),
+        }),
       })
 
       const data = await response.json()
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to submit application.')
+        throw new Error(data.error || 'Failed to submit AeroLab application.')
       }
 
-      setSubmittedRef(data.reference)
+      setSubmittedRef(data.data.reference)
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setErrorMsg(err.message)
-      } else {
-        setErrorMsg('An unexpected error occurred. Please try again.')
-      }
+      setErrorMsg((err as Error).message || 'An unexpected error occurred. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -156,27 +99,20 @@ export default function AeroLabApplyPage() {
     <>
       <Navbar />
 
-      <main className="min-h-screen bg-nbac-canvas text-nbac-text pt-24 md:pt-28 pb-16 md:pb-24 px-6 md:px-24">
-        <div className="max-w-4xl mx-auto">
-          {/* Back to AeroLab link */}
-          <div className="mb-8">
-            <Link 
-              href="/aerolab"
-              className="inline-flex items-center gap-2 font-sans text-xs uppercase tracking-wider text-nbac-muted hover:text-nbac-gold transition-colors"
-            >
-              <ArrowLeft size={14} />
-              <span>Back to AeroLab Overview</span>
-            </Link>
-          </div>
+      <main className="min-h-screen bg-nbac-canvas text-nbac-text pt-28 md:pt-32 pb-24 px-6 md:px-12 relative overflow-hidden">
+        {/* Ambient Top Glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-87.5 bg-linear-to-b from-nbac-emerald/10 via-nbac-gold/5 to-transparent blur-3xl pointer-events-none" />
 
+        <div className="max-w-4xl mx-auto relative z-10">
           <AnimatePresence mode="wait">
             {submittedRef ? (
-              /* Success Screen */
+              /* Success Confirmation Card */
               <motion.div
+                key="success"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
-                className="bg-[#0b0f10] border border-nbac-emerald/40 rounded-2xl p-8 md:p-12 text-center shadow-2xl space-y-6"
+                className="bg-nbac-panel border border-nbac-emerald/40 rounded-2xl p-8 md:p-12 text-center space-y-6 shadow-2xl"
               >
                 <div className="w-16 h-16 rounded-full bg-nbac-emerald/20 border border-nbac-emerald/40 flex items-center justify-center mx-auto text-nbac-emerald">
                   <CheckCircle2 size={36} />
@@ -232,6 +168,7 @@ export default function AeroLabApplyPage() {
             ) : (
               /* Registration Form */
               <motion.div
+                key="form"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
@@ -244,7 +181,7 @@ export default function AeroLabApplyPage() {
                     AeroLab <span className="italic text-nbac-emerald font-semibold">Application</span>
                   </h1>
                   <p className="font-sans text-sm md:text-base font-light text-nbac-muted max-w-2xl">
-                    Submit your team entry and concept note for the NBAC 2027 AeroLab Innovation Challenge. Selected cohort teams will receive mentorship, executive showcase space, and compete for ₦5,000,000 in prizes.
+                    Submit your team entry and concept note for the NBAC 2027 AeroLab Innovation Challenge. Selected cohort teams will receive mentorship, executive showcase space, and compete for ₦12,500,000 in total prizes.
                   </p>
                 </div>
 
@@ -260,23 +197,30 @@ export default function AeroLabApplyPage() {
                       <span className="text-xs font-medium text-nbac-emerald">Required</span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div role="radiogroup" aria-label="Select Challenge Track" className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {TRACKS.map((track) => {
                         const Icon = track.icon
                         const isSelected = selectedTrackId === track.id
                         return (
-                          <div
+                          <label
                             key={track.id}
-                            onClick={() => setSelectedTrackId(track.id)}
                             className={`cursor-pointer rounded-xl p-4 md:p-5 border transition-all duration-200 text-left flex flex-col justify-between ${
-                              isSelected 
-                                ? 'bg-nbac-panel border-nbac-gold shadow-[0_0_20px_rgba(196,149,42,0.15)] ring-1 ring-nbac-gold/50' 
+                              isSelected
+                                ? 'bg-nbac-panel border-nbac-gold shadow-[0_0_20px_rgba(196,149,42,0.15)] ring-1 ring-nbac-gold/50'
                                 : 'bg-nbac-panel/30 border-nbac-border/60 hover:border-nbac-border hover:bg-nbac-panel/60'
                             }`}
                           >
+                            <input
+                              type="radio"
+                              name="track"
+                              value={track.id}
+                              checked={isSelected}
+                              onChange={() => setSelectedTrackId(track.id)}
+                              className="sr-only"
+                            />
                             <div>
                               <div className="flex items-center justify-between mb-3">
-                                <div className={`p-2 rounded-lg ${track.color}`}>
+                                <div className={`p-2 rounded-lg ${track.applyColor || track.color}`}>
                                   <Icon className="w-4 h-4" />
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -285,7 +229,7 @@ export default function AeroLabApplyPage() {
                                   </span>
                                   {isSelected && (
                                     <div className="w-4 h-4 rounded-full bg-nbac-gold text-[#0b0f10] flex items-center justify-center">
-                                      <Check className="w-3 h-3 stroke-[3]" />
+                                      <Check className="w-3 h-3 stroke-3" />
                                     </div>
                                   )}
                                 </div>
@@ -293,7 +237,7 @@ export default function AeroLabApplyPage() {
                               <h4 className="font-sans font-bold text-sm text-nbac-text mb-1">{track.title}</h4>
                               <p className="font-sans font-light text-xs text-nbac-body leading-relaxed">{track.desc}</p>
                             </div>
-                          </div>
+                          </label>
                         )
                       })}
                     </div>
@@ -308,10 +252,11 @@ export default function AeroLabApplyPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-nbac-muted mb-1.5">
+                        <label htmlFor="leaderName" className="block text-xs font-semibold uppercase tracking-wider text-nbac-muted mb-1.5">
                           Team Leader Name *
                         </label>
                         <input
+                          id="leaderName"
                           type="text"
                           required
                           value={leaderName}
@@ -322,10 +267,11 @@ export default function AeroLabApplyPage() {
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-nbac-muted mb-1.5">
+                        <label htmlFor="leaderEmail" className="block text-xs font-semibold uppercase tracking-wider text-nbac-muted mb-1.5">
                           Team Leader Email *
                         </label>
                         <input
+                          id="leaderEmail"
                           type="email"
                           required
                           value={leaderEmail}
@@ -336,10 +282,11 @@ export default function AeroLabApplyPage() {
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-nbac-muted mb-1.5">
+                        <label htmlFor="leaderPhone" className="block text-xs font-semibold uppercase tracking-wider text-nbac-muted mb-1.5">
                           Phone Number
                         </label>
                         <input
+                          id="leaderPhone"
                           type="tel"
                           value={leaderPhone}
                           onChange={(e) => setLeaderPhone(e.target.value)}
@@ -349,10 +296,11 @@ export default function AeroLabApplyPage() {
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-nbac-muted mb-1.5">
+                        <label htmlFor="organization" className="block text-xs font-semibold uppercase tracking-wider text-nbac-muted mb-1.5">
                           Organization / University / Company
                         </label>
                         <input
+                          id="organization"
                           type="text"
                           value={organization}
                           onChange={(e) => setOrganization(e.target.value)}
@@ -372,10 +320,11 @@ export default function AeroLabApplyPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
                       <div className="md:col-span-2">
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-nbac-muted mb-1.5">
+                        <label htmlFor="teamName" className="block text-xs font-semibold uppercase tracking-wider text-nbac-muted mb-1.5">
                           Team Name *
                         </label>
                         <input
+                          id="teamName"
                           type="text"
                           required
                           value={teamName}
@@ -386,10 +335,11 @@ export default function AeroLabApplyPage() {
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-nbac-muted mb-1.5">
+                        <label htmlFor="memberCount" className="block text-xs font-semibold uppercase tracking-wider text-nbac-muted mb-1.5">
                           Team Members (3 to 6) *
                         </label>
                         <select
+                          id="memberCount"
                           value={memberCount}
                           onChange={(e) => setMemberCount(Number(e.target.value))}
                           className="w-full bg-[#0b0f10] border border-nbac-border focus:border-nbac-gold rounded-lg px-4 py-3 text-sm text-nbac-text focus:outline-none transition-colors cursor-pointer"
@@ -403,10 +353,11 @@ export default function AeroLabApplyPage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-nbac-muted mb-1.5">
+                      <label htmlFor="memberRoster" className="block text-xs font-semibold uppercase tracking-wider text-nbac-muted mb-1.5">
                         Team Roster & Member Roles (Names & Specializations)
                       </label>
                       <textarea
+                        id="memberRoster"
                         rows={3}
                         value={memberRoster}
                         onChange={(e) => setMemberRoster(e.target.value)}
@@ -424,10 +375,11 @@ export default function AeroLabApplyPage() {
                     </h3>
 
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-nbac-muted mb-1.5">
+                      <label htmlFor="proposalTitle" className="block text-xs font-semibold uppercase tracking-wider text-nbac-muted mb-1.5">
                         Proposal / Solution Title *
                       </label>
                       <input
+                        id="proposalTitle"
                         type="text"
                         required
                         value={proposalTitle}
@@ -438,10 +390,11 @@ export default function AeroLabApplyPage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-nbac-muted mb-1.5">
+                      <label htmlFor="conceptNote" className="block text-xs font-semibold uppercase tracking-wider text-nbac-muted mb-1.5">
                         1-Page Concept Note / Problem & Technical Solution *
                       </label>
                       <textarea
+                        id="conceptNote"
                         rows={6}
                         required
                         value={conceptNote}
@@ -452,23 +405,24 @@ export default function AeroLabApplyPage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-nbac-muted mb-1.5">
+                      <label htmlFor="repoOrPortfolioUrl" className="block text-xs font-semibold uppercase tracking-wider text-nbac-muted mb-1.5">
                         Code Repository, Figma, or Demo Link *
                       </label>
                       <input
+                        id="repoOrPortfolioUrl"
                         type="url"
                         required
                         value={repoOrPortfolioUrl}
                         onChange={(e) => setRepoOrPortfolioUrl(e.target.value)}
                         placeholder="https://github.com/your-team/aerolab-solution"
-                        className="w-full bg-[#0b0f10] border border-nbac-border focus:border-nbac-gold rounded-lg px-4 py-3 text-sm text-nbac-text focus:outline-none transition-colors font-mono text-xs"
+                        className="w-full bg-[#0b0f10] border border-nbac-border focus:border-nbac-gold rounded-lg px-4 py-3 text-nbac-text focus:outline-none transition-colors font-mono text-xs"
                       />
                     </div>
                   </div>
 
                   {/* Error Alert Message */}
                   {errorMsg && (
-                    <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                    <div role="alert" className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
                       <AlertCircle className="w-4 h-4 shrink-0" />
                       <span>{errorMsg}</span>
                     </div>

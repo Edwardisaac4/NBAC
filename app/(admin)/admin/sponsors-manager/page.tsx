@@ -48,6 +48,17 @@ export default function AdminSponsorsManagerPage() {
     digital_privileges: '',
   });
 
+  const normalizeSponsorTierRow = (row: Record<string, unknown>): SponsorTierRow => {
+    const r = row as unknown as SponsorTierRow;
+    return {
+      ...r,
+      description: (r.description as string) ?? '',
+      branding_privileges: Array.isArray(r.branding_privileges) ? r.branding_privileges : [],
+      speaking_privileges: Array.isArray(r.speaking_privileges) ? r.speaking_privileges : [],
+      digital_privileges: Array.isArray(r.digital_privileges) ? r.digital_privileges : [],
+    };
+  };
+
   const loadTiers = async (showLoading = false) => {
     if (showLoading) setLoading(true);
     const supabase = createClient();
@@ -57,7 +68,7 @@ export default function AdminSponsorsManagerPage() {
       .order('sort_order', { ascending: true });
 
     if (!error && data) {
-      setTiers(data as SponsorTierRow[]);
+      setTiers((data as Record<string, unknown>[]).map(normalizeSponsorTierRow));
     }
     setLoading(false);
   };
@@ -73,7 +84,7 @@ export default function AdminSponsorsManagerPage() {
 
       if (active) {
         if (!error && data) {
-          setTiers(data as SponsorTierRow[]);
+          setTiers((data as Record<string, unknown>[]).map(normalizeSponsorTierRow));
         }
         setLoading(false);
       }

@@ -400,14 +400,17 @@ CREATE TABLE IF NOT EXISTS public.aerolab_applications (
 
 ALTER TABLE public.aerolab_applications ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Allow anon to insert aerolab applications" ON public.aerolab_applications;
 CREATE POLICY "Allow anon to insert aerolab applications" ON public.aerolab_applications
     FOR INSERT TO anon WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Allow admins to manage aerolab applications" ON public.aerolab_applications;
 CREATE POLICY "Allow admins to manage aerolab applications" ON public.aerolab_applications
     FOR ALL USING (public.user_role() IN ('head_admin', 'editor'))
     WITH CHECK (public.user_role() IN ('head_admin', 'editor'));
 
 GRANT INSERT ON public.aerolab_applications TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.aerolab_applications TO authenticated, service_role;
 
 -- -------------------------------------------------------------
 -- TABLE: ticket_tiers
@@ -431,12 +434,17 @@ CREATE TABLE IF NOT EXISTS public.ticket_tiers (
 
 ALTER TABLE public.ticket_tiers ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Public read ticket_tiers" ON public.ticket_tiers;
 CREATE POLICY "Public read ticket_tiers" ON public.ticket_tiers
     FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Admin manage ticket_tiers" ON public.ticket_tiers;
 CREATE POLICY "Admin manage ticket_tiers" ON public.ticket_tiers
     FOR ALL USING (public.user_role() IN ('head_admin', 'editor'))
     WITH CHECK (public.user_role() IN ('head_admin', 'editor'));
+
+GRANT SELECT ON public.ticket_tiers TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.ticket_tiers TO authenticated, service_role;
 
 -- -------------------------------------------------------------
 -- TABLE: sponsor_tiers_db
@@ -461,12 +469,17 @@ CREATE TABLE IF NOT EXISTS public.sponsor_tiers_db (
 
 ALTER TABLE public.sponsor_tiers_db ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Public read sponsor_tiers_db" ON public.sponsor_tiers_db;
 CREATE POLICY "Public read sponsor_tiers_db" ON public.sponsor_tiers_db
     FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Admin manage sponsor_tiers_db" ON public.sponsor_tiers_db;
 CREATE POLICY "Admin manage sponsor_tiers_db" ON public.sponsor_tiers_db
     FOR ALL USING (public.user_role() IN ('head_admin', 'editor'))
     WITH CHECK (public.user_role() IN ('head_admin', 'editor'));
+
+GRANT SELECT ON public.sponsor_tiers_db TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.sponsor_tiers_db TO authenticated, service_role;
 
 -- -------------------------------------------------------------
 -- TABLE: program_sessions
@@ -492,9 +505,14 @@ CREATE TABLE IF NOT EXISTS public.program_sessions (
 
 ALTER TABLE public.program_sessions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Public read program_sessions" ON public.program_sessions;
 CREATE POLICY "Public read program_sessions" ON public.program_sessions
     FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Admin manage program_sessions" ON public.program_sessions;
 CREATE POLICY "Admin manage program_sessions" ON public.program_sessions
     FOR ALL USING (public.user_role() IN ('head_admin', 'editor'))
     WITH CHECK (public.user_role() IN ('head_admin', 'editor'));
+
+GRANT SELECT ON public.program_sessions TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.program_sessions TO authenticated, service_role;

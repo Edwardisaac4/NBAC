@@ -13,3 +13,13 @@ export function formatDate(dateStr?: string, options: Intl.DateTimeFormatOptions
   }
   return date.toLocaleDateString('en-US', options)
 }
+
+export function isValidHttpUrl(urlStr?: string | null): boolean {
+  if (!urlStr) return false;
+  try {
+    const url = new URL(urlStr.trim());
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}

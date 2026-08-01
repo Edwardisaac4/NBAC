@@ -57,6 +57,16 @@ export default function AdminProgramPage() {
   const [questionInput, setQuestionInput] = useState('');
   const [panellistInput, setPanellistInput] = useState<PanellistInput>({ name: '', organisation: '', role: '' });
 
+  const normalizeSessionRow = (row: Record<string, unknown>): ProgramSessionRow => {
+    const r = row as unknown as ProgramSessionRow;
+    return {
+      ...r,
+      panellists: Array.isArray(r.panellists) ? r.panellists : [],
+      key_areas: Array.isArray(r.key_areas) ? r.key_areas : [],
+      questions: Array.isArray(r.questions) ? r.questions : [],
+    };
+  };
+
   const loadSessions = async (showLoading = false) => {
     if (showLoading) setLoading(true);
     const supabase = createClient();
@@ -66,7 +76,7 @@ export default function AdminProgramPage() {
       .order('sort_order', { ascending: true });
 
     if (!error && data) {
-      setSessions(data as ProgramSessionRow[]);
+      setSessions((data as Record<string, unknown>[]).map(normalizeSessionRow));
     }
     setLoading(false);
   };
@@ -82,7 +92,7 @@ export default function AdminProgramPage() {
 
       if (active) {
         if (!error && data) {
-          setSessions(data as ProgramSessionRow[]);
+          setSessions((data as Record<string, unknown>[]).map(normalizeSessionRow));
         }
         setLoading(false);
       }

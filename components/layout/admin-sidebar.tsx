@@ -14,8 +14,7 @@ import {
   X,
   Award,
   Ticket,
-  Handshake,
-  CalendarDays
+  Handshake
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAdminRole } from '@/hooks/use-admin-role';
@@ -110,12 +109,6 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       label: 'Sponsor Packages',
       href: '/admin/sponsors-manager',
       icon: Handshake,
-      roles: ['head_admin', 'editor']
-    },
-    {
-      label: 'Program Manager',
-      href: '/admin/program',
-      icon: CalendarDays,
       roles: ['head_admin', 'editor']
     },
     {

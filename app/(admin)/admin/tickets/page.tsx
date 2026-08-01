@@ -36,6 +36,13 @@ export default function AdminTicketsPage() {
   const [saving, setSaving] = useState(false);
   const [privilegeInput, setPrivilegeInput] = useState('');
 
+  const normalizeTicketTierRow = (row: Record<string, unknown>): TicketTierRow => ({
+    ...(row as unknown as TicketTierRow),
+    privileges: Array.isArray(row.privileges) ? (row.privileges as string[]) : [],
+    description: (row.description as string) ?? '',
+    badge: (row.badge as string) ?? '',
+  });
+
   const loadTiers = async (showLoading = false) => {
     if (showLoading) setLoading(true);
     const supabase = createClient();
@@ -45,7 +52,7 @@ export default function AdminTicketsPage() {
       .order('sort_order', { ascending: true });
 
     if (!error && data) {
-      setTiers(data as TicketTierRow[]);
+      setTiers((data as Record<string, unknown>[]).map(normalizeTicketTierRow));
     }
     setLoading(false);
   };
@@ -61,7 +68,7 @@ export default function AdminTicketsPage() {
 
       if (active) {
         if (!error && data) {
-          setTiers(data as TicketTierRow[]);
+          setTiers((data as Record<string, unknown>[]).map(normalizeTicketTierRow));
         }
         setLoading(false);
       }
@@ -89,6 +96,15 @@ export default function AdminTicketsPage() {
     if (!editing.id.trim() || !editing.name.trim()) {
       toast.error('Tier ID and Name are required.');
       return;
+    }
+    if (isNew) {
+      const exists = tiers.some(
+        (t) => t.id.trim().toLowerCase() === editing.id.trim().toLowerCase()
+      );
+      if (exists) {
+        toast.error(`A ticket tier with ID "${editing.id.trim()}" already exists.`);
+        return;
+      }
     }
     setSaving(true);
     const result = await upsertTicketTier(editing);

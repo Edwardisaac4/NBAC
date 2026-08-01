@@ -33,61 +33,10 @@ import {
   Calendar
 } from 'lucide-react'
 import Link from 'next/link'
+import { AccessibleModal } from '@/components/shared/accessible-modal'
+import { TRACKS } from '@/lib/aerolab-tracks'
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin)
-
-const TRACKS = [
-  {
-    id: 1,
-    title: "The Clearance Problem",
-    obj: "OBJ 01: Regulatory",
-    desc: "Streamline overflight permits, landing approvals, and multi-agency clearance workflows across Nigerian and West African airspace.",
-    icon: Plane,
-    color: "from-blue-500/10 to-indigo-500/10 border-blue-500/20 text-blue-400",
-    targetImpact: "Sub-15 Min Clearance Workflows",
-    deliverable: "Workflow Prototype or Regulatory API",
-  },
-  {
-    id: 2,
-    title: "Money in the Air",
-    obj: "OBJ 02: Finance",
-    desc: "Develop innovative financial structures, risk mitigation mechanisms, or leasing models to unlock capital and ease aircraft acquisition.",
-    icon: Coins,
-    color: "from-amber-500/10 to-yellow-500/10 border-amber-500/20 text-amber-400",
-    targetImpact: "De-Risked African Aviation Leasing",
-    deliverable: "Financial Model & Structuring Proposal",
-  },
-  {
-    id: 3,
-    title: "The Green FBO",
-    obj: "OBJ 03: Ecosystem",
-    desc: "Architect a practical, costed decarbonization roadmap for Nigerian FBOs — covering renewable energy, GSE electrification, and SAF off-take.",
-    icon: Leaf,
-    color: "from-emerald-500/10 to-teal-500/10 border-emerald-500/20 text-emerald-400",
-    targetImpact: "Net-Zero FBO Operations Roadmap",
-    deliverable: "Costed Sustainability Plan & Tech Stack",
-  },
-  {
-    id: 4,
-    title: "Fly Her Forward",
-    obj: "OBJ 04 / Women in Aviation",
-    desc: "Create a platform, mentorship engine, or career development framework that accelerates recruitment, retention, and leadership of women.",
-    icon: Sparkles,
-    color: "from-pink-500/10 to-purple-500/10 border-pink-500/20 text-pink-400",
-    targetImpact: "Measurable Leadership & Technical Equity",
-    deliverable: "Platform Concept or Program Framework",
-  },
-  {
-    id: 5,
-    title: "The Charter Experience",
-    obj: "OBJ 05: Innovation",
-    desc: "Reimagine the digital journey for business aviation clients — from instant charter discovery and transparent pricing to flight dispatch.",
-    icon: Compass,
-    color: "from-cyan-500/10 to-blue-500/10 border-cyan-500/20 text-cyan-400",
-    targetImpact: "Frictionless Charter Booking & Dispatch",
-    deliverable: "Digital Product Prototype & Dispatch Flow",
-  }
-]
 
 const ELIGIBILITY = [
   {
@@ -648,10 +597,11 @@ export default function AeroLabPage() {
                 {TIMELINE_STEPS.map((step, idx) => {
                   const isTop = idx % 2 === 0;
                   return (
-                    <div 
+                    <button 
                       key={idx} 
+                      type="button"
                       onClick={() => setSelectedStep(step.id)}
-                      className="timeline-step flex flex-col items-center relative cursor-pointer group"
+                      className="timeline-step flex flex-col items-center relative cursor-pointer group text-left w-full focus:outline-none"
                     >
                       {/* Top Card Box */}
                       {isTop ? (
@@ -709,7 +659,7 @@ export default function AeroLabPage() {
                       ) : (
                         <div className="h-44" />
                       )}
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -722,10 +672,11 @@ export default function AeroLabPage() {
               
               <div className="space-y-8">
                 {TIMELINE_STEPS.map((step, idx) => (
-                  <div 
+                  <button 
                     key={idx} 
+                    type="button"
                     onClick={() => setSelectedStep(step.id)}
-                    className="timeline-step relative flex items-start gap-6 cursor-pointer group"
+                    className="timeline-step relative flex items-start gap-6 cursor-pointer group text-left w-full focus:outline-none"
                   >
                     {/* Node Dot */}
                     <div className="timeline-dot absolute -left-5.25 top-1.5 w-5 h-5 rounded-full bg-[#101415] border-2 border-nbac-emerald group-hover:border-nbac-gold flex items-center justify-center z-10 shadow-[0_0_10px_rgba(16,185,129,0.3)] transition-all">
@@ -746,153 +697,133 @@ export default function AeroLabPage() {
                         <p className="font-sans font-light text-xs text-nbac-body leading-relaxed">{step.desc}</p>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
           </section>
 
         {/* Modal Details Dialog for Selected Timeline Step */}
-        <AnimatePresence>
-          {selectedStep !== null && (() => {
+        <AccessibleModal
+          isOpen={selectedStep !== null}
+          onClose={() => setSelectedStep(null)}
+          titleId="phase-modal-title"
+          ariaLabel="Timeline Phase Details"
+        >
+          {(() => {
             const step = TIMELINE_STEPS.find(s => s.id === selectedStep)
             if (!step) return null
 
-            const hasPrev = selectedStep > 1
-            const hasNext = selectedStep < TIMELINE_STEPS.length
+            const hasPrev = selectedStep !== null && selectedStep > 1;
+            const hasNext = selectedStep !== null && selectedStep < TIMELINE_STEPS.length;
 
             return (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6">
-                {/* Backdrop */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setSelectedStep(null)}
-                  className="absolute inset-0 bg-black/90"
-                />
-
-                {/* Modal Window */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                  transition={{ duration: 0.25, ease: 'easeOut' }}
-                  className="relative z-10 w-full max-w-2xl bg-[#0b0f10] border border-nbac-gold/30 rounded-2xl shadow-2xl p-6 md:p-8 overflow-hidden font-sans text-left max-h-[85vh] overflow-y-auto"
-                >
-                  {/* Header */}
-                  <div className="flex items-start justify-between border-b border-nbac-border/60 pb-5 mb-5">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="font-sans text-[10px] font-bold uppercase tracking-wider text-nbac-gold bg-nbac-gold/10 border border-nbac-gold/20 px-2.5 py-0.5 rounded-full">
-                          {step.category}
-                        </span>
-                        <span className="font-sans text-[10px] font-semibold uppercase tracking-wider text-nbac-emerald bg-nbac-emerald/10 border border-nbac-emerald/20 px-2.5 py-0.5 rounded-full">
-                          {step.status}
-                        </span>
-                      </div>
-                      <h3 className="font-sans text-2xl md:text-3xl font-bold text-nbac-text leading-tight">
-                        {step.title}
-                      </h3>
-                      <p className="text-xs text-nbac-muted font-medium mt-1.5 flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-nbac-gold" />
-                        <span>{step.duration}</span>
-                      </p>
+              <div>
+                {/* Header */}
+                <div className="flex items-start justify-between border-b border-nbac-border/60 pb-5 mb-5 pr-8">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="font-sans text-[10px] font-bold uppercase tracking-wider text-nbac-gold bg-nbac-gold/10 border border-nbac-gold/20 px-2.5 py-0.5 rounded-full">
+                        {step.category}
+                      </span>
+                      <span className="font-sans text-[10px] font-semibold uppercase tracking-wider text-nbac-emerald bg-nbac-emerald/10 border border-nbac-emerald/20 px-2.5 py-0.5 rounded-full">
+                        {step.status}
+                      </span>
                     </div>
+                    <h3 id="phase-modal-title" className="font-sans text-2xl md:text-3xl font-bold text-nbac-text leading-tight">
+                      {step.title}
+                    </h3>
+                    <p className="text-xs text-nbac-muted font-medium mt-1.5 flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-nbac-gold" />
+                      <span>{step.duration}</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Body */}
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-nbac-gold mb-2">Phase Overview</h4>
+                    <p className="text-sm font-light text-nbac-body leading-relaxed">
+                      {step.detailedOverview}
+                    </p>
+                  </div>
+
+                  {/* Key Deliverables */}
+                  <div className="bg-[#12181a] border border-nbac-border/60 rounded-xl p-4">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-nbac-emerald mb-3 flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 text-nbac-emerald" />
+                      <span>Key Deliverables & Requirements</span>
+                    </h4>
+                    <ul className="space-y-2">
+                      {step.keyDeliverables.map((item, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-xs font-light text-nbac-body leading-relaxed">
+                          <span className="text-nbac-emerald font-bold text-[10px] shrink-0 mt-0.5">✓</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Support Provided */}
+                  <div className="bg-[#12181a] border border-nbac-border/60 rounded-xl p-4">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-nbac-gold mb-3 flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-nbac-gold" />
+                      <span>Support & Resources Provided</span>
+                    </h4>
+                    <ul className="space-y-2">
+                      {step.supportProvided.map((item, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-xs font-light text-nbac-body leading-relaxed">
+                          <span className="text-nbac-gold font-bold text-[10px] shrink-0 mt-0.5">•</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Footer Navigation */}
+                <div className="mt-8 pt-5 border-t border-nbac-border/60 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
                     <button
-                      onClick={() => setSelectedStep(null)}
-                      className="p-2 text-nbac-muted hover:text-nbac-text hover:bg-nbac-panel rounded-lg transition-colors shrink-0"
-                      aria-label="Close details modal"
+                      disabled={!hasPrev}
+                      onClick={() => setSelectedStep(prev => prev ? prev - 1 : null)}
+                      className={`p-2 rounded-lg border text-xs font-medium font-sans flex items-center gap-1 transition-colors ${
+                        hasPrev 
+                          ? 'bg-nbac-panel/50 border-nbac-border text-nbac-text hover:border-nbac-gold/40' 
+                          : 'opacity-30 border-transparent text-nbac-muted cursor-not-allowed'
+                      }`}
                     >
-                      <X className="w-5 h-5" />
+                      <ChevronLeft className="w-4 h-4" />
+                      <span className="hidden sm:inline">Previous Phase</span>
+                    </button>
+
+                    <button
+                      disabled={!hasNext}
+                      onClick={() => setSelectedStep(prev => prev ? prev + 1 : null)}
+                      className={`p-2 rounded-lg border text-xs font-medium font-sans flex items-center gap-1 transition-colors ${
+                        hasNext 
+                          ? 'bg-nbac-panel/50 border-nbac-border text-nbac-text hover:border-nbac-gold/40' 
+                          : 'opacity-30 border-transparent text-nbac-muted cursor-not-allowed'
+                      }`}
+                    >
+                      <span className="hidden sm:inline">Next Phase</span>
+                      <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
 
-                  {/* Body */}
-                  <div className="space-y-6">
-                    <div>
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-nbac-gold mb-2">Phase Overview</h4>
-                      <p className="text-sm font-light text-nbac-body leading-relaxed">
-                        {step.detailedOverview}
-                      </p>
-                    </div>
-
-                    {/* Key Deliverables */}
-                    <div className="bg-[#12181a] border border-nbac-border/60 rounded-xl p-4">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-nbac-emerald mb-3 flex items-center gap-1.5">
-                        <CheckCircle2 className="w-4 h-4 text-nbac-emerald" />
-                        <span>Key Deliverables & Requirements</span>
-                      </h4>
-                      <ul className="space-y-2">
-                        {step.keyDeliverables.map((item, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-xs font-light text-nbac-body leading-relaxed">
-                            <span className="text-nbac-emerald font-bold text-[10px] shrink-0 mt-0.5">✓</span>
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* Support Provided */}
-                    <div className="bg-[#12181a] border border-nbac-border/60 rounded-xl p-4">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-nbac-gold mb-3 flex items-center gap-1.5">
-                        <Sparkles className="w-4 h-4 text-nbac-gold" />
-                        <span>Support & Resources Provided</span>
-                      </h4>
-                      <ul className="space-y-2">
-                        {step.supportProvided.map((item, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-xs font-light text-nbac-body leading-relaxed">
-                            <span className="text-nbac-gold font-bold text-[10px] shrink-0 mt-0.5">•</span>
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-
-                  {/* Footer Navigation */}
-                  <div className="mt-8 pt-5 border-t border-nbac-border/60 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <button
-                        disabled={!hasPrev}
-                        onClick={() => setSelectedStep(prev => prev ? prev - 1 : null)}
-                        className={`p-2 rounded-lg border text-xs font-medium font-sans flex items-center gap-1 transition-colors ${
-                          hasPrev 
-                            ? 'bg-nbac-panel/50 border-nbac-border text-nbac-text hover:border-nbac-gold/40' 
-                            : 'opacity-30 border-transparent text-nbac-muted cursor-not-allowed'
-                        }`}
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                        <span className="hidden sm:inline">Previous Phase</span>
-                      </button>
-
-                      <button
-                        disabled={!hasNext}
-                        onClick={() => setSelectedStep(prev => prev ? prev + 1 : null)}
-                        className={`p-2 rounded-lg border text-xs font-medium font-sans flex items-center gap-1 transition-colors ${
-                          hasNext 
-                            ? 'bg-nbac-panel/50 border-nbac-border text-nbac-text hover:border-nbac-gold/40' 
-                            : 'opacity-30 border-transparent text-nbac-muted cursor-not-allowed'
-                        }`}
-                      >
-                        <span className="hidden sm:inline">Next Phase</span>
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                    </div>
-
-                    <Link
-                      href="/aerolab/apply"
-                      onClick={() => setSelectedStep(null)}
-                      className="bg-nbac-emerald hover:bg-nbac-emerald-dark text-white font-sans font-bold text-xs px-5 py-2.5 rounded-lg transition-colors uppercase tracking-wider inline-block"
-                    >
-                      Apply Now
-                    </Link>
-                  </div>
-                </motion.div>
+                  <Link
+                    href="/aerolab/apply"
+                    onClick={() => setSelectedStep(null)}
+                    className="bg-nbac-emerald hover:bg-nbac-emerald-dark text-white font-sans font-bold text-xs px-5 py-2.5 rounded-lg transition-colors uppercase tracking-wider inline-block"
+                  >
+                    Apply Now
+                  </Link>
+                </div>
               </div>
             )
           })()}
-        </AnimatePresence>
+        </AccessibleModal>
 
         {/* Judging Criteria Section */}
         <section className="criteria-section relative z-10 px-6 md:px-24 max-w-7xl mx-auto py-16 md:py-24 border-t border-nbac-border/30">

@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { RoleBanner } from '@/components/admin/role-banner';
 import { KpiCard } from '@/components/admin/kpi-card';
 import { RegistrationsChart } from '@/components/admin/registrations-chart';
 import { RecentActivity, ActivityItem } from '@/components/admin/recent-activity';
-import { CreditCard, Users, CheckCircle, Clock } from 'lucide-react';
+import { CreditCard, Users, CheckCircle, Clock, Award, Ticket, Handshake, FileText, ArrowRight } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 interface ReservationStatRow {
@@ -51,7 +52,11 @@ export default function AdminDashboardPage() {
     totalRegistrations: 0,
     confirmedBookings: 0,
     pendingPayments: 0,
-    revenue: '$0'
+    revenue: '$0',
+    aerolabCount: 0,
+    ticketTiersCount: 4,
+    sponsorTiersCount: 5,
+    postsCount: 0
   });
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -93,6 +98,40 @@ export default function AdminDashboardPage() {
 
         if (recentLogsError) {
           console.error('Error fetching recent logs:', recentLogsError.message);
+        }
+
+        // 4. Fetch dynamic feature counts
+        let aeroCount = 0;
+        let tCount = 4;
+        let sCount = 5;
+        let pCount = 0;
+
+        try {
+          const { count: ac } = await supabase.from('aerolab_applications').select('*', { count: 'exact', head: true });
+          if (ac !== null && ac !== undefined) aeroCount = ac;
+        } catch {
+          // ignore
+        }
+
+        try {
+          const { count: tc } = await supabase.from('ticket_tiers').select('*', { count: 'exact', head: true });
+          if (tc !== null && tc !== undefined && tc > 0) tCount = tc;
+        } catch {
+          // ignore
+        }
+
+        try {
+          const { count: sc } = await supabase.from('sponsor_tiers_db').select('*', { count: 'exact', head: true });
+          if (sc !== null && sc !== undefined && sc > 0) sCount = sc;
+        } catch {
+          // ignore
+        }
+
+        try {
+          const { count: pc } = await supabase.from('blog_posts').select('*', { count: 'exact', head: true });
+          if (pc !== null && pc !== undefined) pCount = pc;
+        } catch {
+          // ignore
         }
 
         if (!active) return;
@@ -138,7 +177,11 @@ export default function AdminDashboardPage() {
           totalRegistrations: totalReg,
           confirmedBookings: confirmed,
           pendingPayments: pending,
-          revenue: formattedRev
+          revenue: formattedRev,
+          aerolabCount: aeroCount,
+          ticketTiersCount: tCount,
+          sponsorTiersCount: sCount,
+          postsCount: pCount
         });
 
         // Assemble activities feed
@@ -244,6 +287,112 @@ export default function AdminDashboardPage() {
           ) : (
             <RecentActivity items={activities} />
           )}
+        </div>
+      </div>
+
+      {/* Dynamic System Features Grid */}
+      <div className="space-y-4 pt-2">
+        <div className="flex items-center justify-between">
+          <h3 className="font-display text-lg font-bold text-nbac-text">
+            Dynamic System Features
+          </h3>
+          <span className="font-sans text-xs text-nbac-muted">
+            Live database records & content modules
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Link 
+            href="/admin/aerolab" 
+            className="group bg-nbac-panel border border-nbac-border hover:border-nbac-emerald/50 rounded-lg p-5 transition-all duration-300 hover:shadow-lg hover:shadow-nbac-emerald/5 flex flex-col justify-between"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2.5 rounded-lg bg-nbac-emerald/10 text-nbac-emerald-light">
+                <Award size={20} />
+              </div>
+              <ArrowRight size={16} className="text-nbac-muted group-hover:text-nbac-emerald-light group-hover:translate-x-1 transition-all" />
+            </div>
+            <div>
+              <div className="font-display text-2xl font-bold text-nbac-text mb-1">
+                {loading ? '...' : stats.aerolabCount}
+              </div>
+              <div className="font-sans text-sm font-medium text-nbac-text">
+                AeroLab Submissions
+              </div>
+              <div className="font-sans text-xs text-nbac-muted mt-0.5">
+                Hackathon intake & proposals
+              </div>
+            </div>
+          </Link>
+
+          <Link 
+            href="/admin/tickets" 
+            className="group bg-nbac-panel border border-nbac-border hover:border-nbac-emerald/50 rounded-lg p-5 transition-all duration-300 hover:shadow-lg hover:shadow-nbac-emerald/5 flex flex-col justify-between"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2.5 rounded-lg bg-blue-500/10 text-blue-400">
+                <Ticket size={20} />
+              </div>
+              <ArrowRight size={16} className="text-nbac-muted group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
+            </div>
+            <div>
+              <div className="font-display text-2xl font-bold text-nbac-text mb-1">
+                {loading ? '...' : stats.ticketTiersCount}
+              </div>
+              <div className="font-sans text-sm font-medium text-nbac-text">
+                Ticket Tiers
+              </div>
+              <div className="font-sans text-xs text-nbac-muted mt-0.5">
+                Delegate pricing & perks
+              </div>
+            </div>
+          </Link>
+
+          <Link 
+            href="/admin/sponsors-manager" 
+            className="group bg-nbac-panel border border-nbac-border hover:border-nbac-gold/50 rounded-lg p-5 transition-all duration-300 hover:shadow-lg hover:shadow-nbac-gold/5 flex flex-col justify-between text-left"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2.5 rounded-lg bg-nbac-gold/10 text-nbac-gold">
+                <Handshake size={20} />
+              </div>
+              <ArrowRight size={16} className="text-nbac-muted group-hover:text-nbac-gold group-hover:translate-x-1 transition-all" />
+            </div>
+            <div>
+              <div className="font-display text-2xl font-bold text-nbac-text mb-1">
+                {loading ? '...' : stats.sponsorTiersCount}
+              </div>
+              <div className="font-sans text-sm font-medium text-nbac-text">
+                Sponsor Packages
+              </div>
+              <div className="font-sans text-xs text-nbac-muted mt-0.5">
+                Tier privileges & pricing
+              </div>
+            </div>
+          </Link>
+
+          <Link 
+            href="/admin/content" 
+            className="group bg-nbac-panel border border-nbac-border hover:border-purple-500/50 rounded-lg p-5 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/5 flex flex-col justify-between"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2.5 rounded-lg bg-purple-500/10 text-purple-400">
+                <FileText size={20} />
+              </div>
+              <ArrowRight size={16} className="text-nbac-muted group-hover:text-purple-400 group-hover:translate-x-1 transition-all" />
+            </div>
+            <div>
+              <div className="font-display text-2xl font-bold text-nbac-text mb-1">
+                {loading ? '...' : stats.postsCount}
+              </div>
+              <div className="font-sans text-sm font-medium text-nbac-text">
+                Published Articles
+              </div>
+              <div className="font-sans text-xs text-nbac-muted mt-0.5">
+                Content & press releases
+              </div>
+            </div>
+          </Link>
         </div>
       </div>
     </div>
