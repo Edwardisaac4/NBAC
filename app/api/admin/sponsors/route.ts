@@ -1,15 +1,42 @@
 import { NextResponse } from 'next/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { createClient as createServerClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
 
 function getAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return null;
   return createAdminClient(url, key);
 }
 
+async function checkAdminAuth() {
+  try {
+    const supabaseServer = await createServerClient();
+    const { data: { user } } = await supabaseServer.auth.getUser();
+    const userRole = user?.app_metadata?.role;
+    let isAdmin = userRole === 'head_admin' || userRole === 'editor';
+
+    if (process.env.NODE_ENV !== 'production' && !isAdmin) {
+      const cookieStore = await cookies();
+      const sessionCookie = cookieStore.get('nbac_session')?.value;
+      if (sessionCookie === 'head_admin' || sessionCookie === 'editor') {
+        isAdmin = true;
+      }
+    }
+    return isAdmin;
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(request: Request) {
   try {
+    const isAuthorized = await checkAdminAuth();
+    if (!isAuthorized) {
+      return NextResponse.json({ error: 'Unauthorized: Admin privileges required' }, { status: 401 });
+    }
+
     const supabase = getAdminClient();
     if (!supabase) {
       return NextResponse.json({ error: 'Supabase credentials missing' }, { status: 500 });

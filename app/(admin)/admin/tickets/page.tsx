@@ -33,6 +33,7 @@ export default function AdminTicketsPage() {
   const [editing, setEditing] = useState<TicketTierRow | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [showSeedConfirm, setShowSeedConfirm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [seeding, setSeeding] = useState(false);
   const [privilegeInput, setPrivilegeInput] = useState('');
@@ -84,7 +85,12 @@ export default function AdminTicketsPage() {
     };
   }, []);
 
-  const handleSeedDefaults = async () => {
+  const handleSeedDefaults = () => {
+    setShowSeedConfirm(true);
+  };
+
+  const handleConfirmSeed = async () => {
+    setShowSeedConfirm(false);
     setSeeding(true);
     const res = await seedDefaultTicketTiers();
     setSeeding(false);
@@ -491,6 +497,16 @@ export default function AdminTicketsPage() {
         confirmText="Delete"
         onConfirm={handleConfirmDelete}
         onClose={() => setDeleteTarget(null)}
+      />
+
+      {/* ─── Seed Confirmation ─────────────────────────────────── */}
+      <AlertDialog
+        isOpen={showSeedConfirm}
+        title="Sync Default Ticket Tiers"
+        description="Are you sure you want to sync default ticket tiers to the database? Existing default passes will be updated."
+        confirmText="Sync Defaults"
+        onConfirm={handleConfirmSeed}
+        onClose={() => setShowSeedConfirm(false)}
       />
     </div>
   );

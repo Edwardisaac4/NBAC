@@ -159,11 +159,26 @@ export async function fetchProgramSessions(): Promise<Session[]> {
   }
 }
 
+// ─── Helper for fetch with AbortController timeout ───────────────
+
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 10000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timer);
+    return res;
+  } catch (err) {
+    clearTimeout(timer);
+    throw err;
+  }
+}
+
 // ─── Admin CRUD operations ───────────────────────────────────────
 
 export async function upsertTicketTier(tier: TicketTierRow): Promise<{ success: boolean; error?: string }> {
   try {
-    const res = await fetch('/api/admin/tickets', {
+    const res = await fetchWithTimeout('/api/admin/tickets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'upsert', tier }),
@@ -173,13 +188,16 @@ export async function upsertTicketTier(tier: TicketTierRow): Promise<{ success: 
     return { success: true };
   } catch (err: unknown) {
     const error = err as Error;
+    if (error.name === 'AbortError') {
+      return { success: false, error: 'Request timed out' };
+    }
     return { success: false, error: error.message };
   }
 }
 
 export async function deleteTicketTier(id: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const res = await fetch('/api/admin/tickets', {
+    const res = await fetchWithTimeout('/api/admin/tickets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'delete', id }),
@@ -189,13 +207,16 @@ export async function deleteTicketTier(id: string): Promise<{ success: boolean; 
     return { success: true };
   } catch (err: unknown) {
     const error = err as Error;
+    if (error.name === 'AbortError') {
+      return { success: false, error: 'Request timed out' };
+    }
     return { success: false, error: error.message };
   }
 }
 
 export async function upsertSponsorTier(tier: SponsorTierRow): Promise<{ success: boolean; error?: string }> {
   try {
-    const res = await fetch('/api/admin/sponsors', {
+    const res = await fetchWithTimeout('/api/admin/sponsors', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'upsert', tier }),
@@ -205,13 +226,16 @@ export async function upsertSponsorTier(tier: SponsorTierRow): Promise<{ success
     return { success: true };
   } catch (err: unknown) {
     const error = err as Error;
+    if (error.name === 'AbortError') {
+      return { success: false, error: 'Request timed out' };
+    }
     return { success: false, error: error.message };
   }
 }
 
 export async function deleteSponsorTier(id: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const res = await fetch('/api/admin/sponsors', {
+    const res = await fetchWithTimeout('/api/admin/sponsors', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'delete', id }),
@@ -221,6 +245,9 @@ export async function deleteSponsorTier(id: string): Promise<{ success: boolean;
     return { success: true };
   } catch (err: unknown) {
     const error = err as Error;
+    if (error.name === 'AbortError') {
+      return { success: false, error: 'Request timed out' };
+    }
     return { success: false, error: error.message };
   }
 }
@@ -289,7 +316,7 @@ export const DEFAULT_SPONSOR_TIER_ROWS: SponsorTierRow[] = SPONSOR_TIERS.map((st
 
 export async function seedDefaultTicketTiers(): Promise<{ success: boolean; error?: string }> {
   try {
-    const res = await fetch('/api/admin/tickets', {
+    const res = await fetchWithTimeout('/api/admin/tickets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'seed', tiers: DEFAULT_TICKET_TIER_ROWS }),
@@ -299,13 +326,16 @@ export async function seedDefaultTicketTiers(): Promise<{ success: boolean; erro
     return { success: true };
   } catch (err: unknown) {
     const error = err as Error;
+    if (error.name === 'AbortError') {
+      return { success: false, error: 'Request timed out' };
+    }
     return { success: false, error: error.message };
   }
 }
 
 export async function seedDefaultSponsorTiers(): Promise<{ success: boolean; error?: string }> {
   try {
-    const res = await fetch('/api/admin/sponsors', {
+    const res = await fetchWithTimeout('/api/admin/sponsors', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'seed', tiers: DEFAULT_SPONSOR_TIER_ROWS }),
@@ -315,6 +345,9 @@ export async function seedDefaultSponsorTiers(): Promise<{ success: boolean; err
     return { success: true };
   } catch (err: unknown) {
     const error = err as Error;
+    if (error.name === 'AbortError') {
+      return { success: false, error: 'Request timed out' };
+    }
     return { success: false, error: error.message };
   }
 }

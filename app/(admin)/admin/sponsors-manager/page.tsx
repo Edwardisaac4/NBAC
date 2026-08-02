@@ -41,6 +41,7 @@ export default function AdminSponsorsManagerPage() {
   const [editing, setEditing] = useState<SponsorTierRow | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [showSeedConfirm, setShowSeedConfirm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [seeding, setSeeding] = useState(false);
   const [privilegeInputs, setPrivilegeInputs] = useState<Record<PrivilegeCategory, string>>({
@@ -100,7 +101,12 @@ export default function AdminSponsorsManagerPage() {
     };
   }, []);
 
-  const handleSeedDefaults = async () => {
+  const handleSeedDefaults = () => {
+    setShowSeedConfirm(true);
+  };
+
+  const handleConfirmSeed = async () => {
+    setShowSeedConfirm(false);
     setSeeding(true);
     const res = await seedDefaultSponsorTiers();
     setSeeding(false);
@@ -486,6 +492,16 @@ export default function AdminSponsorsManagerPage() {
         confirmText="Delete"
         onConfirm={handleConfirmDelete}
         onClose={() => setDeleteTarget(null)}
+      />
+
+      {/* ─── Seed Confirmation ─────────────────────────────────── */}
+      <AlertDialog
+        isOpen={showSeedConfirm}
+        title="Sync Default Sponsor Packages"
+        description="Are you sure you want to sync default sponsor packages to the database? Existing default packages will be updated."
+        confirmText="Sync Defaults"
+        onConfirm={handleConfirmSeed}
+        onClose={() => setShowSeedConfirm(false)}
       />
     </div>
   );
