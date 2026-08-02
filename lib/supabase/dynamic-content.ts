@@ -159,66 +159,97 @@ export async function fetchProgramSessions(): Promise<Session[]> {
   }
 }
 
+// ─── Helper for fetch with AbortController timeout ───────────────
+
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 10000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timer);
+    return res;
+  } catch (err) {
+    clearTimeout(timer);
+    throw err;
+  }
+}
+
 // ─── Admin CRUD operations ───────────────────────────────────────
 
 export async function upsertTicketTier(tier: TicketTierRow): Promise<{ success: boolean; error?: string }> {
-  const supabase = createClient();
-  const { error } = await supabase
-    .from('ticket_tiers')
-    .upsert({
-      id: tier.id,
-      name: tier.name,
-      badge: tier.badge,
-      price: tier.price,
-      currency: tier.currency || 'USD',
-      description: tier.description,
-      privileges: tier.privileges,
-      billing_model: tier.billing_model,
-      included_delegates: tier.included_delegates,
-      availability: tier.availability,
-      sort_order: tier.sort_order,
-      updated_at: new Date().toISOString(),
+  try {
+    const res = await fetchWithTimeout('/api/admin/tickets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'upsert', tier }),
     });
-
-  if (error) return { success: false, error: error.message };
-  return { success: true };
+    const data = await res.json();
+    if (!res.ok) return { success: false, error: data.error || 'Failed to save ticket tier' };
+    return { success: true };
+  } catch (err: unknown) {
+    const error = err as Error;
+    if (error.name === 'AbortError') {
+      return { success: false, error: 'Request timed out' };
+    }
+    return { success: false, error: error.message };
+  }
 }
 
 export async function deleteTicketTier(id: string): Promise<{ success: boolean; error?: string }> {
-  const supabase = createClient();
-  const { error } = await supabase.from('ticket_tiers').delete().eq('id', id);
-  if (error) return { success: false, error: error.message };
-  return { success: true };
+  try {
+    const res = await fetchWithTimeout('/api/admin/tickets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', id }),
+    });
+    const data = await res.json();
+    if (!res.ok) return { success: false, error: data.error || 'Failed to delete ticket tier' };
+    return { success: true };
+  } catch (err: unknown) {
+    const error = err as Error;
+    if (error.name === 'AbortError') {
+      return { success: false, error: 'Request timed out' };
+    }
+    return { success: false, error: error.message };
+  }
 }
 
 export async function upsertSponsorTier(tier: SponsorTierRow): Promise<{ success: boolean; error?: string }> {
-  const supabase = createClient();
-  const { error } = await supabase
-    .from('sponsor_tiers_db')
-    .upsert({
-      id: tier.id,
-      name: tier.name,
-      price: tier.price,
-      currency: tier.currency || 'USD',
-      badge: tier.badge,
-      description: tier.description,
-      branding_privileges: tier.branding_privileges,
-      speaking_privileges: tier.speaking_privileges,
-      digital_privileges: tier.digital_privileges,
-      availability: tier.availability,
-      sort_order: tier.sort_order,
-      updated_at: new Date().toISOString(),
+  try {
+    const res = await fetchWithTimeout('/api/admin/sponsors', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'upsert', tier }),
     });
-
-  if (error) return { success: false, error: error.message };
-  return { success: true };
+    const data = await res.json();
+    if (!res.ok) return { success: false, error: data.error || 'Failed to save sponsor tier' };
+    return { success: true };
+  } catch (err: unknown) {
+    const error = err as Error;
+    if (error.name === 'AbortError') {
+      return { success: false, error: 'Request timed out' };
+    }
+    return { success: false, error: error.message };
+  }
 }
 
 export async function deleteSponsorTier(id: string): Promise<{ success: boolean; error?: string }> {
-  const supabase = createClient();
-  const { error } = await supabase.from('sponsor_tiers_db').delete().eq('id', id);
-  if (error) return { success: false, error: error.message };
-  return { success: true };
+  try {
+    const res = await fetchWithTimeout('/api/admin/sponsors', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', id }),
+    });
+    const data = await res.json();
+    if (!res.ok) return { success: false, error: data.error || 'Failed to delete sponsor tier' };
+    return { success: true };
+  } catch (err: unknown) {
+    const error = err as Error;
+    if (error.name === 'AbortError') {
+      return { success: false, error: 'Request timed out' };
+    }
+    return { success: false, error: error.message };
+  }
 }
 
 export async function upsertProgramSession(session: ProgramSessionRow): Promise<{ success: boolean; error?: string }> {
@@ -253,6 +284,76 @@ export async function deleteProgramSession(id: string): Promise<{ success: boole
   return { success: true };
 }
 
+// ─── Default Tier Row Constants & Seeding Helpers ────────────────
+
+export const DEFAULT_TICKET_TIER_ROWS: TicketTierRow[] = PASS_TIERS.map((pt, idx) => ({
+  id: pt.id,
+  name: pt.name,
+  badge: pt.badge ?? '',
+  price: pt.price,
+  currency: pt.currency || 'USD',
+  description: pt.description ?? '',
+  privileges: pt.privileges || [],
+  billing_model: pt.billingModel || 'per_delegate',
+  included_delegates: pt.includedDelegates || 1,
+  availability: pt.availability || 'available',
+  sort_order: idx,
+}));
+
+export const DEFAULT_SPONSOR_TIER_ROWS: SponsorTierRow[] = SPONSOR_TIERS.map((st, idx) => ({
+  id: st.id,
+  name: st.name,
+  price: st.price,
+  currency: st.currency || 'USD',
+  badge: st.badge ?? '',
+  description: st.description || '',
+  branding_privileges: st.brandingPrivileges || [],
+  speaking_privileges: st.speakingPrivileges || [],
+  digital_privileges: st.digitalPrivileges || [],
+  availability: st.availability || 'available',
+  sort_order: idx,
+}));
+
+export async function seedDefaultTicketTiers(): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetchWithTimeout('/api/admin/tickets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'seed', tiers: DEFAULT_TICKET_TIER_ROWS }),
+    });
+    const data = await res.json();
+    if (!res.ok) return { success: false, error: data.error || 'Failed to seed ticket tiers' };
+    return { success: true };
+  } catch (err: unknown) {
+    const error = err as Error;
+    if (error.name === 'AbortError') {
+      return { success: false, error: 'Request timed out' };
+    }
+    return { success: false, error: error.message };
+  }
+}
+
+export async function seedDefaultSponsorTiers(): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetchWithTimeout('/api/admin/sponsors', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'seed', tiers: DEFAULT_SPONSOR_TIER_ROWS }),
+    });
+    const data = await res.json();
+    if (!res.ok) return { success: false, error: data.error || 'Failed to seed sponsor tiers' };
+    return { success: true };
+  } catch (err: unknown) {
+    const error = err as Error;
+    if (error.name === 'AbortError') {
+      return { success: false, error: 'Request timed out' };
+    }
+    return { success: false, error: error.message };
+  }
+}
+
 // ─── Re-export row types for admin pages ─────────────────────────
 
 export type { TicketTierRow, SponsorTierRow, ProgramSessionRow };
+
+

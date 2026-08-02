@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, GripVertical, Save, X, DollarSign, Tag, ListChecks } from 'lucide-react';
+import { Plus, Edit, Trash2, GripVertical, Save, X, DollarSign, Tag, ListChecks, RefreshCw } from 'lucide-react';
 import { useAdminRole } from '@/hooks/use-admin-role';
 import { RoleBanner } from '@/components/admin/role-banner';
 import { useToast } from '@/components/shared/toast';
 import { AlertDialog } from '@/components/shared/alert-dialog';
 import { createClient } from '@/lib/supabase/client';
 import type { TicketTierRow } from '@/lib/supabase/dynamic-content';
-import { deleteTicketTier, upsertTicketTier } from '@/lib/supabase/dynamic-content';
+import { deleteTicketTier, upsertTicketTier, DEFAULT_TICKET_TIER_ROWS, seedDefaultTicketTiers } from '@/lib/supabase/dynamic-content';
 
 const EMPTY_TIER: TicketTierRow = {
   id: '',
@@ -33,7 +33,9 @@ export default function AdminTicketsPage() {
   const [editing, setEditing] = useState<TicketTierRow | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [showSeedConfirm, setShowSeedConfirm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [seeding, setSeeding] = useState(false);
   const [privilegeInput, setPrivilegeInput] = useState('');
 
   const normalizeTicketTierRow = (row: Record<string, unknown>): TicketTierRow => ({
@@ -51,8 +53,10 @@ export default function AdminTicketsPage() {
       .select('*')
       .order('sort_order', { ascending: true });
 
-    if (!error && data) {
+    if (!error && data && data.length > 0) {
       setTiers((data as Record<string, unknown>[]).map(normalizeTicketTierRow));
+    } else {
+      setTiers(DEFAULT_TICKET_TIER_ROWS);
     }
     setLoading(false);
   };
@@ -67,8 +71,10 @@ export default function AdminTicketsPage() {
         .order('sort_order', { ascending: true });
 
       if (active) {
-        if (!error && data) {
+        if (!error && data && data.length > 0) {
           setTiers((data as Record<string, unknown>[]).map(normalizeTicketTierRow));
+        } else {
+          setTiers(DEFAULT_TICKET_TIER_ROWS);
         }
         setLoading(false);
       }
@@ -78,6 +84,23 @@ export default function AdminTicketsPage() {
       active = false;
     };
   }, []);
+
+  const handleSeedDefaults = () => {
+    setShowSeedConfirm(true);
+  };
+
+  const handleConfirmSeed = async () => {
+    setShowSeedConfirm(false);
+    setSeeding(true);
+    const res = await seedDefaultTicketTiers();
+    setSeeding(false);
+    if (res.success) {
+      toast.success('Default ticket tiers saved to database.');
+      loadTiers();
+    } else {
+      toast.error(res.error ?? 'Failed to seed default tiers.');
+    }
+  };
 
   const handleAddNew = () => {
     setEditing({ ...EMPTY_TIER, sort_order: tiers.length });
@@ -165,14 +188,25 @@ export default function AdminTicketsPage() {
             Manage delegate pass types, pricing, and privileges. Changes are reflected on the public reservations page.
           </p>
         </div>
-        <button
-          onClick={handleAddNew}
-          disabled={editing !== null}
-          className="bg-nbac-emerald hover:bg-nbac-emerald-dark disabled:opacity-40 text-white font-sans font-medium px-5 py-2.5 rounded-lg transition-all flex items-center gap-2 text-sm shadow-md shadow-nbac-emerald/10 cursor-pointer hover:scale-[1.01]"
-        >
-          <Plus size={16} />
-          <span>Add Tier</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleSeedDefaults}
+            disabled={seeding || editing !== null}
+            className="bg-nbac-panel hover:bg-nbac-canvas border border-nbac-border text-nbac-text disabled:opacity-40 font-sans font-medium px-4 py-2.5 rounded-lg transition-all flex items-center gap-2 text-xs shadow-sm cursor-pointer"
+            title="Populate database with default passes"
+          >
+            <RefreshCw size={14} className={seeding ? 'animate-spin' : ''} />
+            <span>{seeding ? 'Syncing…' : 'Sync Default Passes'}</span>
+          </button>
+          <button
+            onClick={handleAddNew}
+            disabled={editing !== null}
+            className="bg-nbac-emerald hover:bg-nbac-emerald-dark disabled:opacity-40 text-white font-sans font-medium px-5 py-2.5 rounded-lg transition-all flex items-center gap-2 text-sm shadow-md shadow-nbac-emerald/10 cursor-pointer hover:scale-[1.01]"
+          >
+            <Plus size={16} />
+            <span>Add Tier</span>
+          </button>
+        </div>
       </div>
 
       {/* ─── Edit / Create Form ────────────────────────────────── */}
@@ -463,6 +497,16 @@ export default function AdminTicketsPage() {
         confirmText="Delete"
         onConfirm={handleConfirmDelete}
         onClose={() => setDeleteTarget(null)}
+      />
+
+      {/* ─── Seed Confirmation ─────────────────────────────────── */}
+      <AlertDialog
+        isOpen={showSeedConfirm}
+        title="Sync Default Ticket Tiers"
+        description="Are you sure you want to sync default ticket tiers to the database? Existing default passes will be updated."
+        confirmText="Sync Defaults"
+        onConfirm={handleConfirmSeed}
+        onClose={() => setShowSeedConfirm(false)}
       />
     </div>
   );

@@ -112,8 +112,8 @@ export function ExperienceSection() {
           <div className="absolute -top-10 -left-10 w-40 h-40 bg-nbac-emerald/5 blur-[85px] rounded-full" />
           <div ref={imageRef} className="w-full h-full absolute inset-0" style={{ willChange: 'transform' }}>
             <Image
-              src="/images/interior_cabin.jpg"
-              alt="Luxury business jet interior"
+              src="/images/sliders/AfRS_NBAC17_Day1_0014.jpg"
+              alt="NBAC conference networking event"
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-700"
               sizes="(max-width: 1024px) 100vw, 50vw"

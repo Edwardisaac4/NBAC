@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, GripVertical, Save, X, DollarSign, Tag, Megaphone, Mic, Globe } from 'lucide-react';
+import { Plus, Edit, Trash2, GripVertical, Save, X, DollarSign, Tag, Megaphone, Mic, Globe, RefreshCw } from 'lucide-react';
 import { useAdminRole } from '@/hooks/use-admin-role';
 import { RoleBanner } from '@/components/admin/role-banner';
 import { useToast } from '@/components/shared/toast';
 import { AlertDialog } from '@/components/shared/alert-dialog';
 import { createClient } from '@/lib/supabase/client';
 import type { SponsorTierRow } from '@/lib/supabase/dynamic-content';
-import { deleteSponsorTier, upsertSponsorTier } from '@/lib/supabase/dynamic-content';
+import { deleteSponsorTier, upsertSponsorTier, DEFAULT_SPONSOR_TIER_ROWS, seedDefaultSponsorTiers } from '@/lib/supabase/dynamic-content';
 
 const EMPTY_TIER: SponsorTierRow = {
   id: '',
@@ -41,7 +41,9 @@ export default function AdminSponsorsManagerPage() {
   const [editing, setEditing] = useState<SponsorTierRow | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [showSeedConfirm, setShowSeedConfirm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [seeding, setSeeding] = useState(false);
   const [privilegeInputs, setPrivilegeInputs] = useState<Record<PrivilegeCategory, string>>({
     branding_privileges: '',
     speaking_privileges: '',
@@ -67,8 +69,10 @@ export default function AdminSponsorsManagerPage() {
       .select('*')
       .order('sort_order', { ascending: true });
 
-    if (!error && data) {
+    if (!error && data && data.length > 0) {
       setTiers((data as Record<string, unknown>[]).map(normalizeSponsorTierRow));
+    } else {
+      setTiers(DEFAULT_SPONSOR_TIER_ROWS);
     }
     setLoading(false);
   };
@@ -83,8 +87,10 @@ export default function AdminSponsorsManagerPage() {
         .order('sort_order', { ascending: true });
 
       if (active) {
-        if (!error && data) {
+        if (!error && data && data.length > 0) {
           setTiers((data as Record<string, unknown>[]).map(normalizeSponsorTierRow));
+        } else {
+          setTiers(DEFAULT_SPONSOR_TIER_ROWS);
         }
         setLoading(false);
       }
@@ -94,6 +100,23 @@ export default function AdminSponsorsManagerPage() {
       active = false;
     };
   }, []);
+
+  const handleSeedDefaults = () => {
+    setShowSeedConfirm(true);
+  };
+
+  const handleConfirmSeed = async () => {
+    setShowSeedConfirm(false);
+    setSeeding(true);
+    const res = await seedDefaultSponsorTiers();
+    setSeeding(false);
+    if (res.success) {
+      toast.success('Default sponsor tiers saved to database.');
+      loadTiers();
+    } else {
+      toast.error(res.error ?? 'Failed to seed default sponsor tiers.');
+    }
+  };
 
   const handleAddNew = () => {
     setEditing({ ...EMPTY_TIER, sort_order: tiers.length });
@@ -187,14 +210,25 @@ export default function AdminSponsorsManagerPage() {
             Manage sponsorship tiers, pricing, and privilege breakdowns. Changes are reflected on the public sponsors page.
           </p>
         </div>
-        <button
-          onClick={handleAddNew}
-          disabled={editing !== null}
-          className="bg-nbac-emerald hover:bg-nbac-emerald-dark disabled:opacity-40 text-white font-sans font-medium px-5 py-2.5 rounded-lg transition-all flex items-center gap-2 text-sm shadow-md shadow-nbac-emerald/10 cursor-pointer hover:scale-[1.01]"
-        >
-          <Plus size={16} />
-          <span>Add Tier</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleSeedDefaults}
+            disabled={seeding || editing !== null}
+            className="bg-nbac-panel hover:bg-nbac-canvas border border-nbac-border text-nbac-text disabled:opacity-40 font-sans font-medium px-4 py-2.5 rounded-lg transition-all flex items-center gap-2 text-xs shadow-sm cursor-pointer"
+            title="Populate database with default sponsor packages"
+          >
+            <RefreshCw size={14} className={seeding ? 'animate-spin' : ''} />
+            <span>{seeding ? 'Syncing…' : 'Sync Default Packages'}</span>
+          </button>
+          <button
+            onClick={handleAddNew}
+            disabled={editing !== null}
+            className="bg-nbac-emerald hover:bg-nbac-emerald-dark disabled:opacity-40 text-white font-sans font-medium px-5 py-2.5 rounded-lg transition-all flex items-center gap-2 text-sm shadow-md shadow-nbac-emerald/10 cursor-pointer hover:scale-[1.01]"
+          >
+            <Plus size={16} />
+            <span>Add Tier</span>
+          </button>
+        </div>
       </div>
 
       {/* ─── Edit / Create Form ────────────────────────────────── */}
@@ -458,6 +492,16 @@ export default function AdminSponsorsManagerPage() {
         confirmText="Delete"
         onConfirm={handleConfirmDelete}
         onClose={() => setDeleteTarget(null)}
+      />
+
+      {/* ─── Seed Confirmation ─────────────────────────────────── */}
+      <AlertDialog
+        isOpen={showSeedConfirm}
+        title="Sync Default Sponsor Packages"
+        description="Are you sure you want to sync default sponsor packages to the database? Existing default packages will be updated."
+        confirmText="Sync Defaults"
+        onConfirm={handleConfirmSeed}
+        onClose={() => setShowSeedConfirm(false)}
       />
     </div>
   );
