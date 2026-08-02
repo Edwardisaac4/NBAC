@@ -91,7 +91,7 @@ export function ContactFormUI() {
         transition={{ duration: 0.3 }}
       >
         {/* Subtle glow background */}
-        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-nbac-emerald/[0.03] blur-[80px] rounded-full pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-nbac-emerald/3 blur-[80px] rounded-full pointer-events-none" />
 
         <AnimatePresence mode="wait">
           {submitSuccess ? (
@@ -257,7 +257,7 @@ export function ContactFormUI() {
                 ) : (
                   <>
                     <Send size={14} />
-                    Transmit Executive Inquiry
+                    Submit 
                   </>
                 )}
               </button>
