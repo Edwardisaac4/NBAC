@@ -130,6 +130,29 @@ export const NAV_LINKS = [
   { label: "Contact", href: "/contact" },
 ];
 
+export const SOCIAL_LINKS = [
+  {
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/company/ean-aviation-limited/",
+    icon: "Linkedin",
+  },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/eanaviationltd/",
+    icon: "Instagram",
+  },
+  {
+    label: "TikTok",
+    href: "https://www.tiktok.com/@eanaviation",
+    icon: "TikTok",
+  },
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/eanaviationltd/",
+    icon: "Facebook",
+  },
+];
+
 export const SPONSOR_TIERS: SponsorTierDetails[] = [
   {
     id: "title",
