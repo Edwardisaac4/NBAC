@@ -3,9 +3,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
-import { ImageIcon, Calendar, Tag, ChevronLeft, ChevronRight, X, Maximize2, Loader2, ArrowRight } from 'lucide-react'
+import { ImageIcon, Calendar, ChevronLeft, ChevronRight, X, Maximize2, Loader2, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { HISTORICAL_GALLERY_ITEMS, GALLERY_YEARS, GALLERY_CATEGORIES, GalleryItem } from '@/lib/gallery-data'
+import { HISTORICAL_GALLERY_ITEMS, GALLERY_YEARS, GalleryItem } from '@/lib/gallery-data'
 import { cn } from '@/lib/utils'
 
 interface DbMediaAsset {
@@ -14,7 +14,7 @@ interface DbMediaAsset {
   file_url: string
   tags: string[] | null
   created_at?: string
-  category: 'Conference' | 'Exhibition' | 'Gala Dinner' | 'Networking'
+  category?: string
   year: '2026' | '2017' | '2016' | '2014' | '2013'
 }
 
@@ -24,7 +24,6 @@ interface GalleryViewProps {
 
 export function GalleryView({ initialYear = 'All' }: GalleryViewProps) {
   const [selectedYear, setSelectedYear] = useState<typeof GALLERY_YEARS[number]>(initialYear)
-  const [selectedCategory, setSelectedCategory] = useState<typeof GALLERY_CATEGORIES[number]>('All')
   const [dbItems, setDbItems] = useState<GalleryItem[]>([])
   const [loading, setLoading] = useState(true)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
@@ -45,32 +44,25 @@ export function GalleryView({ initialYear = 'All' }: GalleryViewProps) {
 
       if (data) {
         const formatted: GalleryItem[] = data.map((item: DbMediaAsset) => {
-          let category: 'Conference' | 'Exhibition' | 'Gala Dinner' | 'Networking' = item.category || 'Conference'
-          
-          // Heuristic fallback if category is not set (for safety/backward compatibility)
-          if (!item.category && item.tags && Array.isArray(item.tags)) {
-            const tagsLower = item.tags.map((t: string) => t.toLowerCase())
-            if (tagsLower.some((t: string) => t.includes('exhibit') || t.includes('aerolab') || t.includes('jet') || t.includes('plane') || t.includes('tarmac'))) {
-              category = 'Exhibition'
-            } else if (tagsLower.some((t: string) => t.includes('dinner') || t.includes('gala') || t.includes('reception') || t.includes('party'))) {
-              category = 'Gala Dinner'
-            } else if (tagsLower.some((t: string) => t.includes('network') || t.includes('chat') || t.includes('social') || t.includes('coffee'))) {
-              category = 'Networking'
-            }
-          }
-
-          // Clean up file name for title
           const cleanTitle = item.file_name
             .replace(/\.[^/.]+$/, "") // remove extension
             .replace(/[^a-zA-Z0-9]/g, ' ') // replace symbols with spaces
             .replace(/\b\w/g, (c: string) => c.toUpperCase()) // capitalize
+
+          const category: GalleryItem['category'] =
+            item.category === 'Exhibition' ||
+            item.category === 'Gala Dinner' ||
+            item.category === 'Networking' ||
+            item.category === 'Conference'
+              ? item.category
+              : 'Conference'
 
           return {
             id: item.id,
             src: item.file_url,
             alt: item.file_name,
             title: cleanTitle,
-            description: item.tags && item.tags.length > 0 ? `Tags: ${item.tags.join(', ')}` : 'Uploaded via dashboard',
+            description: item.tags && item.tags.length > 0 ? `Tags: ${item.tags.join(', ')}` : '',
             year: item.year || '2026',
             category,
           }
@@ -95,14 +87,12 @@ export function GalleryView({ initialYear = 'All' }: GalleryViewProps) {
     return [...dbItems, ...HISTORICAL_GALLERY_ITEMS]
   }, [dbItems])
 
-  // Filter items based on active tabs
+  // Filter items based on selected year
   const filteredItems = useMemo(() => {
     return allGalleryItems.filter((item) => {
-      const matchYear = selectedYear === 'All' || item.year === selectedYear
-      const matchCategory = selectedCategory === 'All' || item.category === selectedCategory
-      return matchYear && matchCategory
+      return selectedYear === 'All' || item.year === selectedYear
     })
-  }, [allGalleryItems, selectedYear, selectedCategory])
+  }, [allGalleryItems, selectedYear])
 
   // Lightbox handlers
   const openLightbox = (index: number) => {
@@ -116,11 +106,11 @@ export function GalleryView({ initialYear = 'All' }: GalleryViewProps) {
   const navigateLightbox = useCallback((direction: 'next' | 'prev') => {
     if (lightboxIndex === null || filteredItems.length === 0) return
     let newIndex = direction === 'next' ? lightboxIndex + 1 : lightboxIndex - 1
-    
+
     // Loop around
     if (newIndex >= filteredItems.length) newIndex = 0
     if (newIndex < 0) newIndex = filteredItems.length - 1
-    
+
     setLightboxIndex(newIndex)
   }, [lightboxIndex, filteredItems])
 
@@ -139,9 +129,8 @@ export function GalleryView({ initialYear = 'All' }: GalleryViewProps) {
 
   return (
     <div className="w-full">
-      {/* Filters Segment */}
-      <div className="flex flex-col gap-6 mb-12 relative z-20">
-        {/* Year Filter Row */}
+      {/* Year Filter Segment */}
+      <div className="flex flex-col gap-4 mb-12 relative z-20">
         <div className="space-y-2">
           <span className="font-sans text-[10px] uppercase tracking-widest text-nbac-gold font-bold flex items-center gap-1.5">
             <Calendar size={12} /> Filter By Year
@@ -152,7 +141,7 @@ export function GalleryView({ initialYear = 'All' }: GalleryViewProps) {
                 key={year}
                 onClick={() => {
                   setSelectedYear(year)
-                  setLightboxIndex(null) // Reset lightbox index to prevent mismatches
+                  setLightboxIndex(null)
                 }}
                 className={cn(
                   "px-5 py-2 rounded-lg font-sans text-xs uppercase tracking-wider font-semibold border transition-all duration-300 cursor-pointer",
@@ -162,32 +151,6 @@ export function GalleryView({ initialYear = 'All' }: GalleryViewProps) {
                 )}
               >
                 {year === 'All' ? 'All Years' : year}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Category Filter Row */}
-        <div className="space-y-2">
-          <span className="font-sans text-[10px] uppercase tracking-widest text-nbac-emerald font-bold flex items-center gap-1.5">
-            <Tag size={12} /> Filter By Category
-          </span>
-          <div className="flex flex-wrap gap-2">
-            {GALLERY_CATEGORIES.map((category) => (
-              <button
-                key={category}
-                onClick={() => {
-                  setSelectedCategory(category)
-                  setLightboxIndex(null)
-                }}
-                className={cn(
-                  "px-4 py-1.5 rounded-lg font-sans text-[11px] uppercase tracking-wider font-medium border transition-all duration-300 cursor-pointer",
-                  selectedCategory === category
-                    ? "bg-nbac-gold text-nbac-canvas border-nbac-gold shadow-md shadow-nbac-gold/15"
-                    : "bg-nbac-panel border-nbac-border text-nbac-muted hover:text-nbac-text hover:border-nbac-emerald/30"
-                )}
-              >
-                {category === 'All' ? 'All Categories' : category}
               </button>
             ))}
           </div>
@@ -209,12 +172,11 @@ export function GalleryView({ initialYear = 'All' }: GalleryViewProps) {
           <ImageIcon className="mx-auto text-nbac-muted mb-4" size={40} />
           <h3 className="font-display text-lg font-bold text-nbac-text">No Photos Found</h3>
           <p className="font-sans text-xs text-nbac-muted max-w-sm mx-auto mt-1.5">
-            We couldn&apos;t find any images matching year &quot;{selectedYear}&quot; and category &quot;{selectedCategory}&quot;.
+            We couldn&apos;t find any images for year &quot;{selectedYear}&quot;.
           </p>
           <button
             onClick={() => {
               setSelectedYear('All')
-              setSelectedCategory('All')
             }}
             className="mt-6 font-sans text-[11px] uppercase font-bold tracking-wider text-nbac-emerald hover:text-nbac-emerald-light flex items-center gap-1 mx-auto cursor-pointer"
           >
@@ -241,7 +203,7 @@ export function GalleryView({ initialYear = 'All' }: GalleryViewProps) {
                     alt={item.alt}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-105 contrast-[1.05] saturate-[1.04] [image-rendering:-webkit-optimize-contrast]"
                     quality={85}
                   />
 
@@ -250,21 +212,10 @@ export function GalleryView({ initialYear = 'All' }: GalleryViewProps) {
 
                   {/* Hover Details Panel */}
                   <div className="absolute inset-0 p-5 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-                    <div className="space-y-1.5">
-                      <div className="flex gap-2 items-center">
-                        <span className="bg-nbac-emerald/10 text-nbac-emerald-light border border-nbac-emerald/20 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider">
-                          {item.year}
-                        </span>
-                        <span className="bg-nbac-gold/10 text-nbac-gold-light border border-nbac-gold/20 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider">
-                          {item.category}
-                        </span>
-                      </div>
-                      <h4 className="font-display text-sm font-bold text-white tracking-wide line-clamp-1">
-                        {item.title}
-                      </h4>
-                      <p className="font-sans text-[10px] text-nbac-muted leading-relaxed line-clamp-2">
-                        {item.description}
-                      </p>
+                    <div className="flex gap-2 items-center">
+                      <span className="bg-nbac-emerald/10 text-nbac-emerald-light border border-nbac-emerald/20 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider">
+                        {item.year}
+                      </span>
                     </div>
 
                     <div className="absolute top-4 right-4 bg-nbac-canvas/80 border border-nbac-border p-1.5 rounded-lg text-nbac-gold opacity-0 group-hover:opacity-100 transition-opacity duration-400 delay-100">
@@ -288,17 +239,25 @@ export function GalleryView({ initialYear = 'All' }: GalleryViewProps) {
             transition={{ duration: 0.25 }}
             className="fixed inset-0 bg-nbac-canvas/98 backdrop-blur-md z-9999 flex flex-col items-center justify-center p-4 md:p-8"
           >
+            {/* Ambient Blurred Background Image */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20 select-none">
+              <Image
+                src={filteredItems[lightboxIndex].src}
+                alt=""
+                fill
+                className="object-cover blur-3xl scale-125"
+                quality={60}
+              />
+            </div>
+
             {/* Top Bar controls */}
             <div className="absolute top-6 left-6 right-6 flex justify-between items-center z-50">
               <div className="flex items-center gap-3">
-                <span className="font-sans text-[10px] uppercase font-bold tracking-widest text-nbac-gold border border-nbac-gold/25 px-2.5 py-1 rounded">
+                <span className="font-sans text-[10px] uppercase font-bold tracking-widest text-nbac-gold border border-nbac-gold/25 px-2.5 py-1 rounded bg-nbac-panel/80">
                   {filteredItems[lightboxIndex].year}
                 </span>
-                <span className="font-sans text-[10px] uppercase font-bold tracking-widest text-nbac-emerald-light border border-nbac-emerald/25 px-2.5 py-1 rounded">
-                  {filteredItems[lightboxIndex].category}
-                </span>
               </div>
-              
+
               <button
                 onClick={closeLightbox}
                 className="bg-nbac-panel border border-nbac-border hover:border-nbac-danger hover:text-nbac-danger p-2 rounded-full text-nbac-body transition-colors cursor-pointer"
@@ -309,7 +268,7 @@ export function GalleryView({ initialYear = 'All' }: GalleryViewProps) {
             </div>
 
             {/* Main Stage (Image & Controls) */}
-            <div className="relative w-full max-w-5xl aspect-16/10 flex items-center justify-center px-4 md:px-12">
+            <div className="relative w-full max-w-5xl aspect-16/10 flex items-center justify-center px-4 md:px-12 z-20">
               {/* Prev Button */}
               <button
                 onClick={() => navigateLightbox('prev')}
@@ -320,13 +279,13 @@ export function GalleryView({ initialYear = 'All' }: GalleryViewProps) {
               </button>
 
               {/* High-res Image Wrapper */}
-              <div className="relative w-full h-[60vh] max-h-[600px] rounded-xl overflow-hidden border border-nbac-border shadow-2xl bg-nbac-panel">
+              <div className="relative w-full h-[60vh] max-h-150 rounded-xl overflow-hidden border border-nbac-border/80 shadow-2xl bg-nbac-panel/90 flex items-center justify-center">
                 <Image
                   src={filteredItems[lightboxIndex].src}
                   alt={filteredItems[lightboxIndex].alt}
                   fill
-                  className="object-contain"
-                  quality={95}
+                  className="object-contain contrast-[1.06] saturate-[1.05] brightness-[1.02] [image-rendering:-webkit-optimize-contrast]"
+                  quality={85}
                   priority
                 />
               </div>
@@ -341,15 +300,9 @@ export function GalleryView({ initialYear = 'All' }: GalleryViewProps) {
               </button>
             </div>
 
-            {/* Bottom Caption Info */}
-            <div className="w-full max-w-2xl text-center mt-6 px-4 space-y-1">
-              <h3 className="font-display text-lg md:text-xl font-bold text-nbac-text tracking-wide">
-                {filteredItems[lightboxIndex].title}
-              </h3>
-              <p className="font-sans text-xs md:text-sm text-nbac-muted max-w-lg mx-auto leading-relaxed">
-                {filteredItems[lightboxIndex].description}
-              </p>
-              <div className="pt-3 text-[10px] uppercase font-mono tracking-widest text-nbac-gold/60">
+            {/* Bottom Counter Info */}
+            <div className="w-full max-w-2xl text-center mt-4 px-4 z-20">
+              <div className="text-[10px] uppercase font-mono tracking-widest text-nbac-gold/60">
                 Image {lightboxIndex + 1} of {filteredItems.length}
               </div>
             </div>
