@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Shield, Mail, KeyRound } from 'lucide-react';
 import { useAdminRole } from '@/hooks/use-admin-role';
 import { createClient } from '@/lib/supabase/client';
-import { logAdminActivity } from '@/lib/blog-data';
+import { logAdminActivity } from '@/lib/admin-logger';
 import { useToast } from '@/components/shared/toast';
 
 export default function AdminLoginPage() {

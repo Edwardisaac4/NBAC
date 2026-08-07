@@ -111,72 +111,7 @@ export interface PassTierDetails {
 }
 
 
-// Content Manager
-export type PostTemplate =
-  | 'announcement'
-  | 'press_release'
-  | 'visual_showcase'
-  | 'sponsor_update'
-  | 'event_copy'
-  | 'blank';
 
-export type PostVisibility = 'draft' | 'published';
-
-export type AutoSaveStatus = 'idle' | 'unsaved' | 'saving' | 'saved';
-
-// Keep old names as aliases for backward compatibility if any imports exist
-export type ContentType = PostTemplate;
-export type ContentStatus = PostVisibility;
-
-export interface ContentPost {
-  id?:               string;
-  title:             string;
-  slug?:             string;
-  type:              PostTemplate;
-  status:            PostVisibility;
-  body:              string;
-  author_id?:        string;
-  author_name?:      string;
-  cover_image_url?:  string;
-  meta_title?:       string;
-  meta_description?: string;
-  focus_keyword?:    string;
-  created_at?:       string;
-  updated_at?:       string;
-  featured_image?:   string; // keep for backward compatibility
-}
-
-export interface StudioState {
-  title:            string;
-  slug:             string;
-  category:         PostTemplate;
-  authorName:       string;
-  coverImageUrl:    string;
-  body:             string;
-  metaTitle:        string;
-  metaDescription:  string;
-  focusKeyword:     string;
-  visibility:       PostVisibility;
-  autoSaveStatus:   AutoSaveStatus;
-  selectedTemplate: PostTemplate | null;
-  wordCount:        number;
-}
-
-export interface TemplateCardData {
-  id:          PostTemplate;
-  label:       string;
-  descriptor:  string;
-  icon:        string;   // emoji placeholder until design assets ready
-}
-
-export interface ContentPostFormData {
-  title: string;
-  type: PostTemplate;
-  status: PostVisibility;
-  body: string;
-  author_name: string;
-  cover_image_url?: string;
-}
 
 // Inquiries
 export type InquiryType = 'general' | 'aerolabs' | 'sponsorship' | 'registration' | 'aircraft_display' | 'others';

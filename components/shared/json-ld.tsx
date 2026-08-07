@@ -1,5 +1,3 @@
-import type { ContentPost } from '@/types'
-
 // ─── EVENT JSON-LD (home page) ────────────────────────────────────────────────
 export function EventJsonLd() {
   const schema = {
@@ -46,44 +44,6 @@ export function EventJsonLd() {
     ],
     image: 'https://nbac.com.ng/og/default.jpg',
     url:   'https://nbac.com.ng',
-  }
-
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  )
-}
-
-// ─── ARTICLE JSON-LD (individual blog posts) ──────────────────────────────────
-export function ArticleJsonLd({ post }: { post: ContentPost }) {
-  const schema = {
-    '@context':       'https://schema.org',
-    '@type':          'NewsArticle',
-    headline:         post.meta_title || post.title,
-    description:      post.meta_description ?? '',
-    datePublished:    post.created_at,
-    dateModified:     post.updated_at,
-    author: {
-      '@type': 'Organization',
-      name:    post.author_name ?? 'NBAC Team',
-      url:     'https://nbac.com.ng',
-    },
-    publisher: {
-      '@type': 'Organization',
-      name:    'Nigerian Business Aviation Conference',
-      url:     'https://nbac.com.ng',
-      logo: {
-        '@type': 'ImageObject',
-        url:     'https://nbac.com.ng/og/default.jpg',
-      },
-    },
-    image:         post.cover_image_url ?? 'https://nbac.com.ng/og/news.jpg',
-    mainEntityOfPage: {
-      '@type': 'WebPage',
-      '@id':   `https://nbac.com.ng/news/${post.slug}`,
-    },
   }
 
   return (

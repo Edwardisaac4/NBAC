@@ -19,7 +19,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useAdminRole } from '@/hooks/use-admin-role';
 import { createClient } from '@/lib/supabase/client';
-import { logAdminActivity } from '@/lib/blog-data';
+import { logAdminActivity } from '@/lib/admin-logger';
 
 interface AdminSidebarProps {
   isOpen?: boolean;
@@ -79,12 +79,6 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       label: 'Overview',
       href: '/admin',
       icon: LayoutDashboard,
-      roles: ['head_admin', 'editor']
-    },
-    {
-      label: 'Content Manager',
-      href: '/admin/content',
-      icon: FileText,
       roles: ['head_admin', 'editor']
     },
     {

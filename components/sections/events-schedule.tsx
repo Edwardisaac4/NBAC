@@ -2,7 +2,6 @@
 
 import { useState, useRef, useMemo } from 'react'
 import { EventSession, Speaker, SessionCategory, ConferenceDay } from '@/types'
-import { SpeakerDialog } from '../shared/speaker-dialog'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -58,8 +57,6 @@ export function EventsSchedule({ sessions, eventId }: EventsScheduleProps) {
     }
   })
   const [showStarredOnly, setShowStarredOnly] = useState(false)
-  const [selectedSpeaker, setSelectedSpeaker] = useState<Speaker | null>(null)
-  const [isSpeakerModalOpen, setIsSpeakerModalOpen] = useState(false)
   
   const containerRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
@@ -133,11 +130,7 @@ export function EventsSchedule({ sessions, eventId }: EventsScheduleProps) {
     { scope: containerRef, dependencies: [activeDay, activeCategory, showStarredOnly, starredSessions.length, sessions] }
   )
 
-  const handleSpeakerClick = (speaker: Speaker, e: React.MouseEvent) => {
-    e.stopPropagation()
-    setSelectedSpeaker(speaker)
-    setIsSpeakerModalOpen(true)
-  }
+
 
   // Helper for category badge styles
   const getCategoryStyles = (cat: SessionCategory) => {
@@ -357,24 +350,12 @@ export function EventsSchedule({ sessions, eventId }: EventsScheduleProps) {
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="text-[10px] uppercase tracking-wider text-nbac-muted font-bold mr-1">Speakers:</span>
                             {session.speakers.map(speaker => (
-                              <button
+                              <div
                                 key={speaker.id}
-                                onClick={(e) => handleSpeakerClick(speaker, e)}
-                                className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-nbac-canvas border border-nbac-border hover:border-nbac-emerald/30 text-nbac-text hover:text-nbac-emerald font-sans text-xs transition-all duration-200 cursor-pointer select-none group/chip"
+                                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-nbac-canvas border border-nbac-border text-nbac-text font-sans text-xs select-none"
                               >
-                                {speaker.avatar_url && speaker.id === 'segun-demuren' && (
-                                  <div className="relative w-5 h-5 rounded-full overflow-hidden shrink-0 border border-nbac-border/50">
-                                    <Image
-                                      src={speaker.avatar_url}
-                                      alt={speaker.name}
-                                      fill
-                                      className="object-cover"
-                                      sizes="20px"
-                                    />
-                                  </div>
-                                )}
                                 <span className="font-medium text-[11px]">{speaker.name}</span>
-                              </button>
+                              </div>
                             ))}
                           </div>
                         )}
@@ -404,14 +385,6 @@ export function EventsSchedule({ sessions, eventId }: EventsScheduleProps) {
           </AnimatePresence>
         </div>
       </div>
-
-      {/* Speaker Bio Detailed Modal */}
-      <SpeakerDialog
-        speaker={selectedSpeaker}
-        sessions={sessions}
-        isOpen={isSpeakerModalOpen}
-        onClose={() => setIsSpeakerModalOpen(false)}
-      />
     </section>
   )
 }
