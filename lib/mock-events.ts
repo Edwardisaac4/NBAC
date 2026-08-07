@@ -1,22 +1,8 @@
 import { EventDetails, Speaker, EventSession, SessionCategory } from "@/types";
-import { SPEAKERS as SPEAKERS_ARRAY } from "../data/speakers";
 import { SESSIONS } from "../data/sessions";
 import { CONFERENCE_META } from "../data/conference-stats";
 
-// Map array to Record for backward compatibility
 export const SPEAKERS: Record<string, Speaker> = {};
-
-const avatarMap: Record<string, string> = {
-  'segun-demuren': '/images/sd-nbac.jpg',
-};
-
-SPEAKERS_ARRAY.forEach((s) => {
-  const speakerKey = s.id.replace(/-/g, '_');
-  SPEAKERS[speakerKey] = {
-    ...s,
-    avatar_url: avatarMap[s.id] || undefined,
-  };
-});
 
 // Helper functions for mapping SESSIONS to MOCK_EVENTS
 const getSessionTimes = (sessionsList: typeof SESSIONS, index: number, current: typeof SESSIONS[0]) => {
@@ -60,16 +46,6 @@ const mapFormatToCategory = (format: string): SessionCategory => {
 const getSessionSpeakers = (session: typeof SESSIONS[0]): Speaker[] => {
   if (!session.panellists) return [];
   return session.panellists.map((p, i) => {
-    const matched = SPEAKERS_ARRAY.find(s => 
-      s.name.toLowerCase() === p.name.toLowerCase() ||
-      s.id.toLowerCase() === p.name.toLowerCase().replace(/[^a-z0-9]/g, '-')
-    );
-    if (matched) {
-      return {
-        ...matched,
-        avatar_url: avatarMap[matched.id] || undefined,
-      };
-    }
     return {
       id: `temp-${p.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${i}`,
       name: p.name,

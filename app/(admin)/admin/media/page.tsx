@@ -5,7 +5,7 @@ import { Image as ImageIcon, Upload, Trash2, Tag, Loader2, FileText, Search, X, 
 import { useAdminRole } from '@/hooks/use-admin-role';
 import { RoleBanner } from '@/components/admin/role-banner';
 import { createClient } from '@/lib/supabase/client';
-import { logAdminActivity } from '@/lib/blog-data';
+import { logAdminActivity } from '@/lib/admin-logger';
 import { useToast } from '@/components/shared/toast';
 import { AlertDialog } from '@/components/shared/alert-dialog';
 
