@@ -37,19 +37,6 @@ export function AboutHistory() {
       ],
     },
     {
-      year: '2024',
-      title: 'Post-Pandemic Resilience & Fleet Modernization',
-      subtitle: 'Navigating Currency Volatility & Commercial Fleet Expansion',
-      description:
-        'Addressed post-pandemic supply chain realities and FX liquidity challenges. Convened domestic commercial banks, international lessors, and operators to structure innovative aircraft lease-to-own models, secondary market asset evaluations, and MRO capacity expansion.',
-      impactHighlight: 'Cross-Border Financing & MRO Expansion',
-      keyMilestones: [
-        'Domestic bank aircraft debt syndication roundtables',
-        'NCAA & FAAN joint airport access framework',
-        'FBO passenger processing capacity optimization',
-      ],
-    },
-    {
       year: '2017',
       title: 'Strategic Partnerships & Gala Networking',
       subtitle: 'Forging High-Level Alliances Across Public & Private Sectors',
