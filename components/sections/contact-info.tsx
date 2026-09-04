@@ -72,10 +72,6 @@ export function ContactInfo() {
                 </div>
                 <div className="flex items-center gap-2 text-xs font-light text-nbac-body">
                   <span className="w-1.5 h-1.5 rounded-full bg-nbac-emerald" />
-                  <span>Helipad Access Coordinating Desk</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs font-light text-nbac-body">
-                  <span className="w-1.5 h-1.5 rounded-full bg-nbac-emerald" />
                   <span>Crew & Passenger VIP Lounges</span>
                 </div>
               </div>
@@ -128,12 +124,9 @@ export function ContactInfo() {
               <div className="flex items-center gap-3">
                 <Phone size={16} className="text-nbac-emerald shrink-0" />
                 <div className="flex flex-col sm:flex-row sm:gap-2">
-                  <a href="tel:+23412950960" className="hover:text-nbac-emerald transition-colors">
-                    +234 (0) 1 295 0960
-                  </a>
                   <span className="hidden sm:inline text-nbac-muted">/</span>
                   <a href="tel:+2348100193068" className="hover:text-nbac-emerald transition-colors">
-                    +234 (0) 810 019 3068
+                    +234 (0) 805 033 3410
                   </a>
                 </div>
               </div>

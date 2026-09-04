@@ -99,8 +99,7 @@ export function ExperienceSection() {
 
   const items = [
     'Closed-door Ministerial roundtables',
-    'Exclusive static aircraft display access',
-    'Sustainability and Bio-fuel symposiums',
+    'Two days of keynotes, panels, chats with networking opportunities and a gala dinner',
   ]
 
   return (

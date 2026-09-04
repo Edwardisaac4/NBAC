@@ -6,7 +6,7 @@ import { PASS_TIERS } from '@/lib/constants';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, company, phone, tier: clientTier, currency, specialRequirements, delegateCount } = body;
+    const { name, email, company, phone, tier: clientTier, currency, specialRequirements, delegateCount, discountCode } = body;
 
     if (!name || !email || !clientTier) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -30,7 +30,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const amount = foundTier.price * normalizedDelegateCount;
+    const rawAmount = foundTier.price * normalizedDelegateCount;
+    const isAfbaaDiscount = discountCode === 'NBAC27-PAYNOW10';
+    const amount = isAfbaaDiscount ? Math.round(rawAmount * 0.9) : rawAmount;
     const reference = `NBAC-2027-${foundTier.id.toUpperCase()}-${Math.floor(10000 + Math.random() * 90000)}`;
     const tier = foundTier.name;
 
@@ -64,7 +66,7 @@ export async function POST(request: Request) {
       logContext: 'delegate-admin',
       templateParams: {
         name,
-        title: `NEW TICKET REGISTRATION — ${tier}`,
+        title: `NEW TICKET REGISTRATION — ${tier}${isAfbaaDiscount ? ' [10% AfBAA DISCOUNT]' : ''}`,
         email,
         message: [
           `New delegate registration received:`,
@@ -76,7 +78,9 @@ export async function POST(request: Request) {
           `Pass Tier: ${tier}`,
           `Delegates: ${normalizedDelegateCount}`,
           `Reference: ${reference}`,
-          `Amount Due: $${amount} ${currency || 'USD'}`,
+          `Gross Amount: $${rawAmount} ${currency || 'USD'}`,
+          ...(isAfbaaDiscount ? [`Applied Discount: 10% (Code: NBAC27-PAYNOW10)`] : []),
+          `Final Amount Due: $${amount} ${currency || 'USD'}`,
           `Special Requirements: ${specialRequirements || 'None'}`,
         ].join('\n'),
       }
@@ -104,8 +108,13 @@ export async function POST(request: Request) {
           `Pass Tier: ${tier}`,
           `Delegates: ${normalizedDelegateCount}`,
           `Reference: ${reference}`,
-          `Amount Due: $${amount} ${currency || 'USD'}`,
+          `Standard Total: $${rawAmount} ${currency || 'USD'}`,
+          ...(isAfbaaDiscount ? [`AfBAA Event Discount: 10% (Code: NBAC27-PAYNOW10 applied)`] : []),
+          `Total Payable: $${amount} ${currency || 'USD'}`,
           `Special Requirements: ${specialRequirements || 'None'}`,
+          ``,
+          `PAYMENT DETAILS:`,
+          `Our finance and delegate concierge desk will provide your official payment link and invoice reference to complete your pass issuance.`,
         ].join('\n'),
       }
     });

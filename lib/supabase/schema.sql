@@ -516,3 +516,43 @@ CREATE POLICY "Admin manage program_sessions" ON public.program_sessions
 
 GRANT SELECT ON public.program_sessions TO anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.program_sessions TO authenticated, service_role;
+
+-- -------------------------------------------------------------
+-- TABLE: interests
+-- Stores booth/stand interest submissions and early bird registrations
+-- -------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.interests (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    full_name text NOT NULL,
+    job_title text,
+    company text,
+    country text,
+    email text NOT NULL,
+    phone text NOT NULL,
+    role text NOT NULL DEFAULT 'delegate',
+    attendee_count integer NOT NULL DEFAULT 1,
+    areas_of_interest text[] DEFAULT '{}'::text[],
+    ticket_preference text NOT NULL DEFAULT 'early_bird',
+    source text,
+    payment_choice text NOT NULL DEFAULT 'pay_later',
+    discount_code text,
+    consent boolean NOT NULL DEFAULT true,
+    signature_data text,
+    verification_date text,
+    created_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.interests ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public insert interests" ON public.interests;
+CREATE POLICY "Public insert interests" ON public.interests
+    FOR INSERT TO anon WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Admin manage interests" ON public.interests;
+CREATE POLICY "Admin manage interests" ON public.interests
+    FOR ALL USING (public.user_role() IN ('head_admin', 'editor'))
+    WITH CHECK (public.user_role() IN ('head_admin', 'editor'));
+
+GRANT SELECT, INSERT ON public.interests TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.interests TO authenticated, service_role;
+

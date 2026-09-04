@@ -26,14 +26,14 @@ export function AboutHistory() {
     {
       year: '2027',
       title: 'Connected Ecosystem & One Sky Vision',
-      subtitle: 'Unifying Airspace & Elevating Regional Tech Incubation',
+      subtitle: 'Shaping the Future of West African Business Aviation',
       description:
-        'Focusing on the landmark theme "One Sky, Many Stakeholders," NBAC 2027 convenes 300+ executive delegates to orchestrate single-window flight clearances across ECOWAS airspace, launch the AeroLab startup pitch platform, and establish Sustainable Aviation Fuel (SAF) readiness for West Africa.',
-      impactHighlight: '300+ Executive Delegates • 30+ AeroLab Teams',
+        'Focusing on the landmark theme "One Sky, Many Stakeholders," NBAC 2027 convenes 300+ executive delegates to drivee systeemic growth, regulatory advancement, capital investment, andd infrastructure expansion across West African Aviation',
+      impactHighlight: 'Keynote Speakers • Fireside Chat',
       keyMilestones: [
-        'Single-window ECOWAS airspace clearance roadmap',
-        'Launch of AeroLab aviation startup incubation',
-        'Sustainable Aviation Fuel (SAF) transition framework',
+        'Panels: Regulatory, Operators, Finance, Maintenance, Technology & Sustainability, Women in aviation',
+        'Aerolab Hackathon',
+        'Gala And cocktail',
       ],
     },
     {

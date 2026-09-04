@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Check, ShieldCheck, Crown, Plane, Award } from 'lucide-react'
+import { X, Check, ShieldCheck, Crown, Plane, Award, Sparkles, Clock } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { PassTierDetails } from '@/types'
 import { cn } from '@/lib/utils'
@@ -121,6 +121,16 @@ export function DelegateBenefitsModal({ tier, isOpen, onClose }: DelegateBenefit
     router.push(`/contact/delegate?tier=${tier.id}`)
   }
 
+  const handleEarlyBirdRegister = () => {
+    onClose()
+    router.push(`/interest?mode=pay_now&tier=${tier.id}`)
+  }
+
+  const handleEarlyBirdPayLater = () => {
+    onClose()
+    router.push(`/interest?mode=pay_later&tier=${tier.id}`)
+  }
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -209,21 +219,38 @@ export function DelegateBenefitsModal({ tier, isOpen, onClose }: DelegateBenefit
                 </div>
               </div>
 
-              {/* Action Button */}
-              <div className="flex justify-end pt-4 border-t border-nbac-border">
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-nbac-border">
+                {/* Button 2: Early Bird Pay Later (5% Off Coupon) */}
                 <button
-                  onClick={handleSelectTier}
+                  onClick={handleEarlyBirdPayLater}
                   disabled={tier.availability === 'sold_out'}
                   className={cn(
-                    "w-full md:w-auto font-sans font-bold px-8 py-4 rounded-full text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 border cursor-pointer",
+                    "w-full sm:w-auto font-sans font-semibold px-6 py-3.5 rounded-full text-xs uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-1.5 border cursor-pointer",
                     tier.availability === 'sold_out'
                       ? "border-nbac-border text-nbac-muted bg-transparent cursor-not-allowed"
-                      : (tier.id === 'vip' 
+                      : "bg-nbac-canvas/80 border-nbac-border text-nbac-text hover:border-nbac-emerald hover:text-nbac-emerald-light active:scale-[0.99]"
+                  )}
+                >
+                  <Clock size={13} className="text-nbac-emerald-light" />
+                  <span>Early Bird Pay Later (5% Coupon)</span>
+                </button>
+
+                {/* Button 1: Early Bird Registration (Pay Now - 10% Off) */}
+                <button
+                  onClick={handleEarlyBirdRegister}
+                  disabled={tier.availability === 'sold_out'}
+                  className={cn(
+                    "w-full sm:w-auto font-sans font-bold px-7 py-3.5 rounded-full text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 border cursor-pointer shadow-md",
+                    tier.availability === 'sold_out'
+                      ? "border-nbac-border text-nbac-muted bg-transparent cursor-not-allowed"
+                      : (tier.id === 'vip'
                           ? "bg-linear-to-r from-nbac-gold to-nbac-gold-light text-[#0b0f10] border-transparent shadow-[0_4px_15px_rgba(197,160,89,0.25)] hover:shadow-[0_6px_20px_rgba(197,160,89,0.45)] hover:scale-[1.01] active:scale-[0.99]"
                           : "bg-linear-to-r from-nbac-emerald to-nbac-emerald-light text-white border-transparent shadow-[0_4px_15px_rgba(16,185,129,0.25)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.45)] hover:scale-[1.01] active:scale-[0.99]")
                   )}
                 >
-                  {tier.availability === 'sold_out' ? 'Sold Out' : `Select ${tier.name} Package`}
+                  <Sparkles size={13} />
+                  <span>{tier.availability === 'sold_out' ? 'Sold Out' : 'Early Bird Registration (10% Off)'}</span>
                 </button>
               </div>
             </div>
