@@ -503,13 +503,6 @@ export function HeroSection() {
               Secure Executive Pass
             </button>
           </Link>
-          <a
-            href="/documents/nbac-2027-brochure.pdf"
-            download="NBAC_2027_Conference_Brochure.pdf"
-            className="w-full sm:w-auto inline-flex justify-center border border-white/20 text-white hover:bg-white/10 hover:border-white/40 font-sans font-medium px-6 md:px-8 py-2.5 md:py-3 rounded-full transition-colors backdrop-blur-sm text-sm uppercase tracking-widest cursor-pointer"
-          >
-            Download Brochure
-          </a>
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/layout/navbar";
 import { HeroSection } from "@/components/sections/hero-section";
+import { MissionSection } from "@/components/sections/mission-section";
 import { StateSection } from "@/components/sections/state-section";
 import { ChairmansWelcome } from "@/components/sections/chairmans-welcome";
 import { ExperienceSection } from "@/components/sections/experience-section";
@@ -59,6 +60,9 @@ export default function Home() {
       <Navbar />
       <main className="flex flex-col min-h-screen bg-nbac-canvas text-nbac-text">
         <HeroSection />
+        <SectionBlur>
+          <MissionSection />
+        </SectionBlur>
         <SectionBlur>
           <StateSection />
         </SectionBlur>

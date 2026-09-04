@@ -10,7 +10,16 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { Menu, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { NAV_LINKS } from '@/lib/constants'
+
+// Nav links for site navigation (Program and AeroLab commented out for now)
+const NAV_LINKS = [
+  { label: "Home", href: "/" },
+  { label: "About Us", href: "/about" },
+  // { label: "Program", href: "/program" },
+  // { label: "AeroLab", href: "/aerolab" },
+  { label: "Gallery", href: "/gallery" },
+  { label: "Contact", href: "/contact" },
+]
 
 gsap.registerPlugin(ScrollTrigger)
 

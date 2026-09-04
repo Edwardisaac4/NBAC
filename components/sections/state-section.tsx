@@ -105,7 +105,7 @@ export function StateSection() {
         <div className="text-center mb-16 md:mb-24 space-y-3 max-w-2xl">
           <SectionEyebrow className="state-eyebrow">Market Landscape</SectionEyebrow>
           <h2 className="state-heading font-display text-3xl md:text-5xl font-bold text-nbac-text tracking-tight">
-            The State of Nigerian Business Aviation
+            THE WEST AFRICAN MARKET LANDSCAPE
           </h2>
           <div className="state-divider h-1 w-24 bg-nbac-gold mx-auto rounded-full mt-4 origin-center" />
         </div>

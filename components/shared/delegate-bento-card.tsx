@@ -2,7 +2,8 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import { ShieldCheck, Crown, Plane, Award } from 'lucide-react'
+import { ShieldCheck, Crown, Plane, Award, Sparkles, Clock } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { PassTierDetails } from '@/types'
 import { cn } from '@/lib/utils'
 
@@ -68,8 +69,19 @@ const TIER_THEMES: Record<string, TierTheme> = {
 }
 
 export function DelegateBentoCard({ tier, onViewBenefits }: DelegateBentoCardProps) {
+  const router = useRouter()
   const theme = TIER_THEMES[tier.id] || TIER_THEMES.exhibitor
   const isVip = tier.id === 'vip'
+
+  const handleEarlyBirdRegister = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    router.push(`/interest?mode=pay_now&tier=${tier.id}`)
+  }
+
+  const handleEarlyBirdPayLater = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    router.push(`/interest?mode=pay_later&tier=${tier.id}`)
+  }
 
   const getIcon = (themeText: string) => {
     switch (tier.id) {
@@ -186,13 +198,48 @@ export function DelegateBentoCard({ tier, onViewBenefits }: DelegateBentoCardPro
         </div>
 
         {/* Action Button Strip */}
-        <div className="pt-2">
+        <div className="pt-3 space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {/* Button 1: Early Bird Registration (Pay Now - 10% Off) */}
+            <button
+              onClick={handleEarlyBirdRegister}
+              disabled={isSoldOut}
+              className={cn(
+                "w-full font-sans font-bold py-2.5 px-3 rounded-xl text-[11px] uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer border shadow-sm",
+                isSoldOut
+                  ? "border-nbac-border text-nbac-muted opacity-40 cursor-not-allowed"
+                  : (isVip
+                      ? "bg-linear-to-r from-nbac-gold to-nbac-gold-light text-[#0b0f10] border-transparent hover:shadow-[0_4px_14px_rgba(197,160,89,0.35)] active:scale-[0.98]"
+                      : "bg-linear-to-r from-nbac-emerald to-nbac-emerald-light text-white border-transparent hover:shadow-[0_4px_14px_rgba(16,185,129,0.35)] active:scale-[0.98]")
+              )}
+            >
+              <Sparkles size={12} className="shrink-0" />
+              <span>Early Bird Reg (10% Off)</span>
+            </button>
+
+            {/* Button 2: Early Bird Pay Later (5% Off Coupon) */}
+            <button
+              onClick={handleEarlyBirdPayLater}
+              disabled={isSoldOut}
+              className={cn(
+                "w-full font-sans font-semibold py-2.5 px-3 rounded-xl text-[11px] uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer border",
+                isSoldOut
+                  ? "border-nbac-border text-nbac-muted opacity-40 cursor-not-allowed"
+                  : "bg-nbac-canvas/80 border-nbac-border text-nbac-text hover:border-nbac-emerald hover:text-nbac-emerald-light active:scale-[0.98]"
+              )}
+            >
+              <Clock size={12} className="shrink-0 text-nbac-emerald-light" />
+              <span>Early Bird Pay Later (5%)</span>
+            </button>
+          </div>
+
+          {/* View Full Benefits Modal Trigger */}
           <button
             onClick={(e) => {
               e.stopPropagation()
               onViewBenefits()
             }}
-            className="w-full bg-nbac-canvas/60 border border-nbac-border hover:border-nbac-border/80 hover:text-nbac-text text-nbac-body font-sans font-semibold py-3 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+            className="w-full bg-nbac-canvas/40 border border-nbac-border/60 hover:border-nbac-border hover:text-nbac-text text-nbac-muted font-sans font-medium py-2 rounded-xl text-[11px] uppercase tracking-wider transition-all flex items-center justify-center gap-1 cursor-pointer"
           >
             <span>View Full Benefits</span>
           </button>

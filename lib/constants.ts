@@ -13,7 +13,7 @@ export const STEERING_COMMITTEE_MEMBERS: CommitteeMember[] = [
     role: "CHAIRMAN",
     image: "/images/sd-nbac.jpg",
     objectPosition: "top",
-    bio: `Olusegun Demuren brings visionary leadership and strategic expertise to EAN Aviation, driving its evolution as a leading force in Africa’s private aviation sector.
+    bio: `Olusegun Demuren brings visionary leadership and strategic expertise to EAN Aviation, driving its evolution as a leading force in Africa’s business aviation sector.
 
 He holds a B.Sc. in Information Systems from Marist College, New York, and has completed executive programs at Lagos Business School and the International Air Transport Association (IATA) in Singapore.
 
@@ -108,10 +108,12 @@ At EAN Aviation, Ann combines technical knowledge with a people-first approach t
 export const ABOUT_COMMITTEE_MEMBERS: CommitteeMember[] = STEERING_COMMITTEE_MEMBERS;
 
 export const CONFERENCE_OBJECTIVES = [
-  "Raise awareness of the growing business aviation industry in Nigeria and provide a forum for all stakeholders to exchange views.",
-  "Explore and find customized Finance solutions on the continent as a further growth catalyst.",
-  "First steps to adopting industry-enhancing regulations in line with growing Business Aviation policies.",
-  "Establishing the Business of Executive aviation in Nigeria and Africa as a whole.",
+  "Strengthen industry dialogue and collaboration between regulators, operators, financiers, OEMs, and service providers.",
+  "Facilitate access to aviation financing and leasing solutions for acquisition, fleet modernisation, and infrastructure.",
+  "Support progressive and enabling regulatory frameworks for safe, efficient, and globally competitive operations.",
+  "Promote sustainable growth of the business aviation ecosystem across operations, maintenance, charter, FBOs, and support services.",
+  "Encourage innovation and technology development in aviation, from AI and digital systems to advanced air mobility and e-VTOL.",
+  "Demonstrate the value of business aviation for executive mobility, productivity, and economic productivity across Africa.",
 ];
 
 export const TARGET_AUDIENCE = [
@@ -121,11 +123,13 @@ export const TARGET_AUDIENCE = [
   "National and international companies with business aviation interests.",
 ];
 
+// Keep in sync with the NAV_LINKS list in components/layout/navbar.tsx
+// (Program and AeroLab are commented out for now)
 export const NAV_LINKS = [
   { label: "Home", href: "/" },
   { label: "About Us", href: "/about" },
-  { label: "Program", href: "/program" },
-  { label: "AeroLab", href: "/aerolab" },
+  // { label: "Program", href: "/program" },
+  // { label: "AeroLab", href: "/aerolab" },
   { label: "Gallery", href: "/gallery" },
   { label: "Contact", href: "/contact" },
 ];
@@ -352,6 +356,8 @@ export const PASS_TIERS: PassTierDetails[] = [
       "Admission to all keynote speeches, panel debates, and workshops",
       "Exclusive access to the aircraft static display ramp",
       "Daily networking gourmet lunch buffet & premium coffee lounges",
+      "Access to the official NBAC Gala Dinner & awards ceremony",
+      "Access to the exclusive evening networking cocktail reception",
       "Official NBAC delegate gift package and conference materials",
       "Access to digital networking app & private matchmaking portal",
     ],

@@ -92,7 +92,7 @@ export function AudienceSection() {
     },
     {
       title: 'Finance & Leasing Providers',
-      description: 'Discover lucrative asset financing opportunities, connect with qualified buyers, and navigate private aviation risk management structures.',
+      description: 'Discover lucrative asset financing opportunities, connect with qualified buyers, and navigate business aviation risk management structures.',
       icon: Banknote,
     },
   ]

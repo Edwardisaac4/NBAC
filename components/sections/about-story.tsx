@@ -93,7 +93,7 @@ const STORY_CHAPTERS: StoryChapter[] = [
     leadParagraph:
       'As NBAC approaches its landmark 2027 edition under the theme "One Sky, Many Stakeholders," the platform is orchestrating the next era of African aerospace.',
     detailedBody:
-      'From advocating for single-window digital flight clearance protocols across ECOWAS airspace to driving Sustainable Aviation Fuel (SAF) readiness and incubating high-impact aviation tech startups through AeroLab, NBAC continues to set the benchmark for forward-looking executive aviation leadership.',
+      'From advocating for single-window digital flight clearance protocols across ECOWAS airspace to driving Sustainable Aviation Fuel (SAF) readiness and incubating high-impact aviation tech startups through AeroLab, NBAC continues to set the benchmark for forward-looking business aviation leadership.',
     icon: Rocket,
     image: '/images/sliders/AfRS_NBAC17_Day1_0056.jpg',
     imageAlt: 'NBAC 2027 Visionary Aerospace Future',
@@ -190,7 +190,7 @@ export function AboutStory() {
           </h2>
 
           <p className="font-sans text-base sm:text-lg font-light text-nbac-body leading-relaxed pt-1">
-            Over a decade of bringing visionary clarity, policy alignment, and infrastructure transformation to West African executive aviation.
+            Over a decade of bringing visionary clarity, policy alignment, and infrastructure transformation to West African business aviation.
           </p>
         </div>
 

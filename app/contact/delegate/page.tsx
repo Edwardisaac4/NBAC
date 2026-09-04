@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Mail, User, Phone, Plus, Minus, Lock, CheckCircle2, Landmark, ArrowLeft, CreditCard } from 'lucide-react'
+import { Mail, User, Phone, Plus, Minus, Lock, CheckCircle2, Landmark, ArrowLeft, CreditCard, Tag, Percent, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
@@ -17,6 +17,11 @@ export default function DelegateRegistrationPage() {
   const [tiers, setTiers] = useState<PassTierDetails[]>(PASS_TIERS)
   const [selectedTier, setSelectedTier] = useState<PassTierDetails | null>(null)
   const [isTierLocked, setIsTierLocked] = useState(false)
+
+  // AfBAA Event 10% Discount Code State
+  const [discountCode, setDiscountCode] = useState('NBAC27-PAYNOW10')
+  const [isDiscountApplied, setIsDiscountApplied] = useState(true)
+  const [submittedDiscountApplied, setSubmittedDiscountApplied] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -89,9 +94,20 @@ export default function DelegateRegistrationPage() {
     return `${prefix}-${random}`
   }
 
-  const calculateTotal = (tier: PassTierDetails | null, count: number) => {
+  const calculateGrossTotal = (tier: PassTierDetails | null, count: number) => {
     if (!tier) return 0
     return tier.price * count
+  }
+
+  const calculateDiscountAmount = (tier: PassTierDetails | null, count: number, isApplied: boolean) => {
+    if (!tier || !isApplied) return 0
+    return Math.round(calculateGrossTotal(tier, count) * 0.1)
+  }
+
+  const calculateTotal = (tier: PassTierDetails | null, count: number) => {
+    const gross = calculateGrossTotal(tier, count)
+    const discount = calculateDiscountAmount(tier, count, isDiscountApplied)
+    return gross - discount
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -119,7 +135,8 @@ export default function DelegateRegistrationPage() {
           amount: amount,
           currency: 'USD',
           specialRequirements: formData.specialRequirements,
-          delegateCount: delegateCount
+          delegateCount: delegateCount,
+          discountCode: isDiscountApplied ? discountCode : undefined
         }),
         signal: controller.signal
       });
@@ -154,6 +171,7 @@ export default function DelegateRegistrationPage() {
         setSubmittedTier(selectedTier)
         setSubmittedDelegateCount(delegateCount)
         setSubmittedReference(resData?.data?.reference || reference)
+        setSubmittedDiscountApplied(isDiscountApplied)
         setIsSubmitting(false)
         setSubmitSuccess(true)
       }, 1500)
@@ -292,15 +310,42 @@ export default function DelegateRegistrationPage() {
                       </span>
                     </div>
 
+                    {submittedDiscountApplied && (
+                      <div className="flex justify-between items-center text-xs border-b border-nbac-border/60 pb-2 text-nbac-gold-light">
+                        <span className="uppercase tracking-wider font-semibold flex items-center gap-1">
+                          <Sparkles size={11} /> AfBAA 10% Discount
+                        </span>
+                        <span className="font-mono font-bold">
+                          -{formatPrice(calculateDiscountAmount(submittedTier, submittedDelegateCount, true))}
+                        </span>
+                      </div>
+                    )}
+
                     <div className="flex justify-between items-center text-xs pt-1">
-                      <span className="text-nbac-muted uppercase tracking-wider font-semibold">Total Paid</span>
+                      <span className="text-nbac-muted uppercase tracking-wider font-semibold">
+                        {submittedDiscountApplied ? 'Total Payable (10% Off)' : 'Total Due'}
+                      </span>
                       <span className={cn(
                         "font-bold text-sm",
                         isVipSubmitted ? "text-nbac-gold-light" : "text-nbac-emerald"
                       )}>
-                        {formatPrice(calculateTotal(submittedTier, submittedDelegateCount))}
+                        {formatPrice(
+                          submittedDiscountApplied
+                            ? calculateGrossTotal(submittedTier, submittedDelegateCount) - calculateDiscountAmount(submittedTier, submittedDelegateCount, true)
+                            : calculateGrossTotal(submittedTier, submittedDelegateCount)
+                        )}
                       </span>
                     </div>
+                  </div>
+
+                  {/* Payment Link Notice on Success Card */}
+                  <div className="w-full max-w-md bg-nbac-canvas/60 border border-nbac-border rounded-lg p-4 text-xs text-left space-y-1.5 text-nbac-body font-light">
+                    <span className="font-sans text-[10px] uppercase tracking-widest font-bold text-nbac-gold-light block">
+                      Official Payment Link Instructions
+                    </span>
+                    <p>
+                      Your delegate credentials reservation is securely registered. Your official payment link reflecting the 10% AfBAA event discount has been generated and queued for dispatch to <strong className="text-nbac-text">{formData.email}</strong>.
+                    </p>
                   </div>
 
                   <button
@@ -584,28 +629,95 @@ export default function DelegateRegistrationPage() {
                       />
                     </div>
 
-                    {/* Total Billing Display */}
-                    <div className="bg-nbac-alt/80 border border-nbac-border rounded-lg p-5 flex justify-between items-center shadow-inner">
-                      <div className="space-y-0.5">
-                        <span className="font-sans text-[10px] uppercase tracking-widest font-bold text-nbac-muted">Estimated Total Due</span>
-                        <span className={cn(
-                          "block font-sans text-[10px]",
-                          isVipSelected ? "text-nbac-gold-light" : "text-nbac-emerald-light"
-                        )}>All-inclusive VIP conference access</span>
+                    {/* AfBAA Event 10% Discount Promo & Payment Link Notice */}
+                    <div className="bg-nbac-canvas/90 border border-nbac-gold/40 rounded-xl p-4 sm:p-5 space-y-3 shadow-md">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-nbac-border/60 pb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="bg-nbac-gold text-[#0b0f10] text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                            <Sparkles size={11} /> AfBAA Event Special
+                          </span>
+                          <span className="text-xs font-mono font-bold text-nbac-gold-light">
+                            10% OFF FULL PAYMENT
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-nbac-muted">
+                          Exclusive to AfBAA Event Attendees
+                        </span>
                       </div>
-                      <span className={cn(
-                        "font-display text-xl md:text-2xl font-extrabold tracking-tight",
-                        isVipSelected ? "text-nbac-gold" : "text-nbac-emerald"
-                      )}>
-                        {formatPrice(calculateTotal(selectedTier, delegateCount))}
-                      </span>
+
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <p className="text-xs text-nbac-body font-light leading-relaxed max-w-md">
+                          Delegates who pay in full during the AfBAA event receive an instant 10% discount and priority delegate pass issuance.
+                        </p>
+
+                        <button
+                          type="button"
+                          onClick={() => setIsDiscountApplied(!isDiscountApplied)}
+                          className={cn(
+                            "text-xs uppercase tracking-wider font-bold px-4 py-2.5 rounded-lg transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 self-start sm:self-auto",
+                            isDiscountApplied
+                              ? "bg-nbac-gold text-[#0b0f10] shadow-[0_0_12px_rgba(197,160,89,0.3)]"
+                              : "bg-nbac-panel text-nbac-muted hover:text-nbac-text border border-nbac-border"
+                          )}
+                        >
+                          {isDiscountApplied ? (
+                            <>
+                              <CheckCircle2 size={13} />
+                              <span>10% Discount Applied</span>
+                            </>
+                          ) : (
+                            <span>Claim 10% Discount</span>
+                          )}
+                        </button>
+                      </div>
                     </div>
 
-                    {/* Paystack Security Notice */}
-                    <div className="flex items-center gap-2.5 bg-nbac-canvas/30 border border-nbac-border/30 rounded-lg p-3.5 text-nbac-muted text-xs leading-relaxed">
-                      <Lock size={15} className={cn("shrink-0", isVipSelected ? "text-nbac-gold" : "text-nbac-emerald")} />
+                    {/* Total Billing Display */}
+                    <div className="bg-nbac-alt/80 border border-nbac-border rounded-lg p-5 space-y-3 shadow-inner">
+                      <div className="flex justify-between items-center text-xs text-nbac-muted border-b border-nbac-border/60 pb-2">
+                        <span>Standard Package Subtotal</span>
+                        <span className="font-semibold text-nbac-text">
+                          {formatPrice(calculateGrossTotal(selectedTier, delegateCount))}
+                        </span>
+                      </div>
+
+                      {isDiscountApplied && (
+                        <div className="flex justify-between items-center text-xs text-nbac-gold-light border-b border-nbac-border/60 pb-2 font-medium">
+                          <span className="flex items-center gap-1.5">
+                            <Tag size={13} /> AfBAA Event Full Payment Discount (10% Off)
+                          </span>
+                          <span>
+                            -{formatPrice(calculateDiscountAmount(selectedTier, delegateCount, true))}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex justify-between items-center pt-1">
+                        <div className="space-y-0.5">
+                          <span className="font-sans text-[10px] uppercase tracking-widest font-bold text-nbac-muted">
+                            {isDiscountApplied ? 'Total Payable with 10% Discount' : 'Estimated Total Due'}
+                          </span>
+                          <span className={cn(
+                            "block font-sans text-[10px]",
+                            isVipSelected ? "text-nbac-gold-light" : "text-nbac-emerald-light"
+                          )}>
+                            All-inclusive VIP conference access
+                          </span>
+                        </div>
+                        <span className={cn(
+                          "font-display text-xl md:text-2xl font-extrabold tracking-tight",
+                          isVipSelected ? "text-nbac-gold" : "text-nbac-emerald"
+                        )}>
+                          {formatPrice(calculateTotal(selectedTier, delegateCount))}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Payment Link & Gateway Notice */}
+                    <div className="flex items-start gap-2.5 bg-nbac-canvas/40 border border-nbac-border/40 rounded-lg p-3.5 text-nbac-muted text-xs leading-relaxed">
+                      <Lock size={15} className={cn("shrink-0 mt-0.5", isVipSelected ? "text-nbac-gold" : "text-nbac-emerald")} />
                       <p>
-                        Payments are encrypted and processed by Paystack. Upon approval, digital access passes will be dispatched.
+                        <strong className="text-nbac-text">Payment Link Dispatch:</strong> Delegates paying in full receive an instant 10% event discount. Your official payment link and confirmation will be sent directly to your email upon registration submission.
                       </p>
                     </div>
 
