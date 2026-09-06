@@ -23,6 +23,7 @@ import {
   Camera,
   X,
   Copy,
+  Lock,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Navbar } from '@/components/layout/navbar';
@@ -66,6 +67,9 @@ export default function StandInterestPage() {
 
   // Mode: 'pay_now' (Early Bird Registration) vs 'pay_later' (Early Bird Pay Later)
   const [paymentChoice, setPaymentChoice] = useState<'pay_now' | 'pay_later'>('pay_later');
+  // Once a registration mode is chosen the other is locked out for the rest of
+  // this visit to the form. Deliberate state only — it resets on navigation away.
+  const [modeLocked, setModeLocked] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -105,6 +109,7 @@ export default function StandInterestPage() {
     const modeParam = params.get('mode');
     if (modeParam === 'pay_now' || modeParam === 'pay_later') {
       setPaymentChoice(modeParam);
+      setModeLocked(true);
     }
     const tierParam = params.get('tier');
     if (tierParam) {
@@ -263,6 +268,12 @@ export default function StandInterestPage() {
     }
   };
 
+  const handleSelectMode = (choice: 'pay_now' | 'pay_later') => {
+    if (modeLocked) return;
+    setPaymentChoice(choice);
+    setModeLocked(true);
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -389,6 +400,7 @@ export default function StandInterestPage() {
     clearSignature();
     clearUploadedSignature();
     setSignatureMode('draw');
+    setModeLocked(false);
     setIssuedCode('');
     setCodeCopied(false);
   };
@@ -562,16 +574,21 @@ export default function StandInterestPage() {
                       {/* Button 1: Early Bird Registration (Pay Now - 10% Discount) */}
                       <button
                         type="button"
-                        onClick={() => setPaymentChoice('pay_now')}
+                        onClick={() => handleSelectMode('pay_now')}
+                        disabled={modeLocked && paymentChoice !== 'pay_now'}
+                        aria-pressed={paymentChoice === 'pay_now'}
                         className={cn(
-                          "relative p-4 rounded-lg text-left transition-all duration-300 flex flex-col justify-between gap-2 cursor-pointer border",
+                          "relative p-4 rounded-lg text-left transition-all duration-300 flex flex-col justify-between gap-2 border",
                           paymentChoice === 'pay_now'
-                            ? "bg-nbac-gold/10 border-nbac-gold shadow-[0_0_20px_rgba(197,160,89,0.2)]"
-                            : "bg-transparent border-transparent hover:bg-nbac-panel/40 opacity-75 hover:opacity-100"
+                            ? "bg-nbac-gold/10 border-nbac-gold shadow-[0_0_20px_rgba(197,160,89,0.2)] cursor-default"
+                            : modeLocked
+                              ? "bg-transparent border-transparent opacity-35 cursor-not-allowed grayscale"
+                              : "bg-transparent border-transparent hover:bg-nbac-panel/40 opacity-75 hover:opacity-100 cursor-pointer"
                         )}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-sans text-xs font-bold uppercase tracking-wider text-nbac-text">
+                          <span className="font-sans text-xs font-bold uppercase tracking-wider text-nbac-text flex items-center gap-1.5">
+                            {modeLocked && paymentChoice !== 'pay_now' && <Lock size={11} />}
                             Early Bird Registration
                           </span>
                           <span className="text-[10px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-full bg-nbac-gold text-[#0b0f10]">
@@ -586,16 +603,21 @@ export default function StandInterestPage() {
                       {/* Button 2: Early Bird Pay Later (5% Discount) */}
                       <button
                         type="button"
-                        onClick={() => setPaymentChoice('pay_later')}
+                        onClick={() => handleSelectMode('pay_later')}
+                        disabled={modeLocked && paymentChoice !== 'pay_later'}
+                        aria-pressed={paymentChoice === 'pay_later'}
                         className={cn(
-                          "relative p-4 rounded-lg text-left transition-all duration-300 flex flex-col justify-between gap-2 cursor-pointer border",
+                          "relative p-4 rounded-lg text-left transition-all duration-300 flex flex-col justify-between gap-2 border",
                           paymentChoice === 'pay_later'
-                            ? "bg-nbac-emerald/10 border-nbac-emerald shadow-[0_0_20px_rgba(16,185,129,0.2)]"
-                            : "bg-transparent border-transparent hover:bg-nbac-panel/40 opacity-75 hover:opacity-100"
+                            ? "bg-nbac-emerald/10 border-nbac-emerald shadow-[0_0_20px_rgba(16,185,129,0.2)] cursor-default"
+                            : modeLocked
+                              ? "bg-transparent border-transparent opacity-35 cursor-not-allowed grayscale"
+                              : "bg-transparent border-transparent hover:bg-nbac-panel/40 opacity-75 hover:opacity-100 cursor-pointer"
                         )}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-sans text-xs font-bold uppercase tracking-wider text-nbac-text">
+                          <span className="font-sans text-xs font-bold uppercase tracking-wider text-nbac-text flex items-center gap-1.5">
+                            {modeLocked && paymentChoice !== 'pay_later' && <Lock size={11} />}
                             Early Bird Pay Later
                           </span>
                           <span className="text-[10px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-full bg-nbac-emerald text-white">
@@ -607,6 +629,19 @@ export default function StandInterestPage() {
                         </p>
                       </button>
                     </div>
+
+                    {modeLocked && (
+                      <p className="text-[10px] text-nbac-muted font-light flex items-center gap-1.5">
+                        <Lock size={10} className="shrink-0" />
+                        <span>
+                          You are registering under{' '}
+                          <span className="font-semibold text-nbac-text">
+                            {paymentChoice === 'pay_now' ? 'Early Bird Registration (10%)' : 'Early Bird Pay Later (5%)'}
+                          </span>
+                          . The other option is locked for this registration.
+                        </span>
+                      </p>
+                    )}
                   </div>
 
                   {/* ─── SECTION 1: CONTACT INFORMATION ─────────────────────────────────── */}
