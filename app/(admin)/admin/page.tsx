@@ -6,7 +6,7 @@ import { RoleBanner } from '@/components/admin/role-banner';
 import { KpiCard } from '@/components/admin/kpi-card';
 import { RegistrationsChart } from '@/components/admin/registrations-chart';
 import { RecentActivity, ActivityItem } from '@/components/admin/recent-activity';
-import { CreditCard, Users, CheckCircle, Clock, Award, Ticket, Handshake, FileText, ArrowRight } from 'lucide-react';
+import { CreditCard, Users, CheckCircle, Clock, Award, Ticket, Handshake, FileText, ArrowRight, Sparkles } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 interface ReservationStatRow {
@@ -54,6 +54,7 @@ export default function AdminDashboardPage() {
     pendingPayments: 0,
     revenue: '$0',
     aerolabCount: 0,
+    earlyBirdCount: 0,
     ticketTiersCount: 4,
     sponsorTiersCount: 5,
     postsCount: 0
@@ -102,6 +103,7 @@ export default function AdminDashboardPage() {
 
         // 4. Fetch dynamic feature counts
         let aeroCount = 0;
+        let ebCount = 0;
         let tCount = 4;
         let sCount = 5;
         let pCount = 0;
@@ -109,6 +111,13 @@ export default function AdminDashboardPage() {
         try {
           const { count: ac } = await supabase.from('aerolab_applications').select('*', { count: 'exact', head: true });
           if (ac !== null && ac !== undefined) aeroCount = ac;
+        } catch {
+          // ignore
+        }
+
+        try {
+          const { count: ebc } = await supabase.from('interests').select('*', { count: 'exact', head: true });
+          if (ebc !== null && ebc !== undefined) ebCount = ebc;
         } catch {
           // ignore
         }
@@ -179,6 +188,7 @@ export default function AdminDashboardPage() {
           pendingPayments: pending,
           revenue: formattedRev,
           aerolabCount: aeroCount,
+          earlyBirdCount: ebCount,
           ticketTiersCount: tCount,
           sponsorTiersCount: sCount,
           postsCount: pCount
@@ -302,6 +312,29 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Link 
+            href="/admin/early-birds"
+            className="group bg-nbac-panel border border-nbac-border hover:border-nbac-gold/50 rounded-lg p-5 transition-all duration-300 hover:shadow-lg hover:shadow-nbac-gold/5 flex flex-col justify-between"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2.5 rounded-lg bg-nbac-gold/10 text-nbac-gold-light">
+                <Sparkles size={20} />
+              </div>
+              <ArrowRight size={16} className="text-nbac-muted group-hover:text-nbac-gold-light group-hover:translate-x-1 transition-all" />
+            </div>
+            <div>
+              <div className="font-display text-2xl font-bold text-nbac-text mb-1">
+                {loading ? '...' : stats.earlyBirdCount}
+              </div>
+              <div className="font-sans text-sm font-medium text-nbac-text">
+                Early Bird Leads
+              </div>
+              <div className="font-sans text-xs text-nbac-muted mt-0.5">
+                Interest forms & discount codes
+              </div>
+            </div>
+          </Link>
+
           <Link 
             href="/admin/aerolab" 
             className="group bg-nbac-panel border border-nbac-border hover:border-nbac-emerald/50 rounded-lg p-5 transition-all duration-300 hover:shadow-lg hover:shadow-nbac-emerald/5 flex flex-col justify-between"

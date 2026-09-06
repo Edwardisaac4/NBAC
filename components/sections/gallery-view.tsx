@@ -15,7 +15,7 @@ interface DbMediaAsset {
   tags: string[] | null
   created_at?: string
   category?: string
-  year: '2026' | '2017' | '2016' | '2014' | '2013'
+  year: '2027' | '2017' | '2016' | '2014' | '2013'
 }
 
 interface GalleryViewProps {
@@ -63,7 +63,7 @@ export function GalleryView({ initialYear = 'All' }: GalleryViewProps) {
             alt: item.file_name,
             title: cleanTitle,
             description: item.tags && item.tags.length > 0 ? `Tags: ${item.tags.join(', ')}` : '',
-            year: item.year || '2026',
+            year: item.year || '2027',
             category,
           }
         })
@@ -82,7 +82,7 @@ export function GalleryView({ initialYear = 'All' }: GalleryViewProps) {
     })
   }, [fetchDbAssets])
 
-  // Merge database assets (2026/Recent) with static historical assets
+  // Merge database assets (2027/Recent) with static historical assets
   const allGalleryItems = useMemo(() => {
     return [...dbItems, ...HISTORICAL_GALLERY_ITEMS]
   }, [dbItems])

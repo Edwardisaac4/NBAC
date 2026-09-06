@@ -113,30 +113,19 @@ export function AudienceSection() {
         <div className="aud-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
           {audiences.map((audience) => {
             const Icon = audience.icon
-            const isHNWI = audience.title.includes('High-Net-Worth')
             return (
               <motion.div
                 key={audience.title}
-                className={`audience-card bg-nbac-panel border rounded-lg p-6 flex flex-col justify-between h-full transition-colors duration-300 ${
-                  isHNWI
-                    ? 'border-nbac-gold/30 border-l-4 border-l-nbac-gold bg-nbac-gold/[0.01] hover:border-nbac-gold/50'
-                    : 'border-nbac-border hover:border-nbac-emerald/50'
-                }`}
+                className="audience-card bg-nbac-panel border border-nbac-border rounded-lg p-6 flex flex-col justify-between h-full transition-colors duration-300 hover:border-nbac-emerald/50"
                 whileHover={{
                   y: -6,
-                  boxShadow: isHNWI
-                    ? '0 8px 32px rgba(197, 160, 89, 0.08)'
-                    : '0 8px 32px rgba(16, 185, 129, 0.08)',
+                  boxShadow: '0 8px 32px rgba(16, 185, 129, 0.08)',
                 }}
                 transition={{ duration: 0.25, ease: 'easeOut' }}
               >
                 <div className="space-y-4">
                   {/* Icon */}
-                  <div className={`p-3 rounded-lg h-11 w-11 flex items-center justify-center ${
-                    isHNWI
-                      ? 'bg-nbac-gold/10 text-nbac-gold'
-                      : 'bg-nbac-emerald/10 text-nbac-emerald'
-                  }`}>
+                  <div className="p-3 rounded-lg h-11 w-11 flex items-center justify-center bg-nbac-emerald/10 text-nbac-emerald">
                     <Icon size={20} />
                   </div>
                   {/* Content */}
