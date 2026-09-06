@@ -14,7 +14,8 @@ import {
   X,
   Award,
   Ticket,
-  Handshake
+  Handshake,
+  Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAdminRole } from '@/hooks/use-admin-role';
@@ -85,6 +86,12 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       label: 'Reservations',
       href: '/admin/reservations',
       icon: Users,
+      roles: ['head_admin', 'editor']
+    },
+    {
+      label: 'Early Bird Leads',
+      href: '/admin/early-birds',
+      icon: Sparkles,
       roles: ['head_admin', 'editor']
     },
     {

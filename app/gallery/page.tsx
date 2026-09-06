@@ -20,7 +20,7 @@ export default function GalleryPage() {
               <span className="text-glow text-nbac-emerald">West African Aviation</span>
             </h1>
             <p className="font-sans text-base md:text-lg font-light text-nbac-body leading-relaxed pt-2">
-              Explore the historical milestones of the Nigerian Business Aviation Conference through our photos. Witness our journey from the inaugural 2013 summit to the latest developments in 2026.
+              Explore the historical milestones of the Nigerian Business Aviation Conference through our photos. Witness our journey from the inaugural 2013 summit to the latest developments in 2027.
             </p>
           </div>
 

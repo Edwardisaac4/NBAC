@@ -4,11 +4,11 @@ export interface GalleryItem {
   alt: string
   title: string
   description: string
-  year: '2013' | '2014' | '2016' | '2017' | '2026'
+  year: '2013' | '2014' | '2016' | '2017' | '2027'
   category: 'Conference' | 'Exhibition' | 'Gala Dinner' | 'Networking'
 }
 
-export const GALLERY_YEARS = ['All', '2026', '2017', '2016', '2014', '2013'] as const;
+export const GALLERY_YEARS = ['All', '2027', '2017', '2016', '2014', '2013'] as const;
 export const GALLERY_CATEGORIES = ['All', 'Conference', 'Exhibition', 'Gala Dinner', 'Networking'] as const;
 
 export const HISTORICAL_GALLERY_ITEMS: GalleryItem[] = [

@@ -70,15 +70,6 @@ His strengths lie in critical thinking, stakeholder management, and problem-solv
 Tunde holds a BSc in Geology and is PRINCE2 Practitioner certified, with executive education in Systems Thinking (MIT), Developing and Financing Infrastructure Projects (Brickstone Africa), and AI Infrastructure & Operations (NVIDIA). He is currently completing the Senior Management Programme at Lagos Business School.`,
   },
   {
-    name: "Seye Fasuyi",
-    role: "",
-    image: "/images/seye-nbac.jpg",
-    objectPosition: "top",
-    bio: `Seye Fasuyi brings over a decade of experience as a dynamic HR Business Partner, specializing in talent acquisition, organizational development, and change management across sectors such as entertainment, healthcare, communications, and technology. His passion lies in empowering individuals and organizations to reach their fullest potential while delivering tangible value to stakeholders. Before joining EAN Aviation, Seye led effective HR initiatives that enhanced performance and organizational effectiveness.
-
-He holds a B.Sc. in English from the University of Ilorin. Seye’s leadership is characterized by strategic insight, stakeholder collaboration, and an unwavering commitment to cultivating a high-performance culture.`,
-  },
-  {
     name: "Ann Umeh",
     role: "",
     image: "/images/ann-umeh-nbac.jpg",

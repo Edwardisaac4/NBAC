@@ -8,19 +8,21 @@ import {
   PenTool,
   RotateCcw,
   User,
-  Mail,
   Phone,
   Building2,
   Globe,
   Briefcase,
   Tag,
-  Calendar,
   Sparkles,
   ShieldCheck,
   ArrowLeft,
   Users,
   Clock,
   Percent,
+  Upload,
+  Camera,
+  X,
+  Copy,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Navbar } from '@/components/layout/navbar';
@@ -84,11 +86,17 @@ export default function StandInterestPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedChoice, setSubmittedChoice] = useState<'pay_now' | 'pay_later'>('pay_later');
+  const [issuedCode, setIssuedCode] = useState('');
+  const [codeCopied, setCodeCopied] = useState(false);
 
   // Signature Canvas state
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
+  const [signatureMode, setSignatureMode] = useState<'draw' | 'upload'>('draw');
+  const [uploadedSignature, setUploadedSignature] = useState<string | null>(null);
+  const [isProcessingUpload, setIsProcessingUpload] = useState(false);
   const [todayDate, setTodayDate] = useState('');
 
   useEffect(() => {
@@ -172,11 +180,87 @@ export default function StandInterestPage() {
 
   const clearSignature = () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
     setHasSignature(false);
+  };
+
+  const clearUploadedSignature = () => {
+    setUploadedSignature(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  /**
+   * Accepts a photo or image file of a signature and downscales it to a
+   * compact JPEG data URL. Phone camera shots are several megabytes, and the
+   * signature is stored as text on the lead record, so it must be shrunk first.
+   */
+  const handleSignatureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Unsupported File', {
+        description: 'Please upload an image of your signature (JPG, PNG, HEIC or a photo).',
+      });
+      e.target.value = '';
+      return;
+    }
+
+    if (file.size > 12 * 1024 * 1024) {
+      toast.error('Image Too Large', {
+        description: 'Please upload an image under 12MB.',
+      });
+      e.target.value = '';
+      return;
+    }
+
+    setIsProcessingUpload(true);
+
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error('Could not read the selected file.'));
+        reader.readAsDataURL(file);
+      });
+
+      const compressed = await new Promise<string>((resolve, reject) => {
+        const img = new window.Image();
+        img.onload = () => {
+          const MAX_WIDTH = 1000;
+          const scale = Math.min(1, MAX_WIDTH / img.width);
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('Could not process the image.'));
+            return;
+          }
+          // Flatten onto white so transparent PNG signatures stay readable
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', 0.82));
+        };
+        img.onerror = () => reject(new Error('That image could not be opened.'));
+        img.src = dataUrl;
+      });
+
+      setUploadedSignature(compressed);
+      toast.success('Signature Attached', {
+        description: 'Your signature image has been attached to this registration.',
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not process that image.';
+      toast.error('Upload Failed', { description: message });
+    } finally {
+      setIsProcessingUpload(false);
+      e.target.value = '';
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -216,7 +300,9 @@ export default function StandInterestPage() {
     setIsSubmitting(true);
 
     let signatureDataUrl = '';
-    if (canvasRef.current && hasSignature) {
+    if (signatureMode === 'upload') {
+      signatureDataUrl = uploadedSignature || '';
+    } else if (canvasRef.current && hasSignature) {
       signatureDataUrl = canvasRef.current.toDataURL('image/png');
     }
 
@@ -249,6 +335,8 @@ export default function StandInterestPage() {
         throw new Error(data.error || 'Failed to submit registration interest.');
       }
 
+      setIssuedCode(data.discountCode || '');
+      setCodeCopied(false);
       setSubmittedChoice(paymentChoice);
       setIsSubmitted(true);
       setIsSubmitting(false);
@@ -258,13 +346,26 @@ export default function StandInterestPage() {
         {
           description: paymentChoice === 'pay_now'
             ? '10% AfBAA event discount recorded.'
-            : 'Your 5% discount coupon code has been dispatched to your email.',
+            : 'Your 5% discount code has been recorded against your registration.',
         }
       );
     } catch (err) {
       setIsSubmitting(false);
       const message = err instanceof Error ? err.message : 'Network error. Please try again.';
       toast.error('Submission Failed', { description: message });
+    }
+  };
+
+  const handleCopyCode = async () => {
+    if (!issuedCode) return;
+    try {
+      await navigator.clipboard.writeText(issuedCode);
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2500);
+    } catch {
+      toast.error('Could not copy', {
+        description: `Please note your code manually: ${issuedCode}`,
+      });
     }
   };
 
@@ -285,6 +386,11 @@ export default function StandInterestPage() {
       consent: true,
     });
     setHasSignature(false);
+    clearSignature();
+    clearUploadedSignature();
+    setSignatureMode('draw');
+    setIssuedCode('');
+    setCodeCopied(false);
   };
 
   return (
@@ -359,7 +465,7 @@ export default function StandInterestPage() {
                   <p className="font-sans text-sm text-nbac-body font-light leading-relaxed">
                     {submittedChoice === 'pay_now'
                       ? 'Your early bird registration details have been securely logged. Your 10% AfBAA discount has been applied to your profile.'
-                      : 'We have recorded your details at our stand. A confirmation with your exclusive 5% discount coupon code has been dispatched to your email.'}
+                      : 'We have recorded your details at our stand. Your exclusive 5% discount code is shown below — our delegate desk will apply it when you register.'}
                   </p>
                 </div>
 
@@ -367,13 +473,40 @@ export default function StandInterestPage() {
                 <div className="w-full max-w-md bg-nbac-canvas/90 border border-nbac-border rounded-xl p-6 text-left space-y-4 shadow-inner">
                   <div className="flex items-center justify-between border-b border-nbac-border pb-3">
                     <span className="text-xs uppercase tracking-wider text-nbac-muted font-medium flex items-center gap-1.5">
-                      <Mail size={14} className={submittedChoice === 'pay_now' ? "text-nbac-gold-light" : "text-nbac-emerald-light"} />
-                      Discount Code Delivery
+                      <Tag size={14} className={submittedChoice === 'pay_now' ? "text-nbac-gold-light" : "text-nbac-emerald-light"} />
+                      Your Discount Code
                     </span>
                     <span className={cn("text-xs font-bold uppercase tracking-wider", submittedChoice === 'pay_now' ? "text-nbac-gold-light" : "text-nbac-emerald-light")}>
-                      Dispatched to Email
+                      Recorded at Stand
                     </span>
                   </div>
+
+                  {/* The code itself — this screen is the only place the delegate receives it */}
+                  {issuedCode && (
+                    <div className={cn(
+                      "flex flex-col gap-3 rounded-xl border-2 border-dashed p-4 sm:flex-row sm:items-center sm:justify-between",
+                      submittedChoice === 'pay_now'
+                        ? "border-nbac-gold/50 bg-nbac-gold/5"
+                        : "border-nbac-emerald/50 bg-nbac-emerald/5"
+                    )}>
+                      <span className="font-mono text-lg font-extrabold tracking-widest text-nbac-text break-all">
+                        {issuedCode}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleCopyCode}
+                        className={cn(
+                          "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full px-4 py-2 font-sans text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer",
+                          submittedChoice === 'pay_now'
+                            ? "bg-nbac-gold text-[#0b0f10] hover:bg-nbac-gold-light"
+                            : "bg-nbac-emerald text-white hover:bg-[#10b981]"
+                        )}
+                      >
+                        {codeCopied ? <Check size={13} /> : <Copy size={13} />}
+                        <span>{codeCopied ? 'Copied' : 'Copy Code'}</span>
+                      </button>
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between text-xs border-b border-nbac-border pb-3">
                     <span className="text-nbac-muted uppercase tracking-wider">Discount Privilege</span>
@@ -397,7 +530,7 @@ export default function StandInterestPage() {
 
                 {/* Notice */}
                 <p className="text-xs text-nbac-muted max-w-md leading-relaxed font-light">
-                  Your exclusive discount code and full event instructions have been dispatched to <span className="text-nbac-text font-semibold">{formData.email}</span>. Please check your inbox.
+                  Please screenshot or copy your code now — this screen is the only place it is issued. Our delegate desk has your details and will follow up on <span className="text-nbac-text font-semibold">{formData.email}</span>.
                 </p>
 
                 {/* Reset button for exhibition stand usage */}
@@ -450,7 +583,7 @@ export default function StandInterestPage() {
                         </p>
                       </button>
 
-                      {/* Button 2: Early Bird Pay Later (5% Discount via Email) */}
+                      {/* Button 2: Early Bird Pay Later (5% Discount) */}
                       <button
                         type="button"
                         onClick={() => setPaymentChoice('pay_later')}
@@ -470,7 +603,7 @@ export default function StandInterestPage() {
                           </span>
                         </div>
                         <p className="text-[11px] text-nbac-muted font-light leading-relaxed">
-                          Receive a 5% discount code via email, valid for payment within 30 days of the event closing.
+                          Lock in a 5% discount code, valid for payment within 30 days of the event closing.
                         </p>
                       </button>
                     </div>
@@ -779,16 +912,16 @@ export default function StandInterestPage() {
                       </span>
                     </label>
 
-                    {/* Signature Pad */}
+                    {/* Signature — draw on screen, or snap / upload an image */}
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <label className="text-[11px] uppercase tracking-wider font-semibold text-nbac-muted flex items-center gap-1.5">
-                          Signature (Draw with finger, stylus, or mouse)
+                      <div className="flex items-center justify-between gap-3">
+                        <label className="text-[11px] uppercase tracking-wider font-semibold text-nbac-muted">
+                          Signature
                         </label>
-                        {hasSignature && (
+                        {((signatureMode === 'draw' && hasSignature) || (signatureMode === 'upload' && uploadedSignature)) && (
                           <button
                             type="button"
-                            onClick={clearSignature}
+                            onClick={signatureMode === 'draw' ? clearSignature : clearUploadedSignature}
                             className="text-[10px] text-nbac-muted hover:text-nbac-danger transition-colors flex items-center gap-1 cursor-pointer"
                           >
                             <RotateCcw size={11} /> Clear
@@ -796,36 +929,120 @@ export default function StandInterestPage() {
                         )}
                       </div>
 
-                      <div className="relative border border-nbac-border rounded-xl bg-nbac-canvas/90 overflow-hidden shadow-inner touch-none h-32">
-                        <canvas
-                          ref={canvasRef}
-                          onMouseDown={startDrawing}
-                          onMouseMove={draw}
-                          onMouseUp={stopDrawing}
-                          onMouseLeave={stopDrawing}
-                          onTouchStart={startDrawing}
-                          onTouchMove={draw}
-                          onTouchEnd={stopDrawing}
-                          className="w-full h-full cursor-crosshair"
-                        />
-                        {!hasSignature && (
-                          <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-nbac-muted/40 font-serif italic select-none">
-                            Sign here for on-site booth verification
-                          </div>
-                        )}
+                      {/* Mode switch */}
+                      <div className="grid grid-cols-2 gap-1.5 p-1 bg-nbac-canvas/80 border border-nbac-border rounded-xl">
+                        <button
+                          type="button"
+                          onClick={() => setSignatureMode('draw')}
+                          className={cn(
+                            "flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 font-sans text-[11px] font-semibold uppercase tracking-wider transition-all cursor-pointer",
+                            signatureMode === 'draw'
+                              ? "bg-nbac-gold/15 text-nbac-gold-light border border-nbac-gold/40"
+                              : "border border-transparent text-nbac-muted hover:text-nbac-text hover:bg-nbac-panel/50"
+                          )}
+                        >
+                          <PenTool size={12} />
+                          <span>Draw</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSignatureMode('upload')}
+                          className={cn(
+                            "flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 font-sans text-[11px] font-semibold uppercase tracking-wider transition-all cursor-pointer",
+                            signatureMode === 'upload'
+                              ? "bg-nbac-gold/15 text-nbac-gold-light border border-nbac-gold/40"
+                              : "border border-transparent text-nbac-muted hover:text-nbac-text hover:bg-nbac-panel/50"
+                          )}
+                        >
+                          <Camera size={12} />
+                          <span>Snap / Upload</span>
+                        </button>
                       </div>
+
+                      {signatureMode === 'draw' ? (
+                        <>
+                          <div className="relative border border-nbac-border rounded-xl bg-nbac-canvas/90 overflow-hidden shadow-inner touch-none h-32">
+                            <canvas
+                              ref={canvasRef}
+                              onMouseDown={startDrawing}
+                              onMouseMove={draw}
+                              onMouseUp={stopDrawing}
+                              onMouseLeave={stopDrawing}
+                              onTouchStart={startDrawing}
+                              onTouchMove={draw}
+                              onTouchEnd={stopDrawing}
+                              className="w-full h-full cursor-crosshair"
+                            />
+                            {!hasSignature && (
+                              <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-nbac-muted/40 font-serif italic select-none">
+                                Sign here for on-site booth verification
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-nbac-muted font-light">
+                            Sign with your finger, a stylus, or your mouse.
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleSignatureUpload}
+                            className="hidden"
+                            aria-label="Upload a photo of your signature"
+                          />
+
+                          {uploadedSignature ? (
+                            <div className="relative border border-nbac-border rounded-xl bg-white overflow-hidden shadow-inner">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={uploadedSignature}
+                                alt="Uploaded signature preview"
+                                className="w-full h-32 object-contain"
+                              />
+                              <button
+                                type="button"
+                                onClick={clearUploadedSignature}
+                                aria-label="Remove uploaded signature"
+                                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-nbac-danger transition-colors cursor-pointer"
+                              >
+                                <X size={13} />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => fileInputRef.current?.click()}
+                              disabled={isProcessingUpload}
+                              className="w-full h-32 border border-dashed border-nbac-border hover:border-nbac-gold/50 rounded-xl bg-nbac-canvas/90 flex flex-col items-center justify-center gap-2 text-nbac-muted hover:text-nbac-text transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
+                            >
+                              {isProcessingUpload ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-current border-t-transparent" />
+                                  <span className="font-sans text-[11px] uppercase tracking-wider">Processing image...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Upload size={18} className="text-nbac-gold-light" />
+                                  <span className="font-sans text-[11px] uppercase tracking-wider font-semibold">
+                                    Take a photo or upload
+                                  </span>
+                                  <span className="font-sans text-[10px] font-light">
+                                    Snap your signed slip or attach an e-signature
+                                  </span>
+                                </>
+                              )}
+                            </button>
+                          )}
+                          <p className="text-[10px] text-nbac-muted font-light">
+                            On a phone this opens your camera or photo library. Images up to 12MB.
+                          </p>
+                        </>
+                      )}
                     </div>
 
-                    {/* Date Line */}
-                    <div className="flex items-center justify-between p-3.5 bg-nbac-canvas/60 border border-nbac-border rounded-xl text-xs">
-                      <div className="flex items-center gap-2 text-nbac-muted uppercase tracking-wider">
-                        <Calendar size={14} className="text-nbac-gold-light" />
-                        <span>Verification Date</span>
-                      </div>
-                      <span className="font-mono font-semibold text-nbac-text">
-                        {todayDate || 'Current Date'}
-                      </span>
-                    </div>
                   </div>
 
                   {/* ─── SUBMISSION ACTION ────────────────────────────────────────────── */}
@@ -851,7 +1068,7 @@ export default function StandInterestPage() {
                           <span>
                             {paymentChoice === 'pay_now'
                               ? 'Submit Registration (10% AfBAA Event Discount)'
-                              : 'Submit Interest (Receive 5% Discount Code via Email)'}
+                              : 'Submit Interest (Lock In 5% Discount Code)'}
                           </span>
                         </>
                       )}
