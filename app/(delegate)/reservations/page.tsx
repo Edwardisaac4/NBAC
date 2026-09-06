@@ -40,7 +40,7 @@ export default function ReservationsPage() {
         <section className="max-w-7xl mx-auto px-6 md:px-12 w-full pt-6 pb-6">
           <div className="flex flex-col space-y-3">
             <span className="font-sans text-xs uppercase tracking-widest font-semibold text-nbac-emerald-light">
-              ANNUAL CONFERENCE & EXHIBITION
+              BI-ANNUAL CONFERENCE & EXHIBITION
             </span>
             <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-nbac-text tracking-tight max-w-4xl">
               {activeTab === 'delegate' ? 'Secure Your Delegate Pass' : 'Corporate Partnership Desk'}

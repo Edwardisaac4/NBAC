@@ -49,7 +49,7 @@ const AREAS_OF_INTEREST = [
 const TICKET_PREFERENCES = [
   { id: 'early_bird', label: 'Early Bird', description: 'Priority pricing for early registrants' },
   { id: 'standard', label: 'Standard', description: 'Full 2-day conference & exhibition access' },
-  { id: 'vip', label: 'VIP Pass', description: 'All-inclusive executive lounge & static ramp access' },
+  { id: 'vip', label: 'VIP Pass', description: 'All-inclusive executive lounge access' },
   { id: 'group', label: 'Group', description: 'Special corporate delegation package (3+ passes)' },
 ] as const;
 
