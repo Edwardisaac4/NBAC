@@ -137,7 +137,7 @@ export default function AdminDashboardPage() {
         }
 
         try {
-          const { count: pc } = await supabase.from('blog_posts').select('*', { count: 'exact', head: true }).eq('status', 'published');
+          const { count: pc } = await supabase.from('posts').select('*', { count: 'exact', head: true }).eq('status', 'published');
           if (pc !== null && pc !== undefined) pCount = pc;
         } catch {
           // ignore
