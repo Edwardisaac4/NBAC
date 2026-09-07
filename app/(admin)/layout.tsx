@@ -22,6 +22,16 @@ export default function AdminLayout({
 
   const isLoginPage = pathname === '/admin/login';
 
+  // Prevent the page behind the mobile drawer from scrolling while it is open
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [mobileMenuOpen]);
+
   useEffect(() => {
     if (!loading && !isAdmin && !isLoginPage) {
       router.push('/admin/login');
@@ -33,7 +43,11 @@ export default function AdminLayout({
     if (path === '/admin') return 'Overview Dashboard';
     if (path.startsWith('/admin/content')) return 'Content Manager';
     if (path.startsWith('/admin/reservations')) return 'Reservations Intake';
+    if (path.startsWith('/admin/early-birds')) return 'Early Bird Leads';
     if (path.startsWith('/admin/aerolab')) return 'AeroLab Applications';
+    if (path.startsWith('/admin/tickets')) return 'Ticket Tiers';
+    if (path.startsWith('/admin/sponsors-manager')) return 'Sponsor Packages';
+    if (path.startsWith('/admin/program')) return 'Programme Schedule';
     if (path.startsWith('/admin/media')) return 'Media Gallery';
     if (path.startsWith('/admin/logs')) return 'Security Audit Logs';
     if (path.startsWith('/admin/profile')) return 'My Profile';
@@ -81,15 +95,15 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-nbac-canvas text-nbac-text flex">
+    <div className="min-h-screen bg-nbac-canvas text-nbac-text flex overflow-x-hidden">
       {/* Sidebar Navigation */}
       <AdminSidebar 
         isOpen={mobileMenuOpen} 
         onClose={() => setMobileMenuOpen(false)} 
       />
 
-      {/* Main Layout Area */}
-      <div className="flex-1 flex flex-col min-h-screen lg:pl-64">
+      {/* Main Layout Area — min-w-0 keeps wide tables/charts from forcing a page-level x-scroll */}
+      <div className="flex-1 flex flex-col min-h-screen min-w-0 lg:pl-64">
         {/* Top Header Controls */}
         <AdminTopbar 
           title={title} 
@@ -97,7 +111,7 @@ export default function AdminLayout({
         />
 
         {/* Content Viewport */}
-        <main className="flex-1 p-6 md:p-8 max-w-[1400px] w-full mx-auto">
+        <main className="flex-1 w-full min-w-0 max-w-[1400px] mx-auto px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
           {children}
         </main>
       </div>

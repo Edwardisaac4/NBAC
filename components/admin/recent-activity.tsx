@@ -36,39 +36,45 @@ export function RecentActivity({ items }: RecentActivityProps) {
   };
 
   return (
-    <div className="bg-nbac-panel border border-nbac-border rounded-lg p-5 flex flex-col h-full select-none">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="font-sans text-sm font-semibold text-nbac-text">
+    <div className="bg-nbac-panel border border-nbac-border rounded-lg p-3.5 sm:p-5 flex flex-col h-full min-w-0 select-none">
+      <div className="flex items-center justify-between gap-3 mb-4 sm:mb-6">
+        <h3 className="font-sans text-[13px] sm:text-sm font-semibold text-nbac-text truncate">
           Recent Activity Feed
         </h3>
         <Link 
           href="/admin/reservations" 
-          className="font-sans text-xs text-nbac-muted hover:text-nbac-gold transition-colors"
+          className="shrink-0 font-sans text-xs text-nbac-muted hover:text-nbac-gold transition-colors py-1"
         >
           View All
         </Link>
       </div>
 
-      <div className="flex-1 space-y-5 overflow-y-auto pr-1">
-        {items.map((item) => (
-          <div key={item.id} className="flex gap-4 items-start group">
-            {/* Status Indicator Dot */}
-            <div className="pt-1.5 shrink-0">
-              <span className={cn("block w-2.5 h-2.5 rounded-full ring-4 ring-[#0b0f10]/15", getStatusColor(item.type))} />
-            </div>
+      {items.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center py-8 font-sans text-xs text-nbac-muted">
+          No activity recorded yet
+        </div>
+      ) : (
+        <div className="flex-1 space-y-4 sm:space-y-5 overflow-y-auto overscroll-contain pr-1">
+          {items.map((item) => (
+            <div key={item.id} className="flex gap-3 sm:gap-4 items-start group">
+              {/* Status Indicator Dot */}
+              <div className="pt-1.5 shrink-0">
+                <span className={cn("block w-2.5 h-2.5 rounded-full ring-4 ring-[#0b0f10]/15", getStatusColor(item.type))} />
+              </div>
 
-            {/* Description Details */}
-            <div className="flex-1 min-w-0">
-              <p className="font-sans text-sm text-nbac-body font-light leading-relaxed group-hover:text-nbac-text transition-colors duration-200">
-                {renderFormattedMessage(item)}
-              </p>
-              <span className="font-sans text-xs text-nbac-muted block mt-1">
-                {item.timestamp}
-              </span>
+              {/* Description Details */}
+              <div className="flex-1 min-w-0">
+                <p className="font-sans text-[13px] sm:text-sm text-nbac-body font-light leading-relaxed break-words group-hover:text-nbac-text transition-colors duration-200">
+                  {renderFormattedMessage(item)}
+                </p>
+                <span className="font-sans text-[11px] sm:text-xs text-nbac-muted block mt-1">
+                  {item.timestamp}
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

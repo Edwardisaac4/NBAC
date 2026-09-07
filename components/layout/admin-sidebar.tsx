@@ -132,7 +132,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const content = (
     <div className="flex flex-col h-full bg-[#0b0f10] border-r border-nbac-border text-nbac-text select-none">
       {/* Brand Header */}
-      <div className="flex items-center justify-between p-6 border-b border-nbac-border h-20">
+      <div className="flex items-center justify-between px-5 sm:px-6 border-b border-nbac-border h-16 sm:h-20 shrink-0">
         <Link href="/admin" className="flex flex-col group">
           <span className="font-display text-2xl font-bold bg-linear-to-r from-nbac-emerald via-nbac-gold to-nbac-gold-light bg-clip-text text-transparent tracking-tight">
             NBAC
@@ -144,7 +144,8 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         {onClose && (
           <button 
             onClick={onClose} 
-            className="lg:hidden text-nbac-muted hover:text-nbac-gold p-1 rounded-md transition-colors"
+            className="lg:hidden text-nbac-muted hover:text-nbac-gold p-2.5 -mr-2 rounded-md transition-colors active:scale-95"
+            aria-label="Close sidebar menu"
           >
             <X size={20} />
           </button>
@@ -188,7 +189,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       </nav>
 
       {/* User Section / Footer */}
-      <div className="p-4 border-t border-nbac-border bg-[#070b0c] space-y-4">
+      <div className="p-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-nbac-border bg-[#070b0c] space-y-4 shrink-0">
         {/* User Card */}
         <Link 
           href="/admin/profile"
@@ -235,7 +236,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             }
           }}
           className={cn(
-            "flex items-center justify-center gap-2 w-full border border-nbac-border text-nbac-body hover:bg-nbac-panel hover:text-nbac-danger hover:border-nbac-danger/35 font-sans font-medium px-4 py-2 rounded-lg transition-colors text-xs",
+            "flex items-center justify-center gap-2 w-full border border-nbac-border text-nbac-body hover:bg-nbac-panel hover:text-nbac-danger hover:border-nbac-danger/35 font-sans font-medium px-4 py-2.5 sm:py-2 rounded-lg transition-colors text-xs",
             loggingOut && "opacity-50 cursor-not-allowed"
           )}
         >
@@ -264,8 +265,9 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       {/* Mobile Drawer Sidebar */}
       <aside 
         inert={!isOpen}
+        aria-label="Admin navigation"
         className={cn(
-          "lg:hidden fixed inset-y-0 left-0 w-64 z-50 transform transition-transform duration-300 ease-out",
+          "lg:hidden fixed inset-y-0 left-0 w-64 max-w-[85vw] z-50 transform transition-transform duration-300 ease-out will-change-transform",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >

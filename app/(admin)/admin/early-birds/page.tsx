@@ -10,6 +10,7 @@ import {
   Sparkles,
   Wallet,
   CalendarClock,
+  ChevronDown,
 } from 'lucide-react';
 import { useAdminRole } from '@/hooks/use-admin-role';
 import { RoleBanner } from '@/components/admin/role-banner';
@@ -43,6 +44,14 @@ const getCsvFilename = () => `nbac_early_bird_leads_${new Date().toISOString().s
 
 const titleCase = (value: string) =>
   value.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+// A native select popup is sized by its longest option, and its width cannot be
+// styled. Keep option labels to a single short line so one unexpected value can
+// never stretch the dropdown past the edge of the screen.
+const optionLabel = (value: string, max = 28) => {
+  const firstLine = titleCase(value.split('\n')[0].trim());
+  return firstLine.length > max ? `${firstLine.slice(0, max - 1)}…` : firstLine;
+};
 
 export default function EarlyBirdsPage() {
   useAdminRole();
@@ -116,7 +125,9 @@ export default function EarlyBirdsPage() {
       (lead.discount_code || '').toLowerCase().includes(term);
 
     const matchesPayment = selectedPayment === 'all' || lead.payment_choice === selectedPayment;
-    const matchesRole = selectedRole === 'all' || lead.role === selectedRole;
+    const matchesRole =
+      selectedRole === 'all' ||
+      (lead.role || '').split('\n')[0].trim() === selectedRole;
 
     return matchesSearch && matchesPayment && matchesRole;
   });
@@ -125,7 +136,9 @@ export default function EarlyBirdsPage() {
   const payNowCount = leads.filter((l) => l.payment_choice === 'pay_now').length;
   const totalAttendees = leads.reduce((sum, l) => sum + (Number(l.attendee_count) || 0), 0);
 
-  const roleOptions = Array.from(new Set(leads.map((l) => l.role))).sort();
+  const roleOptions = Array.from(
+    new Set(leads.map((l) => (l.role || '').split('\n')[0].trim()).filter(Boolean))
+  ).sort();
 
   const exportCsv = () => {
     if (filteredLeads.length === 0) {
@@ -242,42 +255,52 @@ export default function EarlyBirdsPage() {
       </div>
 
       {/* Controls Bar */}
-      <div className="flex flex-col gap-4 bg-nbac-panel border border-nbac-border rounded-lg p-4 md:flex-row md:items-center md:justify-between">
-        <div className="relative w-full flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-nbac-muted" />
+      <div className="flex flex-col gap-3 bg-nbac-panel border border-nbac-border rounded-lg p-3 sm:gap-4 sm:p-4 md:flex-row md:items-center md:justify-between">
+        <div className="relative w-full flex-1 min-w-0">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-nbac-muted pointer-events-none" />
+          {/* 16px type on mobile keeps iOS from zooming the page in on focus */}
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name, email, company, phone or discount code..."
-            className="w-full bg-[#0b0f10] border border-nbac-border focus:border-nbac-gold rounded-lg pl-10 pr-4 py-2.5 text-xs text-nbac-text focus:outline-none transition-colors"
+            placeholder="Search name, email, company or code..."
+            className="w-full bg-[#0b0f10] border border-nbac-border focus:border-nbac-gold rounded-lg pl-10 pr-4 py-2.5 text-base sm:text-xs text-nbac-text focus:outline-none transition-colors"
           />
         </div>
 
-        <div className="flex w-full shrink-0 items-center gap-2 md:w-auto">
-          <Filter className="w-4 h-4 text-nbac-muted" />
-          <select
-            value={selectedPayment}
-            onChange={(e) => setSelectedPayment(e.target.value)}
-            className="flex-1 bg-[#0b0f10] border border-nbac-border text-nbac-text text-xs rounded-lg px-3 py-2.5 focus:outline-none focus:border-nbac-gold cursor-pointer md:flex-none"
-          >
-            <option value="all">All Payment Choices</option>
-            <option value="pay_now">Pay Now (10%)</option>
-            <option value="pay_later">Pay Later (5%)</option>
-          </select>
+        <div className="grid w-full shrink-0 grid-cols-1 gap-2 sm:grid-cols-2 md:flex md:w-auto md:items-center">
+          <Filter className="hidden w-4 h-4 shrink-0 text-nbac-muted md:block" />
 
-          <select
-            value={selectedRole}
-            onChange={(e) => setSelectedRole(e.target.value)}
-            className="flex-1 bg-[#0b0f10] border border-nbac-border text-nbac-text text-xs rounded-lg px-3 py-2.5 focus:outline-none focus:border-nbac-gold cursor-pointer md:flex-none"
-          >
-            <option value="all">All Roles</option>
-            {roleOptions.map((role) => (
-              <option key={role} value={role}>
-                {titleCase(role)}
-              </option>
-            ))}
-          </select>
+          <div className="relative min-w-0">
+            <select
+              value={selectedPayment}
+              onChange={(e) => setSelectedPayment(e.target.value)}
+              aria-label="Filter by payment choice"
+              className="w-full appearance-none truncate bg-[#0b0f10] border border-nbac-border text-nbac-text text-base sm:text-xs rounded-lg pl-3 pr-9 py-2.5 focus:outline-none focus:border-nbac-gold cursor-pointer"
+            >
+              <option value="all">All Payment Choices</option>
+              <option value="pay_now">Pay Now (10%)</option>
+              <option value="pay_later">Pay Later (5%)</option>
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-nbac-muted pointer-events-none" />
+          </div>
+
+          <div className="relative min-w-0">
+            <select
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+              aria-label="Filter by role"
+              className="w-full appearance-none truncate bg-[#0b0f10] border border-nbac-border text-nbac-text text-base sm:text-xs rounded-lg pl-3 pr-9 py-2.5 focus:outline-none focus:border-nbac-gold cursor-pointer"
+            >
+              <option value="all">All Roles</option>
+              {roleOptions.map((role) => (
+                <option key={role} value={role}>
+                  {optionLabel(role)}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-nbac-muted pointer-events-none" />
+          </div>
         </div>
       </div>
 

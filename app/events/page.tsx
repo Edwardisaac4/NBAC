@@ -5,7 +5,7 @@ import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { SectionBlur } from "@/components/shared/section-blur"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
-import { MOCK_EVENTS } from "@/lib/mock-events"
+import { EVENTS } from "@/lib/events"
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { motion } from 'framer-motion'
@@ -122,7 +122,7 @@ export default function EventsCatalogPage() {
         <SectionBlur>
           <section className="relative z-10 px-6 md:px-24 max-w-7xl mx-auto pb-24">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {MOCK_EVENTS.map(event => (
+              {EVENTS.map(event => (
                 <motion.div
                   key={event.id}
                   whileHover={{ y: -6 }}

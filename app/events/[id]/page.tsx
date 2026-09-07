@@ -4,7 +4,8 @@ import { Footer } from "@/components/layout/footer"
 import { SectionBlur } from "@/components/shared/section-blur"
 import { EventProgramHero } from "@/components/sections/event-program-hero"
 import { EventsSchedule } from "@/components/sections/events-schedule"
-import { MOCK_EVENTS } from "@/lib/mock-events"
+import { EVENTS, buildEvents } from "@/lib/events"
+import { fetchProgramSessionsServer } from "@/lib/supabase/program-server"
 import { notFound } from "next/navigation"
 
 interface EventProgramPageProps {
@@ -13,9 +14,14 @@ interface EventProgramPageProps {
   }>
 }
 
+// The two day pages are fixed; only the sessions inside them come from the
+// database, so revalidate periodically instead of rebuilding to publish edits
+// made in the admin programme editor.
+export const revalidate = 300
+
 // Statically generate the event program pages for performance and SEO
 export async function generateStaticParams() {
-  return MOCK_EVENTS.map(event => ({
+  return EVENTS.map(event => ({
     id: event.id
   }))
 }
@@ -23,7 +29,7 @@ export async function generateStaticParams() {
 // Dynamic per-event metadata for SEO
 export async function generateMetadata({ params }: EventProgramPageProps): Promise<Metadata> {
   const { id } = await params
-  const event = MOCK_EVENTS.find(e => e.id === id)
+  const event = EVENTS.find(e => e.id === id)
 
   if (!event) {
     return { title: 'Event Not Found' }
@@ -42,10 +48,12 @@ export async function generateMetadata({ params }: EventProgramPageProps): Promi
 
 export default async function EventProgramPage({ params }: EventProgramPageProps) {
   const { id } = await params
-  
-  // Find the requested event
-  const event = MOCK_EVENTS.find(e => e.id === id)
-  
+
+  // Sessions come from the admin-managed program_sessions table, falling back
+  // to the checked-in programme when the table is empty or unreachable.
+  const sessions = await fetchProgramSessionsServer()
+  const event = buildEvents(sessions).find(e => e.id === id)
+
   if (!event) {
     notFound()
   }

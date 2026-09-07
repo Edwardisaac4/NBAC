@@ -2,9 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client';
 import type { PassTierDetails, SponsorTierDetails } from '@/types';
-import type { Session } from '@/data/sessions';
 import { PASS_TIERS, SPONSOR_TIERS } from '@/lib/constants';
-import { SESSIONS } from '@/data/sessions';
 
 // ─── Row types from Supabase ─────────────────────────────────────
 
@@ -119,43 +117,6 @@ export async function fetchSponsorTiers(): Promise<SponsorTierDetails[]> {
     return (data as SponsorTierRow[]).map(rowToSponsorTier);
   } catch {
     return SPONSOR_TIERS;
-  }
-}
-
-// ─── Program Sessions ────────────────────────────────────────────
-
-function rowToSession(row: ProgramSessionRow): Session {
-  return {
-    id: row.id,
-    number: row.number ?? undefined,
-    day: row.day === 1 ? 'day_1' : 'day_2',
-    time: row.time_slot,
-    title: row.title,
-    subtitle: row.subtitle ?? undefined,
-    format: row.format as Session['format'],
-    panellists: row.panellists ?? undefined,
-    keyAreas: row.key_areas?.length ? row.key_areas : undefined,
-    questions: row.questions?.length ? row.questions : undefined,
-    notes: row.notes ?? undefined,
-    isBreak: row.is_break,
-  };
-}
-
-export async function fetchProgramSessions(): Promise<Session[]> {
-  try {
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from('program_sessions')
-      .select('*')
-      .order('sort_order', { ascending: true });
-
-    if (error || !data || data.length === 0) {
-      return SESSIONS;
-    }
-
-    return (data as ProgramSessionRow[]).map(rowToSession);
-  } catch {
-    return SESSIONS;
   }
 }
 
