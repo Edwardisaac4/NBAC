@@ -1,0 +1,119 @@
+import { EventDetails, Speaker, EventSession, SessionCategory } from "@/types";
+import { SESSIONS, type Session } from "../data/sessions";
+import { CONFERENCE_META } from "../data/conference-stats";
+
+// Helper functions for mapping programme sessions to the public event shape
+const getSessionTimes = (sessionsList: Session[], index: number, current: Session) => {
+  const start_time = current.time;
+  let end_time = '';
+  // Find the next session on the same day
+  const nextSession = sessionsList.slice(index + 1).find(s => s.day === current.day);
+  if (nextSession) {
+    end_time = nextSession.time;
+  } else {
+    // If it's the last session of the day
+    if (current.day === 'day_1') {
+      end_time = '22:00'; // Gala ends at 22:00
+    } else {
+      end_time = '18:00'; // Closing / Cocktail ends at 18:00
+    }
+  }
+  return { start_time, end_time };
+};
+
+const mapFormatToCategory = (format: string): SessionCategory => {
+  switch (format) {
+    case 'panel':
+      return 'panel';
+    case 'keynote':
+    case 'presentation':
+    case 'fireside':
+      return 'keynote';
+    case 'hackathon':
+    case 'ceremony':
+      return 'workshop';
+    case 'dinner':
+    case 'networking':
+      return 'networking';
+    case 'break':
+    default:
+      return 'break';
+  }
+};
+
+const getSessionSpeakers = (session: Session): Speaker[] => {
+  if (!session.panellists) return [];
+  return session.panellists.map((p, i) => {
+    return {
+      id: `temp-${p.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${i}`,
+      name: p.name,
+      title: p.role || 'Panellist',
+      organisation: p.organisation || '',
+      company: p.organisation || '',
+    };
+  });
+};
+
+const buildAbstract = (session: Session): string => {
+  const parts = [session.subtitle || ''];
+  if (session.keyAreas && session.keyAreas.length > 0) {
+    // Only take the first 2 key areas to keep the schedule cards compact and clean
+    const limitedKeyAreas = session.keyAreas.slice(0, 2);
+    parts.push('\nKey Areas:\n' + limitedKeyAreas.map(k => `• ${k}`).join('\n'));
+  }
+  return parts.join('\n').trim();
+};
+
+const toEventSessions = (sessions: Session[], day: Session['day']): EventSession[] => {
+  const dayList = sessions.filter(s => s.day === day);
+  return dayList.map((s, index) => {
+    const { start_time, end_time } = getSessionTimes(dayList, index, s);
+    return {
+      id: s.id,
+      day,
+      start_time,
+      end_time,
+      category: mapFormatToCategory(s.format),
+      title: s.title,
+      abstract: buildAbstract(s),
+      speakers: getSessionSpeakers(s),
+      location: CONFERENCE_META.venue,
+    };
+  });
+};
+
+/**
+ * Build the two public day events from a programme.
+ *
+ * Pass the admin-managed sessions (see fetchProgramSessionsServer) to render the
+ * live schedule; the day-level copy below is editorial and stays in code.
+ */
+export function buildEvents(sessions: Session[]): EventDetails[] {
+  return [
+    {
+      id: "nbac-2027-day-1",
+      title: "NBAC 2027 Conference — Day 1",
+      subtitle: "West Africa's Premier Aviation Assembly",
+      date: "May 4, 2027",
+      location: CONFERENCE_META.venue,
+      description: "Day 1 of the flagship summit focusing on industry dialogue, regulatory frameworks, infrastructure ops, and financial structures in African aviation.",
+      image_url: "/images/private_jet_runway_dusk.png",
+      status: "featured",
+      sessions: toEventSessions(sessions, 'day_1'),
+    },
+    {
+      id: "nbac-2027-day-2",
+      title: "NBAC 2027 Conference — Day 2",
+      subtitle: "Innovation, Sustainability & Leadership",
+      date: "May 5, 2027",
+      location: CONFERENCE_META.venue,
+      description: "Day 2 of the flagship summit focusing on ecosystem scale, sustainability, women leadership in aviation, innovation & tech, and speed networking.",
+      image_url: "/images/interior_cabin.jpg",
+      status: "featured",
+      sessions: toEventSessions(sessions, 'day_2'),
+    }
+  ];
+}
+
+/** Events built from the checked-in programme — the fallback when the DB is empty. */
+export const EVENTS: EventDetails[] = buildEvents(SESSIONS);

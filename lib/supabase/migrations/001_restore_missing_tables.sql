@@ -131,6 +131,10 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.interests TO authenticated, servi
 -- `contacts` while the `interests` table was missing.
 -- The API fallback stamps the message with a known header, so
 -- those rows are unambiguous. Parsed field-by-field from message.
+--
+-- NOTE: the patterns use [^\n]* rather than (.*) because in
+-- PostgreSQL's POSIX regex `.` matches newlines by default, which
+-- makes a greedy capture swallow the rest of the multi-line message.
 -- -------------------------------------------------------------
 INSERT INTO public.interests (
     full_name, job_title, company, country, email, phone,
@@ -139,23 +143,24 @@ INSERT INTO public.interests (
 )
 SELECT
     c.full_name,
-    NULLIF(substring(c.message from 'Job Title: (.*)'), 'N/A'),
+    NULLIF(substring(c.message from E'Job Title: ([^\n]*)'), 'N/A'),
     c.company,
-    NULLIF(substring(c.message from 'Country: (.*)'), 'N/A'),
+    NULLIF(substring(c.message from E'Country: ([^\n]*)'), 'N/A'),
     c.email,
     COALESCE(c.phone, 'N/A'),
-    COALESCE(substring(c.message from 'Role: (.*)'), 'delegate'),
-    COALESCE(NULLIF(substring(c.message from 'Attendees: (\d+)'), '')::int, 1),
+    COALESCE(substring(c.message from E'Role: ([^\n]*)'), 'delegate'),
+    COALESCE(NULLIF(substring(c.message from E'Attendees: (\d+)'), '')::int, 1),
     CASE
-        WHEN COALESCE(substring(c.message from 'Areas of Interest: (.*)'), 'None') = 'None' THEN '{}'::text[]
-        ELSE string_to_array(substring(c.message from 'Areas of Interest: (.*)'), ', ')
+        WHEN COALESCE(substring(c.message from E'Areas of Interest: ([^\n]*)'), 'None') = 'None'
+            THEN '{}'::text[]
+        ELSE string_to_array(substring(c.message from E'Areas of Interest: ([^\n]*)'), ', ')
     END,
-    COALESCE(substring(c.message from 'Ticket Preference: (\S+)'), 'early_bird'),
-    NULLIF(substring(c.message from 'Source: (.*)'), 'N/A'),
-    COALESCE(substring(c.message from 'Payment Choice: (\S+)'), 'pay_later'),
-    substring(c.message from 'discount code: ([A-Z0-9-]+)'),
+    COALESCE(substring(c.message from E'Ticket Preference: ([^\n]*)'), 'early_bird'),
+    NULLIF(substring(c.message from E'Source: ([^\n]*)'), 'N/A'),
+    COALESCE(substring(c.message from E'Payment Choice: (\S+)'), 'pay_later'),
+    substring(c.message from E'discount code: ([A-Z0-9-]+)'),
     true,
-    substring(c.message from 'Verification Date: (.*)'),
+    substring(c.message from E'Verification Date: ([^\n]*)'),
     c.created_at
 FROM public.contacts c
 WHERE c.message LIKE '[NBAC STAND INTEREST FORM SUBMISSION]%'

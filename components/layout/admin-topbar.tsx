@@ -5,7 +5,6 @@ import {
   Menu, 
   Bell, 
   Shield, 
-  Settings, 
   Check, 
   Trash2, 
   MessageSquare, 
@@ -273,30 +272,30 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
   };
 
   return (
-    <header className="sticky top-0 right-0 z-20 flex items-center justify-between px-6 h-20 bg-nbac-canvas/80 backdrop-blur-md border-b border-nbac-border text-nbac-text select-none">
-      <div className="flex items-center gap-4">
-        {/* Mobile Menu Trigger */}
+    <header className="sticky top-0 right-0 z-20 flex items-center justify-between gap-3 px-4 sm:px-6 h-16 sm:h-20 bg-nbac-canvas/80 backdrop-blur-md border-b border-nbac-border text-nbac-text select-none">
+      <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
+        {/* Mobile Menu Trigger — 44px touch target */}
         <button
           onClick={onOpenMobileMenu}
-          className="lg:hidden text-nbac-body hover:text-nbac-gold p-1.5 rounded-lg border border-nbac-border bg-[#0b0f10]/40 transition-colors"
+          className="lg:hidden shrink-0 text-nbac-body hover:text-nbac-gold p-2.5 -ml-1 rounded-lg border border-nbac-border bg-[#0b0f10]/40 transition-colors active:scale-95"
           aria-label="Open sidebar menu"
         >
           <Menu size={20} />
         </button>
 
-        {/* Dynamic Page Title */}
-        <h1 className="font-sans text-xl font-bold tracking-tight text-nbac-text">
+        {/* Dynamic Page Title — truncates rather than shoving the action buttons off-screen */}
+        <h1 className="font-sans text-base sm:text-lg lg:text-xl font-bold tracking-tight text-nbac-text truncate">
           {title}
         </h1>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         {/* Notifications Panel Dropdown wrapper */}
         <div className="relative" ref={dropdownRef}>
           {/* Notifications Icon Button */}
           <button 
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className={`relative p-2 text-nbac-body hover:text-nbac-gold hover:bg-nbac-panel border border-nbac-border rounded-lg bg-nbac-panel/40 transition-all duration-200 cursor-pointer ${dropdownOpen ? 'text-nbac-gold bg-nbac-panel/80' : ''}`}
+            className={`relative p-2.5 sm:p-2 text-nbac-body hover:text-nbac-gold hover:bg-nbac-panel border border-nbac-border rounded-lg bg-nbac-panel/40 transition-all duration-200 cursor-pointer ${dropdownOpen ? 'text-nbac-gold bg-nbac-panel/80' : ''}`}
             aria-label="View notifications"
           >
             <Bell size={18} />
@@ -310,7 +309,7 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
 
           {/* Notifications Dropdown Panel */}
           {dropdownOpen && (
-            <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-[#0b0f10]/95 backdrop-blur-xl border border-nbac-border rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-3 duration-200">
+            <div className="absolute right-0 mt-3 w-[calc(100vw-2rem)] max-w-sm sm:w-96 sm:max-w-none bg-[#0b0f10]/95 backdrop-blur-xl border border-nbac-border rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-3 duration-200">
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-3.5 border-b border-nbac-border bg-[#070b0c]/80">
                 <div className="flex items-center gap-2">
@@ -326,7 +325,7 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
                     <button 
                       onClick={handleMarkAllAsRead}
                       disabled={markingAll}
-                      className="p-1 text-nbac-muted hover:text-nbac-gold transition-colors cursor-pointer"
+                      className="p-2 -m-0.5 text-nbac-muted hover:text-nbac-gold transition-colors cursor-pointer"
                       title="Mark all as read"
                     >
                       {markingAll ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
@@ -336,7 +335,7 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
                     <button 
                       onClick={handleClearAll}
                       disabled={clearingAll}
-                      className="p-1 text-nbac-muted hover:text-nbac-danger transition-colors cursor-pointer"
+                      className="p-2 -m-0.5 text-nbac-muted hover:text-nbac-danger transition-colors cursor-pointer"
                       title="Clear all"
                     >
                       {clearingAll ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
@@ -346,7 +345,7 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
               </div>
 
               {/* List */}
-              <div className="max-h-96 overflow-y-auto divide-y divide-nbac-border/40 scrollbar-thin scrollbar-thumb-nbac-border/40">
+              <div className="max-h-[min(24rem,60vh)] overflow-y-auto overscroll-contain divide-y divide-nbac-border/40 scrollbar-thin scrollbar-thumb-nbac-border/40">
                 {loading ? (
                   <div className="flex flex-col items-center justify-center py-10 text-nbac-muted font-sans text-xs gap-2">
                     <Loader2 className="animate-spin text-nbac-gold" size={16} />
@@ -389,7 +388,7 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
                       {/* Text */}
                       <div className="flex-1 min-w-0 space-y-1">
                         <div className="flex items-start justify-between gap-2">
-                          <p className="font-sans text-xs font-semibold text-nbac-text leading-tight truncate">
+                          <p className="font-sans text-xs font-semibold text-nbac-text leading-tight min-w-0 break-words">
                             {n.title}
                           </p>
                           <span className="font-sans text-[9px] text-nbac-muted shrink-0 flex items-center gap-1 font-light pt-0.5">
@@ -409,24 +408,22 @@ export function AdminTopbar({ title, onOpenMobileMenu }: AdminTopbarProps) {
           )}
         </div>
 
-        {/* Quick Settings Icon */}
-        <button 
-          onClick={() => toast.info('Settings Panel', { description: 'Settings clicked (mocked UI)' })}
-          className="p-2 text-nbac-body hover:text-nbac-gold hover:bg-nbac-panel border border-nbac-border rounded-lg bg-nbac-panel/40 transition-all duration-200 cursor-pointer"
-          aria-label="Settings"
-        >
-          <Settings size={18} />
-        </button>
-
         {/* Head Admin Mode / Editor Mode Badge */}
         {isHeadAdmin ? (
-          <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-linear-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold text-[#0b0f10] border border-nbac-gold-light/25 shadow-lg shadow-nbac-gold/15 rounded-full font-sans text-xs font-semibold uppercase tracking-wider select-none animate-pulse-subtle">
+          <div
+            title="Head Admin Mode"
+            className="flex items-center gap-2 p-2 sm:px-4 sm:py-2 bg-linear-to-r from-nbac-gold via-nbac-gold-light to-nbac-gold text-[#0b0f10] border border-nbac-gold-light/25 shadow-lg shadow-nbac-gold/15 rounded-full font-sans text-xs font-semibold uppercase tracking-wider select-none animate-pulse-subtle"
+          >
             <Shield size={13} strokeWidth={2.5} />
-            <span>Head Admin Mode</span>
+            <span className="hidden sm:inline">Head Admin Mode</span>
           </div>
         ) : (
-          <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-nbac-panel border border-nbac-border text-nbac-muted rounded-full font-sans text-xs font-semibold uppercase tracking-wider">
-            <span>Editor Mode</span>
+          <div
+            title="Editor Mode"
+            className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-nbac-panel border border-nbac-border text-nbac-muted rounded-full font-sans text-[10px] sm:text-xs font-semibold uppercase tracking-wider"
+          >
+            <span className="sm:hidden">Editor</span>
+            <span className="hidden sm:inline">Editor Mode</span>
           </div>
         )}
       </div>

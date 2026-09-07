@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { RoleBanner } from '@/components/admin/role-banner';
 import { KpiCard } from '@/components/admin/kpi-card';
-import { RegistrationsChart } from '@/components/admin/registrations-chart';
+import { RegistrationsChart, RegistrationRecord } from '@/components/admin/registrations-chart';
 import { RecentActivity, ActivityItem } from '@/components/admin/recent-activity';
-import { CreditCard, Users, CheckCircle, Clock, Award, Ticket, Handshake, FileText, ArrowRight, Sparkles } from 'lucide-react';
+import { FeatureCard } from '@/components/admin/feature-card';
+import { CreditCard, Users, CheckCircle, Clock, Award, Ticket, Handshake, FileText, Sparkles } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 interface ReservationStatRow {
@@ -14,6 +14,17 @@ interface ReservationStatRow {
   amount: number | string | null;
   status: string | null;
   created_at: string;
+}
+
+/** Signed delta rendered under a KPI, or null when there is nothing to compare. */
+function monthOverMonthTrend(current: number, previous: number) {
+  const delta = current - previous;
+  if (current === 0 && previous === 0) return { value: 'No activity yet' };
+  if (delta === 0) return { value: 'Level with last month', isPositive: true };
+  return {
+    value: `${delta > 0 ? '+' : ''}${delta.toLocaleString()} vs last month`,
+    isPositive: delta > 0,
+  };
 }
 
 interface RecentReservationRow {
@@ -55,12 +66,20 @@ export default function AdminDashboardPage() {
     revenue: '$0',
     aerolabCount: 0,
     earlyBirdCount: 0,
-    ticketTiersCount: 4,
-    sponsorTiersCount: 5,
+    ticketTiersCount: 0,
+    sponsorTiersCount: 0,
     postsCount: 0
   });
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [registrationRecords, setRegistrationRecords] = useState<RegistrationRecord[]>([]);
+  const [trends, setTrends] = useState<{
+    registrations: { value: string; isPositive?: boolean };
+    revenue: { value: string; isPositive?: boolean };
+  }>({
+    registrations: { value: 'No activity yet' },
+    revenue: { value: 'No activity yet' },
+  });
 
   useEffect(() => {
     let active = true;
@@ -69,14 +88,15 @@ export default function AdminDashboardPage() {
       try {
         const supabase = createClient();
 
-        // 1. Fetch registrations for KPI aggregation via reservation_kpis view
-        const { data: kpiData, error: resError } = await supabase
-          .from('reservation_kpis')
-          .select('*')
-          .single();
+        // 1. Fetch every reservation once. These rows drive the KPI totals, the
+        //    month-over-month deltas and the chart, so there is a single source of
+        //    truth instead of a view and a client-side fallback that can disagree.
+        const { data: reservationRows, error: resError } = await supabase
+          .from('reservations')
+          .select('delegate_count, amount, status, created_at');
 
         if (resError) {
-          console.error('Error fetching registrations stats:', resError.message);
+          console.error('Error fetching reservations:', resError.message);
         }
 
         // 2. Fetch recent reservations for feed
@@ -104,8 +124,8 @@ export default function AdminDashboardPage() {
         // 4. Fetch dynamic feature counts
         let aeroCount = 0;
         let ebCount = 0;
-        let tCount = 4;
-        let sCount = 5;
+        let tCount = 0;
+        let sCount = 0;
         let pCount = 0;
 
         try {
@@ -124,14 +144,14 @@ export default function AdminDashboardPage() {
 
         try {
           const { count: tc } = await supabase.from('ticket_tiers').select('*', { count: 'exact', head: true });
-          if (tc !== null && tc !== undefined && tc > 0) tCount = tc;
+          if (tc !== null && tc !== undefined) tCount = tc;
         } catch {
           // ignore
         }
 
         try {
           const { count: sc } = await supabase.from('sponsor_tiers_db').select('*', { count: 'exact', head: true });
-          if (sc !== null && sc !== undefined && sc > 0) sCount = sc;
+          if (sc !== null && sc !== undefined) sCount = sc;
         } catch {
           // ignore
         }
@@ -145,36 +165,57 @@ export default function AdminDashboardPage() {
 
         if (!active) return;
 
-        // Compute stats
+        // Compute stats. An explicit delegate_count of 0 is preserved; only
+        // null/undefined falls back to a single seat.
+        const rows: ReservationStatRow[] = reservationRows ?? [];
+
         let totalReg = 0;
         let confirmed = 0;
         let pending = 0;
         let revenueSum = 0;
 
-        if (kpiData) {
-          totalReg = Number(kpiData.total_registrations ?? 0);
-          confirmed = Number(kpiData.confirmed_bookings ?? 0);
-          pending = Number(kpiData.pending_payments ?? 0);
-          revenueSum = Number(kpiData.total_revenue ?? 0);
-        } else {
-          // Fallback client-side aggregation (preserving explicit delegate_count of 0 and defaulting to 1 only for null or undefined values)
-          const { data: allRes } = await supabase
-            .from('reservations')
-            .select('delegate_count, amount, status');
-          if (allRes) {
-            allRes.forEach((row: ReservationStatRow) => {
-              const count = row.delegate_count ?? 1;
-              totalReg += count;
+        // Month-over-month comparison windows
+        const now = new Date();
+        const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        let regThisMonth = 0;
+        let regLastMonth = 0;
+        let revThisMonth = 0;
+        let revLastMonth = 0;
 
-              if (row.status === 'paid') {
-                confirmed += count;
-                revenueSum += Number(row.amount ?? 0);
-              } else if (row.status === 'pending') {
-                pending += count;
-              }
-            });
+        rows.forEach((row) => {
+          const count = row.delegate_count ?? 1;
+          const amount = Number(row.amount ?? 0);
+          totalReg += count;
+
+          if (row.status === 'paid') {
+            confirmed += count;
+            revenueSum += amount;
+          } else if (row.status === 'pending') {
+            pending += count;
           }
-        }
+
+          const created = new Date(row.created_at);
+          if (created >= thisMonthStart) {
+            regThisMonth += count;
+            if (row.status === 'paid') revThisMonth += amount;
+          } else if (created >= lastMonthStart) {
+            regLastMonth += count;
+            if (row.status === 'paid') revLastMonth += amount;
+          }
+        });
+
+        setRegistrationRecords(
+          rows.map((row) => ({
+            created_at: row.created_at,
+            delegate_count: row.delegate_count,
+          }))
+        );
+
+        setTrends({
+          registrations: monthOverMonthTrend(regThisMonth, regLastMonth),
+          revenue: monthOverMonthTrend(revThisMonth, revLastMonth),
+        });
 
         const formattedRev = new Intl.NumberFormat('en-US', {
           style: 'currency',
@@ -247,50 +288,63 @@ export default function AdminDashboardPage() {
   }, []);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       {/* Role Warning Banner (only displays if role = head_admin) */}
       <RoleBanner />
 
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {/* KPI Cards Grid — 2-up on phones so all four stay above the fold */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
         <KpiCard 
           title="Total Registrations"
           value={loading ? '...' : stats.totalRegistrations.toLocaleString()}
           icon={Users}
-          trend={{ value: "+ Live", isPositive: true }}
+          trend={loading ? undefined : trends.registrations}
         />
         <KpiCard 
           title="Confirmed Bookings"
           value={loading ? '...' : stats.confirmedBookings.toLocaleString()}
           icon={CheckCircle}
-          trend={{ value: "Active Seats", isPositive: true }}
+          trend={
+            loading
+              ? undefined
+              : {
+                  value: `${stats.confirmedBookings} of ${stats.totalRegistrations} seats paid`,
+                  isPositive: stats.confirmedBookings > 0,
+                }
+          }
         />
         <KpiCard 
           title="Pending Payments"
           value={loading ? '...' : stats.pendingPayments.toLocaleString()}
           icon={Clock}
-          trend={{ value: "Awaiting Gateway", isWarning: stats.pendingPayments > 0 }}
+          trend={
+            loading
+              ? undefined
+              : stats.pendingPayments > 0
+                ? { value: 'Awaiting payment', isWarning: true }
+                : { value: 'Nothing outstanding', isPositive: true }
+          }
         />
         <KpiCard 
           title="Revenue to Date"
           value={loading ? '...' : stats.revenue}
           icon={CreditCard}
-          trend={{ value: "Gross USD", isPositive: true }}
+          trend={loading ? undefined : trends.revenue}
           highlight={true} // Apply luxury gold theme
         />
       </div>
 
       {/* Analytics Graph & Activity Feed Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-5 lg:gap-6">
         {/* SVG Curve Chart (3/5 width on large screens) */}
-        <div className="lg:col-span-3">
-          <RegistrationsChart />
+        <div className="lg:col-span-3 min-w-0">
+          <RegistrationsChart records={registrationRecords} loading={loading} />
         </div>
 
         {/* Recent Activity Feed (2/5 width on large screens) */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 min-w-0">
           {loading ? (
-            <div className="bg-nbac-panel border border-nbac-border rounded-lg p-8 flex flex-col items-center justify-center h-full select-none text-nbac-muted font-sans text-xs">
+            <div className="bg-nbac-panel border border-nbac-border rounded-lg p-8 flex flex-col items-center justify-center min-h-40 h-full select-none text-nbac-muted font-sans text-xs">
               <div className="animate-spin rounded-full h-4 w-4 border-2 border-nbac-emerald border-t-transparent mb-2" />
               <span>Syncing feed activity...</span>
             </div>
@@ -301,131 +355,62 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Dynamic System Features Grid */}
-      <div className="space-y-4 pt-2">
-        <div className="flex items-center justify-between">
-          <h3 className="font-display text-lg font-bold text-nbac-text">
+      <div className="space-y-3.5 sm:space-y-4 pt-1 sm:pt-2">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <h3 className="font-display text-base sm:text-lg font-bold text-nbac-text">
             Dynamic System Features
           </h3>
-          <span className="font-sans text-xs text-nbac-muted">
+          <span className="font-sans text-[11px] sm:text-xs text-nbac-muted">
             Live database records & content modules
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link 
+        {/* 5 cards: 2-up on phones, 5-up on xl so the last one isn't orphaned on its own row */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
+          <FeatureCard
             href="/admin/early-birds"
-            className="group bg-nbac-panel border border-nbac-border hover:border-nbac-gold/50 rounded-lg p-5 transition-all duration-300 hover:shadow-lg hover:shadow-nbac-gold/5 flex flex-col justify-between"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2.5 rounded-lg bg-nbac-gold/10 text-nbac-gold-light">
-                <Sparkles size={20} />
-              </div>
-              <ArrowRight size={16} className="text-nbac-muted group-hover:text-nbac-gold-light group-hover:translate-x-1 transition-all" />
-            </div>
-            <div>
-              <div className="font-display text-2xl font-bold text-nbac-text mb-1">
-                {loading ? '...' : stats.earlyBirdCount}
-              </div>
-              <div className="font-sans text-sm font-medium text-nbac-text">
-                Early Bird Leads
-              </div>
-              <div className="font-sans text-xs text-nbac-muted mt-0.5">
-                Interest forms & discount codes
-              </div>
-            </div>
-          </Link>
+            icon={Sparkles}
+            accent="gold"
+            value={loading ? '...' : stats.earlyBirdCount}
+            label="Early Bird Leads"
+            hint="Interest forms & discount codes"
+          />
 
-          <Link 
-            href="/admin/aerolab" 
-            className="group bg-nbac-panel border border-nbac-border hover:border-nbac-emerald/50 rounded-lg p-5 transition-all duration-300 hover:shadow-lg hover:shadow-nbac-emerald/5 flex flex-col justify-between"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2.5 rounded-lg bg-nbac-emerald/10 text-nbac-emerald-light">
-                <Award size={20} />
-              </div>
-              <ArrowRight size={16} className="text-nbac-muted group-hover:text-nbac-emerald-light group-hover:translate-x-1 transition-all" />
-            </div>
-            <div>
-              <div className="font-display text-2xl font-bold text-nbac-text mb-1">
-                {loading ? '...' : stats.aerolabCount}
-              </div>
-              <div className="font-sans text-sm font-medium text-nbac-text">
-                AeroLab Submissions
-              </div>
-              <div className="font-sans text-xs text-nbac-muted mt-0.5">
-                Hackathon intake & proposals
-              </div>
-            </div>
-          </Link>
+          <FeatureCard
+            href="/admin/aerolab"
+            icon={Award}
+            accent="emerald"
+            value={loading ? '...' : stats.aerolabCount}
+            label="AeroLab Submissions"
+            hint="Hackathon intake & proposals"
+          />
 
-          <Link 
-            href="/admin/tickets" 
-            className="group bg-nbac-panel border border-nbac-border hover:border-nbac-emerald/50 rounded-lg p-5 transition-all duration-300 hover:shadow-lg hover:shadow-nbac-emerald/5 flex flex-col justify-between"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2.5 rounded-lg bg-blue-500/10 text-blue-400">
-                <Ticket size={20} />
-              </div>
-              <ArrowRight size={16} className="text-nbac-muted group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
-            </div>
-            <div>
-              <div className="font-display text-2xl font-bold text-nbac-text mb-1">
-                {loading ? '...' : stats.ticketTiersCount}
-              </div>
-              <div className="font-sans text-sm font-medium text-nbac-text">
-                Ticket Tiers
-              </div>
-              <div className="font-sans text-xs text-nbac-muted mt-0.5">
-                Delegate pricing & perks
-              </div>
-            </div>
-          </Link>
+          <FeatureCard
+            href="/admin/tickets"
+            icon={Ticket}
+            accent="blue"
+            value={loading ? '...' : stats.ticketTiersCount}
+            label="Ticket Tiers"
+            hint="Delegate pricing & perks"
+          />
 
-          <Link 
-            href="/admin/sponsors-manager" 
-            className="group bg-nbac-panel border border-nbac-border hover:border-nbac-gold/50 rounded-lg p-5 transition-all duration-300 hover:shadow-lg hover:shadow-nbac-gold/5 flex flex-col justify-between text-left"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2.5 rounded-lg bg-nbac-gold/10 text-nbac-gold">
-                <Handshake size={20} />
-              </div>
-              <ArrowRight size={16} className="text-nbac-muted group-hover:text-nbac-gold group-hover:translate-x-1 transition-all" />
-            </div>
-            <div>
-              <div className="font-display text-2xl font-bold text-nbac-text mb-1">
-                {loading ? '...' : stats.sponsorTiersCount}
-              </div>
-              <div className="font-sans text-sm font-medium text-nbac-text">
-                Sponsor Packages
-              </div>
-              <div className="font-sans text-xs text-nbac-muted mt-0.5">
-                Tier privileges & pricing
-              </div>
-            </div>
-          </Link>
+          <FeatureCard
+            href="/admin/sponsors-manager"
+            icon={Handshake}
+            accent="gold"
+            value={loading ? '...' : stats.sponsorTiersCount}
+            label="Sponsor Packages"
+            hint="Tier privileges & pricing"
+          />
 
-          <Link 
-            href="/admin/content" 
-            className="group bg-nbac-panel border border-nbac-border hover:border-purple-500/50 rounded-lg p-5 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/5 flex flex-col justify-between"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2.5 rounded-lg bg-purple-500/10 text-purple-400">
-                <FileText size={20} />
-              </div>
-              <ArrowRight size={16} className="text-nbac-muted group-hover:text-purple-400 group-hover:translate-x-1 transition-all" />
-            </div>
-            <div>
-              <div className="font-display text-2xl font-bold text-nbac-text mb-1">
-                {loading ? '...' : stats.postsCount}
-              </div>
-              <div className="font-sans text-sm font-medium text-nbac-text">
-                Published Articles
-              </div>
-              <div className="font-sans text-xs text-nbac-muted mt-0.5">
-                Content & press releases
-              </div>
-            </div>
-          </Link>
+          <FeatureCard
+            href="/admin/content"
+            icon={FileText}
+            accent="purple"
+            value={loading ? '...' : stats.postsCount}
+            label="Published Articles"
+            hint="Content & press releases"
+          />
         </div>
       </div>
     </div>
