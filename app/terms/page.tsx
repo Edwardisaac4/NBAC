@@ -59,11 +59,10 @@ export default function TermsOfUsePage() {
                   2. Conference Access & Security Guidelines
                 </h2>
                 <p>
-                  Access to the conference venue, FBO hangars, and static aircraft display areas is subject to strict aviation safety and event security regulations:
+                  Access to the conference venue is subject to strict event security regulations:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
                   <li><strong>Identification:</strong> A government-issued photo ID matching your registration name is required at badge pick-up.</li>
-                  <li><strong>Static Display (Tarmac Access):</strong> Access to the private runway tarmac and aircraft cabin viewings is strictly gated and limited to VIP and Exhibitor pass holders. Escorts are required at all times. Flat-soled footwear is mandatory on the tarmac for safety reasons.</li>
                   <li><strong>Organizers&apos; Discretion:</strong> The organizers reserve the right to refuse entry or remove any individual whose conduct is deemed unsafe, disruptive, or in breach of code-of-conduct guidelines.</li>
                 </ul>
               </div>

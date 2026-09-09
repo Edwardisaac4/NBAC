@@ -8,7 +8,8 @@
  *   {{email}}   — reply-to email
  *   {{time}}    — timestamp of submission
  *
- * The To Email is hardcoded in the EmailJS template to marketing@ean.aero.
+ * The To Email is set in the EmailJS template, or overridden per-send via
+ * the CONTACT_ALERT_EMAIL environment variable.
  */
 
 const LOG_PREFIX = '[EmailJS]';

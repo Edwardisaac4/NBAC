@@ -108,7 +108,7 @@ export function ChairmansWelcome() {
               Over the course of these two days, we will not shy away from the hard questions. From standardizing regulatory permits to creating bespoke local financing structures, NBAC 2027 is designed to act as a catalyst for actionable solutions.
             </p>
             <p>
-              I encourage you to participate actively in our panel dialogues, explore the static aircraft display, and connect deeply with the innovators gathered in this room. Thank you for committing your time, insights, and leadership to moving our industry forward.
+              I encourage you to participate actively in our panel dialogues and connect deeply with the innovators gathered in this room. Thank you for committing your time, insights, and leadership to moving our industry forward.
             </p>
           </div>
 

@@ -55,7 +55,6 @@ This year's conference brings together aircraft operators, regulators, financial
 ### Registration Tiers
 1. **VIP Executive Pass:** Unrestricted access, private roundtables, VIP lounge access, and invitation to the Gala Dinner.
 2. **Exhibitor Pass:** Premium booth space in the Main Hall, branding opportunities, and 2 delegate passes.
-3. **Static Tarmac Pass:** Tarmac access for aircraft viewing, flight crew briefing access, and networking area.
 
 Interested delegates can secure their executive passes directly on the official NBAC platform. Payments are processed securely via Paystack.
 
@@ -116,30 +115,6 @@ During the conference, **[Sponsor Name]** will:
 * Present a case study on "Optimizing Regional Fleet Management" during the afternoon panel.
 
 Make sure to visit their team during the networking sessions.
-`
-  },
-  {
-    id: 'tpl_static_display_preview',
-    name: 'Static Aircraft Display Preview',
-    description: 'Highlighting the private jets and helicopters on the tarmac/static display.',
-    title: 'Exclusive Preview: Super Midsize and Large-Cabin Jets Headed to the Static Display',
-    type: 'Event Copy',
-    body: `# Tarmac Preview: The Static Display
-
-The **Static Display** is the visual centerpiece of NBAC 2026. This year, we are hosting an expanded lineup of corporate jets, turboprops, and multi-mission helicopters on the private apron.
-
-## Confirmed Aircraft Highlights:
-* **Bombardier Challenger 3500:** Experience the revolutionary Nuage seats and advanced cabin technology.
-* **Gulfstream G600:** Engineered for high-speed, long-range comfort and class-leading fuel efficiency.
-* **Embraer Praetor 600:** The most disruptive super-midsize jet in the skies today.
-* **AgustaWestland AW139:** The standard in executive helicopter transport across the Gulf of Guinea.
-
-### Visiting Guidelines:
-1. **Access:** Static display is open to VIP Executive and Exhibitor Pass holders only.
-2. **Scheduling:** Private onboard tours must be reserved in advance via the exhibitor terminal.
-3. **Safety:** High heels are strictly prohibited on the tarmac. Escorted tours leave the main lobby every 30 minutes.
-
-*Aircraft display lineup is subject to operational availability.*
 `
   },
   {
@@ -276,7 +251,7 @@ The central consensus of this year's panels is that African business aviation is
 > — *Conference Coordinator*
 
 ### Photo Gallery & Presentations
-VIP delegates will receive an email containing access credentials to the media vault, which features session video recordings, panel presentations, and high-resolution tarmac photos.
+VIP delegates will receive an email containing access credentials to the media vault, which features session video recordings, panel presentations, and high-resolution event photography.
 
 *We look forward to welcoming you back for NBAC 2027!*
 `

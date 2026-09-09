@@ -73,6 +73,12 @@ export function DelegateBentoCard({ tier, onViewBenefits }: DelegateBentoCardPro
   const theme = TIER_THEMES[tier.id] || TIER_THEMES.exhibitor
   const isVip = tier.id === 'vip'
 
+  /**
+   * The card offers the two early-bird routes into /interest (stand
+   * lead-capture, which issues a discount code). The CTA that goes to the
+   * actual booking form lives one level in, on the "View Full Benefits"
+   * modal — so a delegate reads what the pass includes before committing.
+   */
   const handleEarlyBirdRegister = (e: React.MouseEvent) => {
     e.stopPropagation()
     router.push(`/interest?mode=pay_now&tier=${tier.id}`)

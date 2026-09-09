@@ -189,7 +189,7 @@ doc.fillColor(COLORS.text)
 const welcomeText = 
   "On behalf of the Steering Committee, I am immensely proud to welcome you to the 2nd annual Nigerian Business Aviation Conference (NBAC 2027).\n\n" +
   "West Africa's business aviation industry is entering a defining era. To scale and compete globally, operators, regulators, financiers, and technology innovators must build cohesive ecosystems. Under this year's theme, 'Fly to the Future', NBAC 2027 serves as the primary meeting point for elite decision-makers to tackle infrastructure challenges, align with regulatory frameworks, implement Sustainable Aviation Fuel (SAF) readiness, and explore artificial intelligence applications in operations.\n\n" +
-  "Over the course of the next two days, you will engage in high-level networking, explore aircraft static displays, participate in peer-led panel discussions, and witness the next generation of aerospace entrepreneurs pitching at our AeroLab arena.\n\n" +
+  "Over the course of the next two days, you will engage in high-level networking, participate in peer-led panel discussions, and witness the next generation of aerospace entrepreneurs pitching at our AeroLab arena.\n\n" +
   "Thank you for your active commitment to shaping the skies of West Africa. We look forward to your valuable insights and partnerships.";
 
 doc.fillColor(COLORS.text)
