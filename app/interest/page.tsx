@@ -8,8 +8,6 @@ import {
   PenTool,
   RotateCcw,
   User,
-  Phone,
-  Building2,
   Globe,
   Briefcase,
   Tag,
@@ -17,13 +15,11 @@ import {
   ShieldCheck,
   ArrowLeft,
   Users,
-  Clock,
   Percent,
   Upload,
   Camera,
   X,
-  Copy,
-  Lock,
+  Mail,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Navbar } from '@/components/layout/navbar';
@@ -67,9 +63,6 @@ export default function StandInterestPage() {
 
   // Mode: 'pay_now' (Early Bird Registration) vs 'pay_later' (Early Bird Pay Later)
   const [paymentChoice, setPaymentChoice] = useState<'pay_now' | 'pay_later'>('pay_later');
-  // Once a registration mode is chosen the other is locked out for the rest of
-  // this visit to the form. Deliberate state only — it resets on navigation away.
-  const [modeLocked, setModeLocked] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -91,7 +84,8 @@ export default function StandInterestPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedChoice, setSubmittedChoice] = useState<'pay_now' | 'pay_later'>('pay_later');
   const [issuedCode, setIssuedCode] = useState('');
-  const [codeCopied, setCodeCopied] = useState(false);
+  /** Whether the API reported the code email actually went out. */
+  const [codeEmailed, setCodeEmailed] = useState(false);
 
   // Signature Canvas state
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -103,21 +97,25 @@ export default function StandInterestPage() {
   const [isProcessingUpload, setIsProcessingUpload] = useState(false);
   const [todayDate, setTodayDate] = useState('');
 
+  // Seeds state from the URL and the client clock, neither of which exists
+  // during the server render, so a lazy useState initializer would either
+  // crash or hydrate mismatched.
+  //
+  // The updates are deferred past the effect body rather than applied inside
+  // it: a synchronous setState there cascades an extra render commit (and
+  // trips react-hooks/set-state-in-effect). Same deferral as the delegate
+  // registration form.
   useEffect(() => {
+    let active = true;
+
     // Read URL query parameters (?mode=pay_now or ?mode=pay_later, ?tier=...)
     const params = new URLSearchParams(window.location.search);
+    // Preselects the mode without freezing it — see handleSelectMode.
     const modeParam = params.get('mode');
-    if (modeParam === 'pay_now' || modeParam === 'pay_later') {
-      setPaymentChoice(modeParam);
-      setModeLocked(true);
-    }
     const tierParam = params.get('tier');
-    if (tierParam) {
-      const match = TICKET_PREFERENCES.find(t => t.id === tierParam || t.label.toLowerCase().includes(tierParam.toLowerCase()));
-      if (match) {
-        setFormData(prev => ({ ...prev, ticketPreference: match.id }));
-      }
-    }
+    const tierMatch = tierParam
+      ? TICKET_PREFERENCES.find(t => t.id === tierParam || t.label.toLowerCase().includes(tierParam.toLowerCase()))
+      : undefined;
 
     // Format current date for verification line
     const formatted = new Intl.DateTimeFormat('en-GB', {
@@ -125,7 +123,21 @@ export default function StandInterestPage() {
       month: 'long',
       year: 'numeric',
     }).format(new Date());
-    setTodayDate(formatted);
+
+    void Promise.resolve().then(() => {
+      if (!active) return;
+      if (modeParam === 'pay_now' || modeParam === 'pay_later') {
+        setPaymentChoice(modeParam);
+      }
+      if (tierMatch) {
+        setFormData(prev => ({ ...prev, ticketPreference: tierMatch.id }));
+      }
+      setTodayDate(formatted);
+    });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Initialize Canvas
@@ -268,10 +280,17 @@ export default function StandInterestPage() {
     }
   };
 
+  /**
+   * Freely switchable. This previously locked on the first click and on
+   * arrival from ?mode=, which meant a visitor who came in via the
+   * "Early Bird Reg (10% Off)" card button could not then choose Pay Later —
+   * the click was silently ignored and they were issued NBAC27-PAYNOW10
+   * regardless of what they had selected on screen.
+   *
+   * The URL parameter now preselects a mode rather than freezing it.
+   */
   const handleSelectMode = (choice: 'pay_now' | 'pay_later') => {
-    if (modeLocked) return;
     setPaymentChoice(choice);
-    setModeLocked(true);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -347,7 +366,7 @@ export default function StandInterestPage() {
       }
 
       setIssuedCode(data.discountCode || '');
-      setCodeCopied(false);
+      setCodeEmailed(Boolean(data.codeEmailed));
       setSubmittedChoice(paymentChoice);
       setIsSubmitted(true);
       setIsSubmitting(false);
@@ -367,18 +386,6 @@ export default function StandInterestPage() {
     }
   };
 
-  const handleCopyCode = async () => {
-    if (!issuedCode) return;
-    try {
-      await navigator.clipboard.writeText(issuedCode);
-      setCodeCopied(true);
-      setTimeout(() => setCodeCopied(false), 2500);
-    } catch {
-      toast.error('Could not copy', {
-        description: `Please note your code manually: ${issuedCode}`,
-      });
-    }
-  };
 
   const handleResetForNext = () => {
     setIsSubmitted(false);
@@ -400,9 +407,8 @@ export default function StandInterestPage() {
     clearSignature();
     clearUploadedSignature();
     setSignatureMode('draw');
-    setModeLocked(false);
     setIssuedCode('');
-    setCodeCopied(false);
+    setCodeEmailed(false);
   };
 
   return (
@@ -476,8 +482,8 @@ export default function StandInterestPage() {
                   </h2>
                   <p className="font-sans text-sm text-nbac-body font-light leading-relaxed">
                     {submittedChoice === 'pay_now'
-                      ? 'Your early bird registration details have been securely logged. Your 10% AfBAA discount has been applied to your profile.'
-                      : 'We have recorded your details at our stand. Your exclusive 5% discount code is shown below — our delegate desk will apply it when you register.'}
+                      ? 'Your early bird registration details have been securely logged. Your 10% AfBAA discount code is shown below — enter it on the registration form to claim it.'
+                      : 'We have recorded your details at our stand. Your exclusive 5% discount code is shown below — enter it on the registration form to claim it.'}
                   </p>
                 </div>
 
@@ -493,30 +499,46 @@ export default function StandInterestPage() {
                     </span>
                   </div>
 
-                  {/* The code itself — this screen is the only place the delegate receives it */}
+                  {/* The code is delivered by email, so it is not printed here.
+                      Showing it on screen invited the delegate to transcribe it
+                      by hand; the emailed link applies it for them. If the send
+                      failed we say so rather than claiming an email that never
+                      went out. */}
                   {issuedCode && (
                     <div className={cn(
-                      "flex flex-col gap-3 rounded-xl border-2 border-dashed p-4 sm:flex-row sm:items-center sm:justify-between",
-                      submittedChoice === 'pay_now'
-                        ? "border-nbac-gold/50 bg-nbac-gold/5"
-                        : "border-nbac-emerald/50 bg-nbac-emerald/5"
+                      "flex items-start gap-3 rounded-xl border p-4",
+                      codeEmailed
+                        ? (submittedChoice === 'pay_now'
+                          ? "border-nbac-gold/50 bg-nbac-gold/5"
+                          : "border-nbac-emerald/50 bg-nbac-emerald/5")
+                        : "border-nbac-amber/50 bg-nbac-amber/5"
                     )}>
-                      <span className="font-mono text-lg font-extrabold tracking-widest text-nbac-text break-all">
-                        {issuedCode}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={handleCopyCode}
-                        className={cn(
-                          "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full px-4 py-2 font-sans text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer",
-                          submittedChoice === 'pay_now'
-                            ? "bg-nbac-gold text-[#0b0f10] hover:bg-nbac-gold-light"
-                            : "bg-nbac-emerald text-white hover:bg-[#10b981]"
-                        )}
-                      >
-                        {codeCopied ? <Check size={13} /> : <Copy size={13} />}
-                        <span>{codeCopied ? 'Copied' : 'Copy Code'}</span>
-                      </button>
+                      {codeEmailed ? (
+                        <>
+                          <Mail size={16} className={cn("shrink-0 mt-0.5", submittedChoice === 'pay_now' ? "text-nbac-gold-light" : "text-nbac-emerald-light")} />
+                          <div className="space-y-1">
+                            <p className="font-sans text-sm font-semibold text-nbac-text">
+                              Your discount code is on its way
+                            </p>
+                            <p className="font-sans text-xs text-nbac-body font-light leading-relaxed">
+                              We&apos;ve emailed it to <span className="font-semibold text-nbac-text">{formData.email}</span> along with a link that applies it for you at registration. Check your inbox &mdash; and your spam folder, just in case.
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <Tag size={16} className="shrink-0 mt-0.5 text-nbac-amber" />
+                          <div className="space-y-1">
+                            <p className="font-sans text-sm font-semibold text-nbac-text">
+                              Please note your code down
+                            </p>
+                            <p className="font-sans text-xs text-nbac-body font-light leading-relaxed">
+                              We couldn&apos;t email it just now. Your code is{' '}
+                              <span className="font-mono font-bold text-nbac-text">{issuedCode}</span> &mdash; keep it safe, or continue to registration below where it is applied automatically.
+                            </p>
+                          </div>
+                        </>
+                      )}
                     </div>
                   )}
 
@@ -540,10 +562,37 @@ export default function StandInterestPage() {
                   </div>
                 </div>
 
+                {/* Continue to the booking form.
+                    This screen only ISSUES a code — it creates no reservation
+                    and takes no payment. Without this CTA the delegate is left
+                    holding a code and no way to use it, which is how an
+                    interested lead quietly becomes a lost one.
+                    ?code= prefills the coupon field on the registration form,
+                    so the code they were just given is applied for them. The
+                    tier is deliberately omitted: passing one locks the pass
+                    selector, and the interest form records a ticket
+                    preference rather than a pass tier. */}
+                {issuedCode && (
+                  <Link
+                    href={`/contact/delegate?code=${encodeURIComponent(issuedCode)}`}
+                    className={cn(
+                      "w-full max-w-md inline-flex items-center justify-center gap-2 font-sans text-sm font-bold uppercase tracking-wider px-6 py-4 rounded-full transition-all cursor-pointer shadow-lg",
+                      submittedChoice === 'pay_now'
+                        ? "bg-linear-to-r from-nbac-gold to-nbac-gold-light text-[#0b0f10] shadow-[0_4px_20px_rgba(197,160,89,0.3)] hover:brightness-110"
+                        : "bg-linear-to-r from-nbac-emerald to-nbac-emerald-light text-white shadow-[0_4px_20px_rgba(16,185,129,0.3)] hover:brightness-110"
+                    )}
+                  >
+                    <Sparkles size={15} />
+                    <span>Continue to Registration</span>
+                  </Link>
+                )}
+
                 {/* Notice */}
                 <p className="text-xs text-nbac-muted max-w-md leading-relaxed font-light">
-                  Please screenshot or copy your code now — this screen is the only place it is issued. Our delegate desk has your details and will follow up on <span className="text-nbac-text font-semibold">{formData.email}</span>.
-                </p>
+                  Your code is applied automatically when you continue above.
+                  {codeEmailed
+                    ? <> We have also emailed it to <span className="text-nbac-text font-semibold">{formData.email}</span>, so you can register later from any device.</>
+                    : ' Please keep a note of the code so you can register later from another device.'}                </p>
 
                 {/* Reset button for exhibition stand usage */}
                 <div className="pt-2">
@@ -575,20 +624,16 @@ export default function StandInterestPage() {
                       <button
                         type="button"
                         onClick={() => handleSelectMode('pay_now')}
-                        disabled={modeLocked && paymentChoice !== 'pay_now'}
                         aria-pressed={paymentChoice === 'pay_now'}
                         className={cn(
                           "relative p-4 rounded-lg text-left transition-all duration-300 flex flex-col justify-between gap-2 border",
                           paymentChoice === 'pay_now'
                             ? "bg-nbac-gold/10 border-nbac-gold shadow-[0_0_20px_rgba(197,160,89,0.2)] cursor-default"
-                            : modeLocked
-                              ? "bg-transparent border-transparent opacity-35 cursor-not-allowed grayscale"
-                              : "bg-transparent border-transparent hover:bg-nbac-panel/40 opacity-75 hover:opacity-100 cursor-pointer"
+                            : "bg-transparent border-transparent hover:bg-nbac-panel/40 opacity-75 hover:opacity-100 cursor-pointer"
                         )}
                       >
                         <div className="flex items-center justify-between">
                           <span className="font-sans text-xs font-bold uppercase tracking-wider text-nbac-text flex items-center gap-1.5">
-                            {modeLocked && paymentChoice !== 'pay_now' && <Lock size={11} />}
                             Early Bird Registration
                           </span>
                           <span className="text-[10px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-full bg-nbac-gold text-[#0b0f10]">
@@ -604,20 +649,16 @@ export default function StandInterestPage() {
                       <button
                         type="button"
                         onClick={() => handleSelectMode('pay_later')}
-                        disabled={modeLocked && paymentChoice !== 'pay_later'}
                         aria-pressed={paymentChoice === 'pay_later'}
                         className={cn(
                           "relative p-4 rounded-lg text-left transition-all duration-300 flex flex-col justify-between gap-2 border",
                           paymentChoice === 'pay_later'
                             ? "bg-nbac-emerald/10 border-nbac-emerald shadow-[0_0_20px_rgba(16,185,129,0.2)] cursor-default"
-                            : modeLocked
-                              ? "bg-transparent border-transparent opacity-35 cursor-not-allowed grayscale"
-                              : "bg-transparent border-transparent hover:bg-nbac-panel/40 opacity-75 hover:opacity-100 cursor-pointer"
+                            : "bg-transparent border-transparent hover:bg-nbac-panel/40 opacity-75 hover:opacity-100 cursor-pointer"
                         )}
                       >
                         <div className="flex items-center justify-between">
                           <span className="font-sans text-xs font-bold uppercase tracking-wider text-nbac-text flex items-center gap-1.5">
-                            {modeLocked && paymentChoice !== 'pay_later' && <Lock size={11} />}
                             Early Bird Pay Later
                           </span>
                           <span className="text-[10px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-full bg-nbac-emerald text-white">
@@ -629,19 +670,6 @@ export default function StandInterestPage() {
                         </p>
                       </button>
                     </div>
-
-                    {modeLocked && (
-                      <p className="text-[10px] text-nbac-muted font-light flex items-center gap-1.5">
-                        <Lock size={10} className="shrink-0" />
-                        <span>
-                          You are registering under{' '}
-                          <span className="font-semibold text-nbac-text">
-                            {paymentChoice === 'pay_now' ? 'Early Bird Registration (10%)' : 'Early Bird Pay Later (5%)'}
-                          </span>
-                          . The other option is locked for this registration.
-                        </span>
-                      </p>
-                    )}
                   </div>
 
                   {/* ─── SECTION 1: CONTACT INFORMATION ─────────────────────────────────── */}

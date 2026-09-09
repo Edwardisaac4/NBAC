@@ -79,7 +79,7 @@ export default function AdminLoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@nbac.com.ng"
+                placeholder="you@example.com"
                 className="w-full bg-[#0b0f10]/60 border border-nbac-border rounded-lg pl-10 pr-4 py-3 text-nbac-text placeholder:text-nbac-muted font-sans text-sm focus:outline-none focus:border-nbac-gold focus:ring-1 focus:ring-nbac-gold transition-colors duration-200"
               />
               <Mail className="absolute left-3.5 top-3.5 text-nbac-muted" size={16} />

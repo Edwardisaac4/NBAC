@@ -401,7 +401,7 @@ export function RegistrationFormUI({ selectedTier }: RegistrationFormUIProps) {
                     rows={3}
                     value={formData.specialRequirements}
                     onChange={handleInputChange}
-                    placeholder="Outline any special VIP requirements, dietary conditions, aircraft handling requests (for static display) or preferences here..."
+                    placeholder="Outline any special VIP requirements, dietary conditions, accessibility needs or preferences here..."
                     className={cn(
                       "w-full bg-nbac-canvas/80 border border-nbac-border rounded-lg px-4 py-3 text-nbac-text placeholder:text-nbac-muted/65 font-sans text-sm focus:outline-none focus:ring-1 transition-all duration-300 resize-none",
                       selectedTier?.id === 'vip' ? "focus:border-nbac-gold focus:ring-nbac-gold/30" : "focus:border-nbac-emerald focus:ring-nbac-emerald/30"

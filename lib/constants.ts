@@ -345,7 +345,6 @@ export const PASS_TIERS: PassTierDetails[] = [
     includedDelegates: 1,
     privileges: [
       "Admission to all keynote speeches, panel debates, and workshops",
-      "Exclusive access to the aircraft static display ramp",
       "Daily networking gourmet lunch buffet & premium coffee lounges",
       "Access to the official NBAC Gala Dinner & awards ceremony",
       "Access to the exclusive evening networking cocktail reception",

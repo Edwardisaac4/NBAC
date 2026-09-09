@@ -98,7 +98,7 @@ export const DETAILED_OBJECTIVES: DescriptiveObjective[] = [
     description:
       'Highlight how business aviation enhances executive mobility, productivity, and strategic decision-making for corporate leaders, high-net-worth individuals (HNIs), and investors operating within Nigeria and across Africa.',
     image: '/images/NBAC/2017/AfRS_NBAC17_Day1_0013.jpg',
-    imageAlt: 'Business aircraft on the NBAC static display line',
+    imageAlt: 'Business aircraft at a previous NBAC conference',
     keyFocus: [
       'Executive Mobility & Productivity',
       'Strategic Corporate Decision-Making',

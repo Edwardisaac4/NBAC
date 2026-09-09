@@ -6,7 +6,10 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow:    '/',
-        disallow: ['/admin', '/admin/', '/api/', '/portal'],
+        // /pay carries a delegate's amount, reference and name behind an
+        // opaque token. Tokens leak through referrers, shared links and
+        // forwarded email, so these pages must never be crawled or indexed.
+        disallow: ['/admin', '/admin/', '/api/', '/portal', '/pay', '/pay/'],
       },
     ],
     sitemap: 'https://nbac.com.ng/sitemap.xml',
