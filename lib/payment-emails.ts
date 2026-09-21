@@ -59,6 +59,29 @@ function formatDeadline(date: Date): string {
   }).format(date)
 }
 
+/**
+ * The name to greet someone by, skipping a leading honorific.
+ *
+ * Taking the first word outright greeted "Dr Patrick Daniels" as "Hello Dr,"
+ * and titles are common in this audience — Engr, Capt and Chief turn up as
+ * often as Dr. Falls back to the first word when stripping the title would
+ * leave nothing to use.
+ */
+const HONORIFICS = new Set([
+  'mr', 'mrs', 'ms', 'miss', 'mx', 'dr', 'prof', 'professor', 'engr', 'eng',
+  'engineer', 'capt', 'captain', 'sir', 'chief', 'alhaji', 'alhaja', 'hon',
+  'honourable', 'rev', 'reverend', 'pastor', 'mallam', 'barr', 'barrister',
+  'arc', 'architect', 'amb', 'ambassador', 'lady', 'madam',
+])
+
+function greetingName(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return name
+  const head = parts[0].replace(/\.$/, '').toLowerCase()
+  if (parts.length > 1 && HONORIFICS.has(head)) return parts[1]
+  return parts[0]
+}
+
 function shell(inner: string): string {
   return `<!doctype html>
 <html><body style="margin:0;padding:0;background:${CANVAS};">
@@ -100,7 +123,7 @@ export function registrationReceivedEmail(data: RegistrationEmailData) {
   } = data
 
   const amountText = formatUsd(expectedTotal)
-  const firstName = name.split(' ')[0] || name
+  const firstName = greetingName(name)
 
   const inner = `
 <tr><td style="padding:28px 28px 8px;">
@@ -196,7 +219,7 @@ export interface ClaimEmailData {
  */
 export function paymentClaimReceivedEmail(data: ClaimEmailData) {
   const { name, reference, amountReported, providerReference } = data
-  const firstName = name.split(' ')[0] || name
+  const firstName = greetingName(name)
 
   const inner = `
 <tr><td style="padding:28px 28px 8px;">
@@ -270,11 +293,17 @@ export interface DiscountCodeEmailData {
  */
 export function discountCodeIssuedEmail(data: DiscountCodeEmailData) {
   const { name, code, label, valueText, validUntil, registerUrl } = data
-  const firstName = name.split(' ')[0] || name
+  const firstName = greetingName(name)
 
   const expiryLine = validUntil
     ? `Valid until ${formatDeadline(validUntil)}`
     : 'No expiry date set'
+
+  // The footer previously asserted an expiry date unconditionally, which
+  // contradicted "No expiry date set" sitting directly above it.
+  const combineNote = validUntil
+    ? 'Codes cannot be combined, and each expires on the date shown above.'
+    : 'Codes cannot be combined.'
 
   const inner = `
 <tr><td style="padding:28px 28px 8px;">
@@ -305,7 +334,7 @@ export function discountCodeIssuedEmail(data: DiscountCodeEmailData) {
     complete the registration form, where your code is applied and you are given the exact amount to pay.
   </p>
   <p style="margin:0;color:${MUTED};font-size:12px;line-height:1.6;">
-    Codes cannot be combined, and each expires on the date shown above.
+    ${esc(combineNote)}
   </p>
 </td></tr>`
 
@@ -327,7 +356,7 @@ export function discountCodeIssuedEmail(data: DiscountCodeEmailData) {
     `complete the registration form, where your code is applied and you are given the exact`,
     `amount to pay.`,
     ``,
-    `Codes cannot be combined, and each expires on the date shown above.`,
+    combineNote,
   ].join('\n')
 
   return {
