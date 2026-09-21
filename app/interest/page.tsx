@@ -30,7 +30,6 @@ import { useToast } from '@/components/shared/toast';
 const ROLES = [
   { id: 'delegate', label: 'Delegate' },
   { id: 'sponsor', label: 'Sponsor' },
-  { id: 'speaker', label: 'Speaker' },
   { id: 'media', label: 'Media' },
 ] as const;
 
@@ -790,7 +789,7 @@ export default function StandInterestPage() {
                       <label className="text-[11px] uppercase tracking-wider font-semibold text-nbac-muted block">
                         Your Role at NBAC 2027
                       </label>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                         {ROLES.map(roleItem => (
                           <button
                             key={roleItem.id}
