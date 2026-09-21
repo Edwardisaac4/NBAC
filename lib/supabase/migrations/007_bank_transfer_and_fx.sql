@@ -44,8 +44,21 @@ CREATE TABLE IF NOT EXISTS public.fx_rates (
     note           text,
     updated_at     timestamptz NOT NULL DEFAULT now(),
     updated_by     text,
-    CONSTRAINT fx_rates_rate_positive CHECK (rate > 0)
+    CONSTRAINT fx_rates_rate_positive CHECK (rate > 0),
+    -- Every rate here is quoted AGAINST THE DOLLAR. Prices are set in USD and
+    -- the reader asks only for a quote currency, never for a pair, so a row
+    -- with any other base would be applied as if it were USD->quote and
+    -- misprice a delegate silently. The contract is enforced, not assumed.
+    CONSTRAINT fx_rates_base_usd CHECK (base_currency = 'USD')
 );
+
+-- CREATE TABLE IF NOT EXISTS is a no-op where the table already exists, so the
+-- constraint is applied separately for those. This fails loudly if a non-USD
+-- row was already written — which is exactly what needs looking at.
+ALTER TABLE public.fx_rates
+    DROP CONSTRAINT IF EXISTS fx_rates_base_usd;
+ALTER TABLE public.fx_rates
+    ADD CONSTRAINT fx_rates_base_usd CHECK (base_currency = 'USD');
 
 ALTER TABLE public.fx_rates ENABLE ROW LEVEL SECURITY;
 

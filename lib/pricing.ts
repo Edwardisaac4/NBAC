@@ -547,6 +547,10 @@ export function formatNgn(value: number): string {
  * Returns null when the row is missing or unreadable rather than falling back
  * to a hardcoded figure: quoting a delegate a made-up rate is worse than
  * showing only the USD account, which every bank can still receive.
+ *
+ * The base is pinned to USD in the query as well as by a CHECK constraint
+ * (migration 007): prices are set in dollars, so a rate quoted against
+ * anything else would convert the wrong figure rather than fail.
  */
 export async function fetchNgnRate(
   supabase: SupabaseClient,
@@ -555,6 +559,7 @@ export async function fetchNgnRate(
     .from("fx_rates")
     .select("rate, source, updated_at")
     .eq("quote_currency", "NGN")
+    .eq("base_currency", "USD")
     .maybeSingle<{ rate: number; source: string | null; updated_at: string }>();
 
   if (error) {

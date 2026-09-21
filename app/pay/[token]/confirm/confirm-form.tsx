@@ -33,8 +33,13 @@ export function ConfirmForm({
   expectedAmountNgn: number | null
 }) {
   const toast = useToast()
-  const [bankAccount, setBankAccount] = useState<'NGN' | 'USD'>(
-    expectedAmountNgn ? 'NGN' : 'USD',
+  // Null until the delegate says. Defaulting to naira recorded every delegate
+  // who simply tapped the button as having paid locally, which is the one
+  // thing this form must not get wrong: the currency decides which figure the
+  // claim is reconciled against. USD is only assumed when it is the sole
+  // option — no naira figure was quoted, so there is nothing to choose between.
+  const [bankAccount, setBankAccount] = useState<'NGN' | 'USD' | null>(
+    expectedAmountNgn ? null : 'USD',
   )
   const [providerReference, setProviderReference] = useState('')
   const [payerEmail, setPayerEmail] = useState(registeredEmail)
@@ -54,7 +59,7 @@ export function ConfirmForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (submitting) return
+    if (submitting || !bankAccount) return
     setSubmitting(true)
 
     try {
@@ -122,10 +127,37 @@ export function ConfirmForm({
       onSubmit={handleSubmit}
       className="bg-nbac-panel/80 border border-nbac-border rounded-2xl p-6 sm:p-8 space-y-5"
     >
-      {/* The whole form in one tap. Everything below is optional. */}
+      {/* Asked before the button, not inside the optional details: the answer
+          changes what we reconcile the claim against, so it cannot be left to
+          a default. Only asked when a naira figure was actually quoted. */}
+      {expectedAmountNgn ? (
+        <div className="space-y-2">
+          <span className={labelClass}>Which account did you pay into?</span>
+          <div className="grid grid-cols-2 gap-2">
+            {(['NGN', 'USD'] as const).map((option) => (
+              <button
+                key={option}
+                type="button"
+                aria-pressed={bankAccount === option}
+                onClick={() => setBankAccount(option)}
+                className={cn(
+                  'font-sans text-xs font-bold uppercase tracking-wider py-3 rounded-lg border transition-all cursor-pointer',
+                  bankAccount === option
+                    ? 'border-nbac-emerald bg-nbac-emerald/10 text-nbac-emerald-light'
+                    : 'border-nbac-border text-nbac-muted hover:text-nbac-body',
+                )}
+              >
+                {option === 'NGN' ? 'Naira account' : 'US dollar account'}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {/* The rest of the form in one tap. Everything below is optional. */}
       <button
         type="submit"
-        disabled={submitting}
+        disabled={submitting || !bankAccount}
         className="w-full bg-nbac-emerald text-[#0b0f10] font-sans font-bold py-4 rounded-full text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2.5 disabled:opacity-70 disabled:cursor-not-allowed hover:brightness-110 cursor-pointer"
       >
         {submitting ? (
@@ -142,8 +174,9 @@ export function ConfirmForm({
       </button>
 
       <p className="font-sans text-[11px] text-nbac-muted leading-relaxed text-center">
-        That&rsquo;s all we need. The details below only help us find your
-        payment faster if something is unusual.
+        {!bankAccount
+          ? 'Pick the account you paid into above — that is all we need.'
+          : 'That’s all we need. The details below only help us find your payment faster if something is unusual.'}
       </p>
 
       <button
@@ -161,29 +194,6 @@ export function ConfirmForm({
 
       {showDetails && (
         <div className="space-y-6 pt-2 border-t border-nbac-border/60">
-          {expectedAmountNgn && (
-            <div className="space-y-2">
-              <span className={labelClass}>Which account did you pay into?</span>
-              <div className="grid grid-cols-2 gap-2">
-                {(['NGN', 'USD'] as const).map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => setBankAccount(option)}
-                    className={cn(
-                      'font-sans text-xs font-bold uppercase tracking-wider py-3 rounded-lg border transition-all cursor-pointer',
-                      bankAccount === option
-                        ? 'border-nbac-emerald bg-nbac-emerald/10 text-nbac-emerald-light'
-                        : 'border-nbac-border text-nbac-muted hover:text-nbac-body',
-                    )}
-                  >
-                    {option === 'NGN' ? 'Naira account' : 'US dollar account'}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
           <div className="space-y-2">
             <label htmlFor="providerReference" className={labelClass}>
               <Receipt size={13} className="text-nbac-emerald-light" />
@@ -226,7 +236,7 @@ export function ConfirmForm({
           <div className="space-y-2">
             <label htmlFor="amountPaid" className={labelClass}>
               <Coins size={13} className="text-nbac-emerald-light" />
-              Amount sent ({bankAccount})
+              Amount sent{bankAccount ? ` (${bankAccount})` : ''}
             </label>
             <input
               id="amountPaid"

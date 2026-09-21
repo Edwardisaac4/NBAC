@@ -73,10 +73,11 @@ export function ngnAccount(): NgnAccount | null {
 }
 
 /**
- * True when the delegate has at least one way to pay.
+ * True when at least one account is configured in the environment.
  *
- * The pay page uses this to show a "contact the delegate desk" fallback
- * rather than an empty page if the environment is misconfigured.
+ * Note this answers a question about deployment, not about a given delegate:
+ * the pay page asks what IT can render for a particular reservation, since the
+ * naira account is only offered when a naira figure was locked at registration.
  */
 export function hasAnyAccount(): boolean {
   return usdAccount() !== null || ngnAccount() !== null

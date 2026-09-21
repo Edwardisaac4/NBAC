@@ -4,7 +4,7 @@ import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { formatUsd, formatNgn } from '@/lib/pricing'
-import { usdAccount, ngnAccount, hasAnyAccount, paystackEnabled } from '@/lib/bank'
+import { usdAccount, ngnAccount, paystackEnabled } from '@/lib/bank'
 import { paystackPaymentUrl } from '@/lib/site'
 import { CopyField } from './payment-actions'
 
@@ -113,7 +113,12 @@ export default async function PayPage({
 
   const usd = usdAccount()
   const ngn = ngnDue ? ngnAccount() : null
-  const accountsConfigured = hasAnyAccount()
+  // What THIS delegate can actually be offered, which is not the same question
+  // as whether any account exists in the environment: the naira account is only
+  // shown when a naira figure was locked at registration. Asking the broader
+  // question rendered "transfer to one of these accounts" above nothing at all
+  // whenever only the NGN account was configured and no rate had been locked.
+  const accountsConfigured = Boolean(usd || ngn || paystackEnabled())
 
   const isSettled = data.payment_status === 'verified'
   const isClaimed = data.payment_status === 'claimed'

@@ -59,11 +59,33 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Booking not found.' }, { status: 404 })
     }
 
-    // Which of the two NBAC accounts they used. Anything other than an
-    // explicit 'NGN' is treated as the dollar account: the price is quoted in
-    // USD and that is the account every delegate can reach, so it is the safe
-    // default when the client sends nothing.
-    const paidCurrency = bankAccount === 'NGN' ? 'NGN' : 'USD'
+    // Which of the two NBAC accounts they used. Validated rather than
+    // defaulted: this one value decides which expected figure the claim is
+    // measured against, what currency the payment row carries, and what the
+    // acknowledgement email tells the delegate. Reading an unrecognised value
+    // as USD meant a naira transfer could be filed — and reconciled — as
+    // dollars, so an unclear answer is refused rather than guessed at.
+    if (bankAccount !== 'USD' && bankAccount !== 'NGN') {
+      return NextResponse.json(
+        { error: 'Please tell us which account you paid into.' },
+        { status: 400 }
+      )
+    }
+
+    // No naira figure was ever locked onto this booking, so there is nothing
+    // to measure a naira claim against — the comparison below would fall back
+    // to the dollar total and read the transfer as a vast overpayment.
+    if (bankAccount === 'NGN' && !reservation.expected_total_ngn) {
+      return NextResponse.json(
+        {
+          error:
+            'This booking was quoted in US dollars only. Please select the US dollar account.',
+        },
+        { status: 400 }
+      )
+    }
+
+    const paidCurrency: 'USD' | 'NGN' = bankAccount
 
     // Idempotent by design: a delegate double-submitting, or returning to the
     // page later, must not create a second claim row for the same money.
