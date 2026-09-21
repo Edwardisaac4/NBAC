@@ -3,25 +3,33 @@ import Link from 'next/link'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { formatUsd } from '@/lib/pricing'
+import { formatUsd, formatNgn } from '@/lib/pricing'
+import { usdAccount, ngnAccount, paystackEnabled } from '@/lib/bank'
 import { paystackPaymentUrl } from '@/lib/site'
-import { PaymentActions } from './payment-actions'
+import { CopyField } from './payment-actions'
 
 /**
  * Delegate payment instruction page.
  *
- * Sits between the delegate and EAN's Paystack terminal for two reasons:
+ * EAN's Paystack terminal began rejecting cards in September 2026, so
+ * delegates now transfer into an NBAC-dedicated GTB account — USD through a
+ * Citibank New York correspondent, or naira directly.
  *
- *  1. It records the click-through (payment_status -> 'initiated'). We hold no
- *     Paystack API keys, so this is the only signal we ever get that somebody
- *     intended to pay — it becomes the chase-up list.
- *  2. That terminal has a FREE-ENTRY amount box pre-filled with a sample
- *     figure. Sending a delegate straight there is how you collect $1,000
- *     instead of $225. This page's whole job is to make the exact figure
- *     impossible to miss and trivial to copy.
+ * Two things this page exists to get right:
  *
- * Addressed by pay_token, never by `reference`: the reference is a ~90k search
- * space and would let anyone enumerate delegate names, emails and amounts.
+ *  1. THE NARRATION. A bank transfer carries a description the payer types
+ *     themselves — the reference field the Paystack terminal never had. Get
+ *     it filled in and a statement line identifies its delegate outright;
+ *     leave it blank and the credit is anonymous. It is the single most
+ *     important instruction here, so it sits above the account details
+ *     rather than below them.
+ *  2. THE EXACT AMOUNT, in the currency of whichever account they use. The
+ *     naira figure was locked onto the reservation at registration, so it
+ *     does not drift with the rate between quoting and paying.
+ *
+ * Addressed by pay_token, never by `reference`: the reference is quoted over
+ * the phone and printed on statements, and must not also be the thing that
+ * unlocks a delegate's name, email, amount and our account details.
  */
 
 // Reads live payment state — must never be prerendered or cached.
@@ -40,6 +48,7 @@ interface Reservation {
   discount_code: string | null
   discount_amount: number | null
   expected_total: number | null
+  expected_total_ngn: number | null
   amount: number
   payment_status: string
   payment_deadline: string | null
@@ -78,7 +87,7 @@ export default async function PayPage({
   const { data, error } = await supabase
     .from('reservations')
     .select(
-      'id, name, email, company, tier, reference, delegate_count, currency, gross_amount, discount_code, discount_amount, expected_total, amount, payment_status, payment_deadline'
+      'id, name, email, company, tier, reference, delegate_count, currency, gross_amount, discount_code, discount_amount, expected_total, expected_total_ngn, amount, payment_status, payment_deadline'
     )
     .eq('pay_token', token)
     .maybeSingle<Reservation>()
@@ -95,6 +104,21 @@ export default async function PayPage({
   const grossAmount = Number(data.gross_amount ?? amountDue)
   const discountAmount = Number(data.discount_amount ?? 0)
   const amountText = formatUsd(amountDue)
+
+  // Locked at registration. Null on rows written before migration 007, or
+  // when no rate row was configured — in which case only USD is offered,
+  // rather than quoting a naira figure we cannot stand behind.
+  const ngnDue = data.expected_total_ngn ? Number(data.expected_total_ngn) : null
+  const ngnText = ngnDue ? formatNgn(ngnDue) : null
+
+  const usd = usdAccount()
+  const ngn = ngnDue ? ngnAccount() : null
+  // What THIS delegate can actually be offered, which is not the same question
+  // as whether any account exists in the environment: the naira account is only
+  // shown when a naira figure was locked at registration. Asking the broader
+  // question rendered "transfer to one of these accounts" above nothing at all
+  // whenever only the NGN account was configured and no rate had been locked.
+  const accountsConfigured = Boolean(usd || ngn || paystackEnabled())
 
   const isSettled = data.payment_status === 'verified'
   const isClaimed = data.payment_status === 'claimed'
@@ -142,25 +166,38 @@ export default async function PayPage({
               </p>
             </div>
           ) : isClaimed ? (
-            /* Deliberately does NOT say "paid". Nobody has verified that money
-               arrived — we cannot see EAN's Paystack account. */
+            /* Deliberately does NOT say "paid". Nobody has confirmed the money
+               landed — that happens against the account statement. */
             <div className="bg-nbac-panel border border-nbac-gold/40 rounded-2xl p-8 text-center space-y-3">
               <p className="font-sans text-base text-nbac-text">
-                Thank you — your payment details are with our finance desk.
+                Thank you — your transfer details are with our finance desk.
               </p>
               <p className="font-sans text-xs text-nbac-muted leading-relaxed">
-                Verification against EAN&rsquo;s records normally completes within one
-                business day, after which your pass is issued to{' '}
+                Local transfers usually clear within a few hours; an
+                international wire can take two to five working days. Once it
+                shows against our account your pass is issued to{' '}
                 <strong className="text-nbac-body">{data.email}</strong>.
                 <br />
                 <br />
-                Please do not pay again. If something looks wrong, reply to your
-                registration email and we will sort it out.
+                Please do not transfer again. If something looks wrong, reply to
+                your registration email and we will sort it out.
+              </p>
+            </div>
+          ) : !accountsConfigured ? (
+            /* Never render half a set of wire instructions. */
+            <div className="bg-nbac-panel border border-nbac-amber/40 rounded-2xl p-8 text-center space-y-3">
+              <p className="font-sans text-base text-nbac-text">
+                Payment details are not available on this page right now.
+              </p>
+              <p className="font-sans text-xs text-nbac-muted leading-relaxed">
+                Please reply to your registration email quoting{' '}
+                <span className="font-mono text-nbac-body">{data.reference}</span>{' '}
+                and our delegate desk will send them to you directly.
               </p>
             </div>
           ) : (
             <>
-              {/* ── The amount. The single most important element here. ──── */}
+              {/* ── The amount. The single most important figure here. ────── */}
               <div className="bg-nbac-panel border-2 border-nbac-gold rounded-2xl p-6 sm:p-8 text-center shadow-2xl">
                 <span className="font-sans text-[10px] uppercase tracking-widest font-bold text-nbac-muted block">
                   Amount to pay
@@ -168,56 +205,198 @@ export default async function PayPage({
                 <div className="font-display text-5xl sm:text-6xl font-extrabold text-nbac-gold tracking-tight my-2 tabular-nums">
                   {amountText}
                 </div>
-                <span className="font-sans text-xs text-nbac-body">
+                {ngnText && (
+                  <div className="font-sans text-sm text-nbac-body">
+                    or{' '}
+                    <strong className="text-nbac-text font-mono tabular-nums">
+                      {ngnText}
+                    </strong>{' '}
+                    if paying in naira
+                  </div>
+                )}
+                <span className="font-sans text-xs text-nbac-muted block mt-2">
                   {data.tier} &middot; {data.delegate_count}{' '}
                   {data.delegate_count === 1 ? 'delegate' : 'delegates'}
                 </span>
-
-                <PaymentActions
-                  token={token}
-                  amountValue={amountDue.toFixed(2)}
-                  amountText={amountText}
-                  paystackUrl={paystackPaymentUrl()}
-                  isExpired={isExpired}
-                />
               </div>
 
-              {/* ── The warning that stops wrong-amount payments ─────────── */}
-              <div className="mt-5 bg-nbac-alt/60 border-l-4 border-nbac-amber rounded-r-lg p-4 sm:p-5 space-y-2.5">
-                <h2 className="font-sans text-xs font-bold uppercase tracking-wider text-nbac-amber">
-                  Before you pay — please read
-                </h2>
-                <ul className="space-y-2 font-sans text-xs text-nbac-body leading-relaxed">
-                  <li className="flex gap-2">
-                    <span className="text-nbac-amber font-bold shrink-0">1.</span>
-                    <span>
-                      The payment page asks you to <strong>type the amount yourself</strong>,
-                      and shows a sample figure already in the box.{' '}
-                      <strong className="text-nbac-text">
-                        Clear it and enter exactly {amountText}
-                      </strong>{' '}
-                      — including the decimals. Do not round.
-                    </span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-nbac-amber font-bold shrink-0">2.</span>
-                    <span>
-                      Please pay using{' '}
-                      <strong className="text-nbac-text">{data.email}</strong> if you
-                      can. If a colleague or your finance team pays on your behalf,
-                      tell us afterwards so we can match the payment to your booking.
-                    </span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-nbac-amber font-bold shrink-0">3.</span>
-                    <span>
-                      Your card receipt will come from{' '}
-                      <strong className="text-nbac-text">EAN Aviation Ltd</strong>, the
-                      organiser of NBAC 2027. That is expected, not an error.
-                    </span>
-                  </li>
-                </ul>
-              </div>
+              {/* ── The narration. Above the accounts on purpose. ─────────── */}
+              {!isExpired && (
+                <div className="mt-5 bg-nbac-emerald/10 border-2 border-nbac-emerald/50 rounded-xl p-5">
+                  <h2 className="font-sans text-xs font-bold uppercase tracking-wider text-nbac-emerald-light mb-1">
+                    Step 1 &mdash; use this as your narration
+                  </h2>
+                  <p className="font-sans text-xs text-nbac-body leading-relaxed mb-3">
+                    Your bank will ask for a description, narration or reference
+                    for the transfer. Enter this exactly. It is how we match
+                    your payment to your registration.
+                  </p>
+                  <div className="bg-nbac-canvas/60 border border-nbac-emerald/30 rounded-lg px-4">
+                    <CopyField
+                      label="Transfer narration"
+                      value={data.reference}
+                      token={token}
+                      emphasis
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* ── The accounts ─────────────────────────────────────────── */}
+              {!isExpired && (
+                <div className="mt-5 space-y-5">
+                  <h2 className="font-sans text-xs font-bold uppercase tracking-wider text-nbac-gold-light">
+                    Step 2 &mdash; transfer to one of these accounts
+                  </h2>
+
+                  {ngn && ngnDue && (
+                    <div className="bg-nbac-panel border border-nbac-border rounded-xl p-5">
+                      <div className="flex items-baseline justify-between mb-2">
+                        <h3 className="font-display text-base font-bold text-nbac-text">
+                          Naira account
+                        </h3>
+                        <span className="font-sans text-[10px] uppercase tracking-wider text-nbac-muted">
+                          Local transfer
+                        </span>
+                      </div>
+                      <CopyField
+                        label="Amount"
+                        value={String(ngnDue)}
+                        token={token}
+                        emphasis
+                      />
+                      <CopyField
+                        label="Account number"
+                        value={ngn.accountNumber}
+                        token={token}
+                      />
+                      <CopyField label="Account name" value={ngn.accountName} mono={false} />
+                      <CopyField label="Bank" value={ngn.bank} mono={false} />
+                    </div>
+                  )}
+
+                  {usd && (
+                    <div className="bg-nbac-panel border border-nbac-border rounded-xl p-5">
+                      <div className="flex items-baseline justify-between mb-2">
+                        <h3 className="font-display text-base font-bold text-nbac-text">
+                          US dollar account
+                        </h3>
+                        <span className="font-sans text-[10px] uppercase tracking-wider text-nbac-muted">
+                          International wire
+                        </span>
+                      </div>
+                      <CopyField
+                        label="Amount"
+                        value={amountDue.toFixed(2)}
+                        token={token}
+                        emphasis
+                      />
+                      <CopyField
+                        label="Beneficiary account"
+                        value={usd.beneficiaryAccount}
+                        token={token}
+                      />
+                      <CopyField
+                        label="Beneficiary name"
+                        value={usd.beneficiaryName}
+                        mono={false}
+                      />
+                      <CopyField
+                        label="Beneficiary bank"
+                        value={usd.beneficiaryBank}
+                        mono={false}
+                      />
+                      <CopyField label="Beneficiary SWIFT" value={usd.beneficiarySwift} />
+                      <CopyField
+                        label="Beneficiary address"
+                        value={usd.beneficiaryAddress}
+                        mono={false}
+                      />
+                      <CopyField
+                        label="Correspondent bank"
+                        value={usd.correspondentBank}
+                        mono={false}
+                      />
+                      <CopyField
+                        label="Correspondent SWIFT"
+                        value={usd.correspondentSwift}
+                      />
+                      <CopyField label="ABA / routing number" value={usd.abaNumber} />
+                      <CopyField
+                        label="Correspondent account"
+                        value={usd.correspondentAccount}
+                      />
+                    </div>
+                  )}
+
+                  {paystackEnabled() && (
+                    <a
+                      href={paystackPaymentUrl()}
+                      className="block text-center font-sans text-xs font-bold uppercase tracking-wider text-nbac-gold hover:brightness-110 underline underline-offset-4"
+                    >
+                      Or pay by card instead
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {/* ── What actually goes wrong with transfers ───────────────── */}
+              {!isExpired && (
+                <div className="mt-5 bg-nbac-alt/60 border-l-4 border-nbac-amber rounded-r-lg p-4 sm:p-5 space-y-2.5">
+                  <h2 className="font-sans text-xs font-bold uppercase tracking-wider text-nbac-amber">
+                    Before you transfer &mdash; please read
+                  </h2>
+                  <ul className="space-y-2 font-sans text-xs text-nbac-body leading-relaxed">
+                    <li className="flex gap-2">
+                      <span className="text-nbac-amber font-bold shrink-0">1.</span>
+                      <span>
+                        Send{' '}
+                        <strong className="text-nbac-text">
+                          exactly {amountText}
+                          {ngnText ? ` or ${ngnText}` : ''}
+                        </strong>
+                        . Do not round.
+                      </span>
+                    </li>
+                    {usd && (
+                      <li className="flex gap-2">
+                        <span className="text-nbac-amber font-bold shrink-0">2.</span>
+                        <span>
+                          For the dollar wire, choose{' '}
+                          <strong className="text-nbac-text">
+                            &ldquo;all charges borne by sender&rdquo;
+                          </strong>{' '}
+                          (OUR). Intermediary banks deduct their fees along the
+                          way, and a wire sent without this arrives short &mdash;
+                          leaving a balance you would have to settle later.
+                        </span>
+                      </li>
+                    )}
+                    <li className="flex gap-2">
+                      <span className="text-nbac-amber font-bold shrink-0">
+                        {usd ? '3.' : '2.'}
+                      </span>
+                      <span>
+                        Paying from a company or a colleague&rsquo;s account is
+                        fine &mdash; just keep the narration above, and tell us
+                        afterwards so we can match it.
+                      </span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="text-nbac-amber font-bold shrink-0">
+                        {usd ? '4.' : '3.'}
+                      </span>
+                      <span>
+                        <strong className="text-nbac-text">
+                          We will never email you different account details.
+                        </strong>{' '}
+                        If you receive a message changing these, it is not from
+                        us &mdash; always come back to this page.
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+              )}
 
               {/* ── Breakdown ────────────────────────────────────────────── */}
               <div className="mt-5 bg-nbac-panel/60 border border-nbac-border rounded-lg p-5 space-y-2.5">
@@ -248,6 +427,9 @@ export default async function PayPage({
                   </span>
                   <span className="text-nbac-gold font-bold tabular-nums">
                     {amountText}
+                    {ngnText && (
+                      <span className="text-nbac-body font-normal"> / {ngnText}</span>
+                    )}
                   </span>
                 </div>
               </div>
@@ -271,17 +453,22 @@ export default async function PayPage({
                 )
               )}
 
-              {/* Already paid? Route them to self-report rather than pay twice. */}
+              {/* Optional, and said so. The account statement is what actually
+                  confirms a payment; this only speeds up the match. */}
               <div className="mt-8 pt-6 border-t border-nbac-border text-center">
                 <p className="font-sans text-xs text-nbac-muted mb-2">
-                  Already completed this payment?
+                  Already made this transfer?
                 </p>
                 <Link
                   href={`/pay/${token}/confirm`}
                   className="font-sans text-xs font-bold uppercase tracking-wider text-nbac-emerald-light hover:text-nbac-emerald underline underline-offset-4"
                 >
-                  Confirm your payment here
+                  Let us know
                 </Link>
+                <p className="font-sans text-[11px] text-nbac-muted mt-2 leading-relaxed">
+                  Optional &mdash; it helps us find your payment faster, but we
+                  will spot it either way.
+                </p>
               </div>
             </>
           )}

@@ -1,98 +1,98 @@
 'use client'
 
-import { useState } from 'react'
-import { Copy, Check, ExternalLink } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { Copy, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 /**
- * Copy-the-amount control plus the hand-off to EAN's Paystack terminal.
+ * Copy controls for bank transfer details.
  *
- * The copy button exists because the destination has a free-entry amount box
- * carrying a sample figure — a delegate who mistypes, rounds, or simply pays
- * the placeholder creates a reconciliation problem we cannot see for days,
- * since we have no API access to that Paystack account. Removing the typing
- * removes most of that class of error.
+ * EAN's Paystack terminal began rejecting cards in September 2026, so there
+ * is no longer a hand-off to an external page — the delegate copies an
+ * account number, an amount and a narration into their own banking app. Every
+ * one of those is a value that fails silently if mistyped: a wrong narration
+ * makes the credit unattributable, a wrong amount reads as an underpayment.
+ *
+ * The first copy also stamps payment_status -> 'initiated'. With a card
+ * hand-off the click-through was that signal; with a transfer, reaching for
+ * the account number is the closest equivalent we get, and it is what builds
+ * the chase-up list.
  */
-export function PaymentActions({
+export function CopyField({
+  label,
+  value,
   token,
-  amountValue,
-  amountText,
-  paystackUrl,
-  isExpired,
+  mono = true,
+  emphasis = false,
 }: {
-  token: string
-  /** Bare digits for the clipboard, e.g. "225.00" — no currency symbol. */
-  amountValue: string
-  amountText: string
-  paystackUrl: string
-  isExpired: boolean
+  label: string
+  value: string
+  /** Present on the fields worth treating as intent-to-pay. */
+  token?: string
+  mono?: boolean
+  emphasis?: boolean
 }) {
   const [copied, setCopied] = useState(false)
-  const [leaving, setLeaving] = useState(false)
+  // One stamp per page view is plenty; the route is idempotent regardless.
+  const stamped = useRef(false)
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(amountValue)
+      await navigator.clipboard.writeText(value)
       setCopied(true)
-      window.setTimeout(() => setCopied(false), 2200)
+      window.setTimeout(() => setCopied(false), 2000)
     } catch {
-      // Clipboard is blocked in some in-app browsers. The figure is displayed
-      // in large type regardless, so this is a convenience, not a dependency.
+      // Blocked in some in-app browsers. Every value is displayed in full as
+      // selectable text, so copying is a convenience, never a dependency.
+    }
+
+    if (token && !stamped.current) {
+      stamped.current = true
+      try {
+        // Fire and forget: a failed stamp costs us a row on the chase-up
+        // list, never a payment.
+        await fetch('/api/pay/initiate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        })
+      } catch {
+        // Ignored deliberately — see above.
+      }
     }
   }
-
-  const handleContinue = async () => {
-    setLeaving(true)
-    try {
-      // Records the click-through before we lose sight of the delegate. Fire
-      // and continue: a failed stamp must never block a payment, it only
-      // costs us a row on the chase-up list.
-      await fetch('/api/pay/initiate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
-      })
-    } catch {
-      // Ignored deliberately — see above.
-    }
-    window.location.href = paystackUrl
-  }
-
-  if (isExpired) return null
 
   return (
-    <div className="mt-6 space-y-3">
+    <div className="flex items-start justify-between gap-3 py-2.5 border-b border-nbac-border/50 last:border-0">
+      <div className="min-w-0 flex-1">
+        <div className="font-sans text-[10px] uppercase tracking-wider text-nbac-muted font-semibold">
+          {label}
+        </div>
+        <div
+          className={cn(
+            'break-words',
+            mono ? 'font-mono' : 'font-sans',
+            emphasis
+              ? 'text-nbac-gold font-bold text-base'
+              : 'text-nbac-text text-sm',
+          )}
+        >
+          {value}
+        </div>
+      </div>
       <button
         type="button"
         onClick={handleCopy}
+        aria-label={`Copy ${label}`}
         className={cn(
-          'w-full inline-flex items-center justify-center gap-2 font-sans text-xs font-bold uppercase tracking-wider px-5 py-3 rounded-lg border transition-all cursor-pointer',
+          'shrink-0 mt-1 inline-flex items-center gap-1.5 font-sans text-[10px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-md border transition-all cursor-pointer',
           copied
             ? 'border-nbac-emerald/60 text-nbac-emerald-light bg-nbac-emerald/10'
-            : 'border-nbac-border text-nbac-body hover:text-nbac-text hover:border-nbac-gold/50'
+            : 'border-nbac-border text-nbac-muted hover:text-nbac-text hover:border-nbac-gold/50',
         )}
       >
-        {copied ? <Check size={14} /> : <Copy size={14} />}
-        <span>{copied ? `Copied ${amountValue}` : `Copy amount (${amountValue})`}</span>
-      </button>
-
-      <button
-        type="button"
-        onClick={handleContinue}
-        disabled={leaving}
-        className="w-full inline-flex items-center justify-center gap-2 bg-nbac-gold text-[#0b0f10] font-sans text-sm font-bold uppercase tracking-wider px-6 py-4 rounded-lg shadow-[0_4px_20px_rgba(197,160,89,0.3)] hover:brightness-110 transition-all disabled:opacity-70 disabled:cursor-wait cursor-pointer"
-      >
-        {leaving ? (
-          <>
-            <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
-            <span>Opening secure payment…</span>
-          </>
-        ) : (
-          <>
-            <ExternalLink size={15} />
-            <span>Continue to pay {amountText}</span>
-          </>
-        )}
+        {copied ? <Check size={11} /> : <Copy size={11} />}
+        <span>{copied ? 'Copied' : 'Copy'}</span>
       </button>
     </div>
   )

@@ -15,8 +15,8 @@ import { useToast } from '@/components/shared/toast'
 /**
  * Two decimal places throughout: a percentage coupon can produce a fractional
  * total (5% off $250 is $237.50), and the delegate has to type the exact
- * figure into a free-entry amount box on Paystack. Rounding it in the display
- * would have them typing a number we are not expecting.
+ * figure into their own banking app. Rounding it in the display would have
+ * them transferring a number we are not expecting.
  */
 const formatPrice = (price: number) =>
   new Intl.NumberFormat('en-US', {
@@ -541,9 +541,9 @@ export default function DelegateRegistrationPage() {
                   </div>
 
                   {/* Proceed to payment.
-                      Points at our own /pay/<token> page rather than the EAN
-                      Paystack link, so the click-through is recorded against
-                      the reservation before the delegate leaves the site. */}
+                      Points at our own /pay/<token> page, which carries the
+                      bank details, the exact amount in both currencies, and
+                      the narration they must quote on the transfer. */}
                   {payUrl && (
                     <a
                       href={payUrl}

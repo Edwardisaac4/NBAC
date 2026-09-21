@@ -1,4 +1,4 @@
-import { formatUsd } from '@/lib/pricing'
+import { formatUsd, formatNgn } from '@/lib/pricing'
 
 /**
  * Delegate-facing payment email templates.
@@ -46,6 +46,8 @@ export interface RegistrationEmailData {
   discountAmount: number
   discountLabel: string | null
   expectedTotal: number
+  /** Naira equivalent locked at registration, when one was quoted. */
+  expectedTotalNgn?: number | null
   currency: string
   payUrl: string
   paymentDeadline: Date
@@ -119,10 +121,11 @@ function row(label: string, value: string, opts: { strong?: boolean; color?: str
 export function registrationReceivedEmail(data: RegistrationEmailData) {
   const {
     name, reference, tierName, delegateCount, grossAmount,
-    discountAmount, discountLabel, expectedTotal, payUrl, paymentDeadline,
+    discountAmount, discountLabel, expectedTotal, expectedTotalNgn, payUrl, paymentDeadline,
   } = data
 
   const amountText = formatUsd(expectedTotal)
+  const ngnText = expectedTotalNgn ? formatNgn(expectedTotalNgn) : null
   const firstName = greetingName(name)
 
   const inner = `
@@ -145,12 +148,13 @@ export function registrationReceivedEmail(data: RegistrationEmailData) {
   <div style="border:2px solid ${GOLD};border-radius:10px;padding:20px;text-align:center;margin-bottom:8px;">
     <div style="color:${MUTED};font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;">Amount to pay</div>
     <div style="color:${INK};font-size:38px;font-weight:800;letter-spacing:-1px;margin:6px 0 2px;">${amountText}</div>
-    <div style="color:${MUTED};font-size:12px;">Type this exact figure on the payment page</div>
+    ${ngnText ? `<div style="color:${BODY};font-size:14px;margin-top:2px;">or <strong>${ngnText}</strong> if paying in naira</div>` : ''}
+    <div style="color:${MUTED};font-size:12px;margin-top:6px;">Bank transfer details are on your payment page</div>
   </div>
 </td></tr>
 
 <tr><td style="padding:14px 28px 4px;" align="center">
-  <a href="${payUrl}" style="display:inline-block;background:${GOLD};color:${INK};text-decoration:none;font-weight:700;font-size:15px;padding:14px 34px;border-radius:8px;">Pay ${amountText} now</a>
+  <a href="${payUrl}" style="display:inline-block;background:${GOLD};color:${INK};text-decoration:none;font-weight:700;font-size:15px;padding:14px 34px;border-radius:8px;">View bank transfer details</a>
   <div style="color:${MUTED};font-size:11px;margin-top:10px;">Or open: <a href="${payUrl}" style="color:${MUTED};">${payUrl}</a></div>
 </td></tr>
 
@@ -158,8 +162,11 @@ export function registrationReceivedEmail(data: RegistrationEmailData) {
   <div style="background:#fdf8ef;border-left:3px solid ${GOLD};padding:14px 16px;border-radius:0 6px 6px 0;">
     <div style="color:${INK};font-size:13px;font-weight:700;margin-bottom:6px;">Two things to expect</div>
     <div style="color:${BODY};font-size:13px;line-height:1.65;">
-      Your card receipt will come from <strong>EAN Aviation Ltd</strong>, the organiser of NBAC 2027 &mdash; that is expected, not an error.<br><br>
-      The payment page asks you to enter the amount yourself, and shows a sample figure in the box. Clear it and enter <strong>${amountText}</strong>.
+      Payment goes to <strong>Evergreen Apple Nig. Ltd/NBAC</strong>, the organiser's account &mdash; that is expected, not an error.<br><br>
+      Use your reference <strong style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">${esc(reference)}</strong> as the transfer narration. It is how we match your payment to your registration.
+    </div>
+    <div style="color:${MUTED};font-size:12px;line-height:1.6;margin-top:10px;padding-top:10px;border-top:1px solid ${BORDER};">
+      <strong style="color:${INK};">We will never email you account details.</strong> If you receive a message changing them, it is not from us &mdash; always take them from your payment page.
     </div>
   </div>
 </td></tr>
@@ -183,13 +190,15 @@ export function registrationReceivedEmail(data: RegistrationEmailData) {
     ...(discountAmount > 0 ? [`${discountLabel || 'Discount'}: -${formatUsd(discountAmount)}`] : []),
     ``,
     `AMOUNT TO PAY:  ${amountText}`,
+    ...(ngnText ? [`                or ${ngnText} if paying in naira`] : []),
     ``,
-    `Pay here: ${payUrl}`,
+    `Bank transfer details: ${payUrl}`,
     ``,
     `Two things to expect:`,
-    `- Your card receipt comes from EAN Aviation Ltd, the organiser of NBAC 2027. That is expected.`,
-    `- The payment page asks you to type the amount yourself and shows a sample figure in the box.`,
-    `  Clear it and enter ${amountText}.`,
+    `- Payment goes to Evergreen Apple Nig. Ltd/NBAC, the organiser's account. That is expected.`,
+    `- Use your reference ${reference} as the transfer narration. It is how we match your payment.`,
+    ``,
+    `We will never email you account details. Always take them from your payment page.`,
     ``,
     `This price is held until ${formatDeadline(paymentDeadline)}.`,
     `Your pass is issued within one business day of payment being confirmed.`,
@@ -202,11 +211,24 @@ export function registrationReceivedEmail(data: RegistrationEmailData) {
   }
 }
 
+
+/**
+ * Formats an amount in whichever currency it was actually paid.
+ *
+ * Delegates can transfer into the naira account or wire dollars, so an
+ * acknowledgement that always reads "$" would quote a naira figure with a
+ * dollar sign — a difference of three orders of magnitude.
+ */
+function formatMoney(value: number, currency?: string | null): string {
+  return currency === 'NGN' ? formatNgn(value) : formatUsd(value)
+}
 export interface ClaimEmailData {
   name: string
   reference: string
   amountReported: number
   providerReference?: string | null
+  /** 'NGN' when they used the naira account; USD otherwise. */
+  currency?: string | null
   payerEmail?: string | null
 }
 
@@ -218,7 +240,7 @@ export interface ClaimEmailData {
  * implied otherwise would have us confirming payments that may not exist.
  */
 export function paymentClaimReceivedEmail(data: ClaimEmailData) {
-  const { name, reference, amountReported, providerReference } = data
+  const { name, reference, amountReported, providerReference, currency } = data
   const firstName = greetingName(name)
 
   const inner = `
@@ -230,7 +252,7 @@ export function paymentClaimReceivedEmail(data: ClaimEmailData) {
 
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid ${BORDER};border-radius:10px;padding:4px 16px;margin-bottom:20px;">
     ${row('Reference', `<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">${esc(reference)}</span>`)}
-    ${row('Amount reported', formatUsd(amountReported), { strong: true })}
+    ${row('Amount reported', formatMoney(amountReported, currency), { strong: true })}
     ${providerReference ? row('Your receipt reference', `<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">${esc(providerReference)}</span>`) : ''}
   </table>
 
@@ -249,7 +271,7 @@ export function paymentClaimReceivedEmail(data: ClaimEmailData) {
     `Thank you - we have received your payment details and passed them to our finance desk for verification.`,
     ``,
     `Reference:       ${reference}`,
-    `Amount reported: ${formatUsd(amountReported)}`,
+    `Amount reported: ${formatMoney(amountReported, currency)}`,
     ...(providerReference ? [`Your receipt ref: ${providerReference}`] : []),
     ``,
     `What happens next: our finance desk confirms the payment against EAN's records, then your`,

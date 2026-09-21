@@ -49,7 +49,7 @@ export default function PrivacyPolicyPage() {
                 <ul className="list-disc pl-6 space-y-2">
                   <li><strong>Registration Details:</strong> Full name, official email address, company name, phone number, special dietary or access requirements, and delegate count.</li>
                   <li><strong>Inquiry Details:</strong> Information provided when submitting flight charter, logistics, or partner hotel booking inquiries.</li>
-                  <li><strong>Transaction Records:</strong> Payment transaction references generated through our third-party payment gateway, Paystack.</li>
+                  <li><strong>Transaction Records:</strong> Your booking reference, the amount due, and what you tell us about a transfer you have made. We do not receive your bank credentials.</li>
                 </ul>
               </div>
 
@@ -78,7 +78,7 @@ export default function PrivacyPolicyPage() {
                   3. Payment Security
                 </h2>
                 <p>
-                  All payments are processed securely through <strong className="font-semibold text-nbac-text">Paystack</strong>, a PCI-DSS certified payment provider. NBAC does not store, process, or have access to your credit card numbers, bank credentials, or other direct payment details on our servers.
+                  Delegate fees are paid by bank transfer to an account held by <strong className="font-semibold text-nbac-text">Evergreen Apple Nigeria Limited</strong>, the organiser of NBAC 2027. Your transfer is made through your own bank, so NBAC never sees or stores your card numbers, bank credentials or account access. We hold only your booking reference, the amount due, and whatever you choose to tell us about a payment you have made.
                 </p>
               </div>
 

@@ -19,7 +19,7 @@ import { toMoney } from '@/lib/pricing'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { token, providerReference, payerEmail, amountPaid, note } = body
+    const { token, bankAccount, providerReference, payerEmail, amountPaid, note } = body
 
     if (!token || typeof token !== 'string') {
       return NextResponse.json({ error: 'Missing payment token.' }, { status: 400 })
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     const { data: reservation, error: lookupError } = await supabase
       .from('reservations')
       .select(
-        'id, name, email, reference, currency, expected_total, amount, payment_status'
+        'id, name, email, reference, currency, expected_total, expected_total_ngn, amount, payment_status'
       )
       .eq('pay_token', token)
       .maybeSingle<{
@@ -46,6 +46,7 @@ export async function POST(request: Request) {
         reference: string
         currency: string
         expected_total: number | null
+        expected_total_ngn: number | null
         amount: number
         payment_status: string
       }>()
@@ -58,6 +59,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Booking not found.' }, { status: 404 })
     }
 
+    // Which of the two NBAC accounts they used. Validated rather than
+    // defaulted: this one value decides which expected figure the claim is
+    // measured against, what currency the payment row carries, and what the
+    // acknowledgement email tells the delegate. Reading an unrecognised value
+    // as USD meant a naira transfer could be filed — and reconciled — as
+    // dollars, so an unclear answer is refused rather than guessed at.
+    if (bankAccount !== 'USD' && bankAccount !== 'NGN') {
+      return NextResponse.json(
+        { error: 'Please tell us which account you paid into.' },
+        { status: 400 }
+      )
+    }
+
+    // No naira figure was ever locked onto this booking, so there is nothing
+    // to measure a naira claim against — the comparison below would fall back
+    // to the dollar total and read the transfer as a vast overpayment.
+    if (bankAccount === 'NGN' && !reservation.expected_total_ngn) {
+      return NextResponse.json(
+        {
+          error:
+            'This booking was quoted in US dollars only. Please select the US dollar account.',
+        },
+        { status: 400 }
+      )
+    }
+
+    const paidCurrency: 'USD' | 'NGN' = bankAccount
+
     // Idempotent by design: a delegate double-submitting, or returning to the
     // page later, must not create a second claim row for the same money.
     //
@@ -68,7 +97,7 @@ export async function POST(request: Request) {
     const claimedAt = new Date().toISOString()
     const { data: claimedRows, error: claimError } = await supabase
       .from('reservations')
-      .update({ payment_status: 'claimed', claimed_at: claimedAt })
+      .update({ payment_status: 'claimed', claimed_at: claimedAt, paid_currency: paidCurrency })
       .eq('id', reservation.id)
       .not('payment_status', 'in', '("claimed","verified","waived")')
       .select('id')
@@ -85,7 +114,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, alreadyRecorded: true })
     }
 
-    const expected = Number(reservation.expected_total ?? reservation.amount)
+    // The figure owed IN THE CURRENCY THEY PAID. Comparing a naira transfer
+    // against the dollar total would read every local payment as a wild
+    // overpayment.
+    const expected =
+      paidCurrency === 'NGN' && reservation.expected_total_ngn
+        ? Number(reservation.expected_total_ngn)
+        : Number(reservation.expected_total ?? reservation.amount)
 
     // Fall back to the expected figure when the delegate leaves it blank or
     // types something unparseable — never record NaN or 0 as an amount.
@@ -119,7 +154,7 @@ export async function POST(request: Request) {
     const { error: insertError } = await supabase.from('payments').insert({
       reservation_id: reservation.id,
       reservation_reference: reservation.reference,
-      channel: 'paystack_link',
+      channel: 'bank_transfer',
       provider_reference: trimmedProviderRef,
       payer_email:
         typeof payerEmail === 'string' && payerEmail.trim()
@@ -127,7 +162,8 @@ export async function POST(request: Request) {
           : reservation.email,
       payer_name: reservation.name,
       amount: claimedAmount,
-      currency: reservation.currency || 'USD',
+      currency: paidCurrency,
+      bank_account: paidCurrency,
       status: 'claimed',
       paid_at: new Date().toISOString(),
       note: typeof note === 'string' && note.trim() ? note.trim() : null,
@@ -140,7 +176,7 @@ export async function POST(request: Request) {
       // the status back so the delegate can submit again.
       const { error: releaseError } = await supabase
         .from('reservations')
-        .update({ payment_status: reservation.payment_status, claimed_at: null })
+        .update({ payment_status: reservation.payment_status, claimed_at: null, paid_currency: null })
         .eq('id', reservation.id)
         .eq('payment_status', 'claimed')
 
@@ -173,6 +209,7 @@ export async function POST(request: Request) {
       reference: reservation.reference,
       amountReported: claimedAmount,
       providerReference: trimmedProviderRef,
+      currency: paidCurrency,
     })
 
     const ackResult = await sendEmail({

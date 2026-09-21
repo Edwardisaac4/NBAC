@@ -26,6 +26,7 @@ interface Reservation {
   email: string
   reference: string
   expected_total: number | null
+  expected_total_ngn: number | null
   amount: number
   payment_status: string
 }
@@ -44,7 +45,7 @@ export default async function ConfirmPaymentPage({
 
   const { data, error } = await supabase
     .from('reservations')
-    .select('name, email, reference, expected_total, amount, payment_status')
+    .select('name, email, reference, expected_total, expected_total_ngn, amount, payment_status')
     .eq('pay_token', token)
     .maybeSingle<Reservation>()
 
@@ -55,6 +56,7 @@ export default async function ConfirmPaymentPage({
   if (!data) notFound()
 
   const amountDue = Number(data.expected_total ?? data.amount)
+  const amountDueNgn = data.expected_total_ngn ? Number(data.expected_total_ngn) : null
   const alreadyReported =
     data.payment_status === 'claimed' ||
     data.payment_status === 'verified' ||
@@ -111,6 +113,7 @@ export default async function ConfirmPaymentPage({
               token={token}
               registeredEmail={data.email}
               expectedAmount={amountDue}
+              expectedAmountNgn={amountDueNgn}
             />
           )}
         </section>
