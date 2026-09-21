@@ -6,6 +6,7 @@ import { registrationReceivedEmail } from '@/lib/payment-emails';
 import { payUrl } from '@/lib/site';
 import {
   PAYMENT_WINDOW_DAYS,
+  fetchNgnRate,
   fetchTiersServer,
   formatUsd,
   generatePayToken,
@@ -13,6 +14,7 @@ import {
   quotePrice,
   recordRedemption,
   resolveTier,
+  toNaira,
 } from '@/lib/pricing';
 
 /**
@@ -97,6 +99,18 @@ export async function POST(request: Request) {
       email: String(email),
     });
 
+    // Naira equivalent, locked here alongside the price. Delegates paying
+    // into the local GTB account need a figure they can transfer, and it has
+    // to be the same figure when they pay nine days from now — so the rate is
+    // snapshotted onto the reservation rather than read at payment time.
+    //
+    // Null when no rate row is configured: the pay page then offers only the
+    // USD account, which is preferable to quoting an invented rate.
+    const ngnRate = await fetchNgnRate(supabase);
+    const expectedTotalNgn = ngnRate
+      ? toNaira(quote.netAmount, ngnRate.rate)
+      : null;
+
     const reference = generateReference(foundTier.id);
     const payToken = generatePayToken();
     const now = new Date();
@@ -130,6 +144,8 @@ export async function POST(request: Request) {
         discount_amount: quote.discountAmount,
         expected_total: quote.netAmount,
         payment_status: 'pending',
+        fx_rate: ngnRate?.rate ?? null,
+        expected_total_ngn: expectedTotalNgn,
         price_locked_at: now.toISOString(),
         payment_deadline: deadline.toISOString(),
       })
@@ -165,6 +181,7 @@ export async function POST(request: Request) {
       discountAmount: quote.discountAmount,
       discountLabel: quote.discountLabel,
       expectedTotal: quote.netAmount,
+      expectedTotalNgn,
       currency: resolvedCurrency,
       payUrl: delegatePayUrl,
       paymentDeadline: deadline,

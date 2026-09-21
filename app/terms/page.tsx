@@ -44,7 +44,7 @@ export default function TermsOfUsePage() {
                   1. Pass Registration & Payment
                 </h2>
                 <p>
-                  To secure an executive pass for the conference, you must complete the registration form and process payment through our payment gateway, Paystack.
+                  To secure an executive pass for the conference, you must complete the registration form and transfer the amount shown on your payment page to the account given there. Your place is confirmed once the payment has been received and verified against that account.
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
                   <li><strong>Booking Reference:</strong> Upon successful payment verification, you will receive a confirmation email containing a unique NBAC booking reference. This reference is required for check-in and access badge printing.</li>

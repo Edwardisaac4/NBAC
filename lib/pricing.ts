@@ -492,3 +492,85 @@ export async function recordRedemption(params: {
     }
   }
 }
+
+/* ── Currency conversion ─────────────────────────────────────────────────
+ *
+ * EAN's Paystack terminal stopped accepting cards, so delegates pay by bank
+ * transfer into an NBAC-dedicated GTB account — USD through a Citibank New
+ * York correspondent, or naira directly. Local delegates want a naira figure.
+ *
+ * The rate is READ FROM THE DATABASE, never from a live FX API. Two reasons:
+ * a third-party outage must not break the payment page, and the rate finance
+ * actually converts at is a business decision rather than a market quote.
+ *
+ * Like the discount, the rate is LOCKED PER RESERVATION at registration. A
+ * delegate shown ₦299,887 owes ₦299,887 nine days later, whatever the rate
+ * has done since. Reading it live at payment time would mean the figure on
+ * the page disagreed with the figure on the reservation.
+ */
+
+/** A rate older than this is shown as stale in admin. */
+export const FX_RATE_STALE_DAYS = 7;
+
+export interface FxRate {
+  rate: number;
+  source: string | null;
+  updatedAt: string;
+  /** True once the rate is older than FX_RATE_STALE_DAYS. */
+  isStale: boolean;
+}
+
+/**
+ * Naira equivalent of a USD amount, rounded UP to the whole naira.
+ *
+ * Rounding up rather than to nearest: the alternative is asking for a figure
+ * fractionally below what is owed, and a transfer that lands even ₦1 short
+ * reads as an underpayment during reconciliation. Kobo are not used — no
+ * Nigerian bank transfer UI asks for them.
+ */
+export function toNaira(usdAmount: number, rate: number): number {
+  return Math.ceil(usdAmount * rate);
+}
+
+export function formatNgn(value: number): string {
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+/**
+ * The current USD->NGN rate.
+ *
+ * Returns null when the row is missing or unreadable rather than falling back
+ * to a hardcoded figure: quoting a delegate a made-up rate is worse than
+ * showing only the USD account, which every bank can still receive.
+ */
+export async function fetchNgnRate(
+  supabase: SupabaseClient,
+): Promise<FxRate | null> {
+  const { data, error } = await supabase
+    .from("fx_rates")
+    .select("rate, source, updated_at")
+    .eq("quote_currency", "NGN")
+    .maybeSingle<{ rate: number; source: string | null; updated_at: string }>();
+
+  if (error) {
+    console.error("[pricing] fx rate lookup failed:", error.message);
+    return null;
+  }
+  if (!data || !Number.isFinite(Number(data.rate)) || Number(data.rate) <= 0) {
+    return null;
+  }
+
+  const ageMs = Date.now() - new Date(data.updated_at).getTime();
+
+  return {
+    rate: Number(data.rate),
+    source: data.source,
+    updatedAt: data.updated_at,
+    isStale: ageMs > FX_RATE_STALE_DAYS * 24 * 60 * 60 * 1000,
+  };
+}

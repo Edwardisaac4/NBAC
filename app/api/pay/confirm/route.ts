@@ -19,7 +19,7 @@ import { toMoney } from '@/lib/pricing'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { token, providerReference, payerEmail, amountPaid, note } = body
+    const { token, bankAccount, providerReference, payerEmail, amountPaid, note } = body
 
     if (!token || typeof token !== 'string') {
       return NextResponse.json({ error: 'Missing payment token.' }, { status: 400 })
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     const { data: reservation, error: lookupError } = await supabase
       .from('reservations')
       .select(
-        'id, name, email, reference, currency, expected_total, amount, payment_status'
+        'id, name, email, reference, currency, expected_total, expected_total_ngn, amount, payment_status'
       )
       .eq('pay_token', token)
       .maybeSingle<{
@@ -46,6 +46,7 @@ export async function POST(request: Request) {
         reference: string
         currency: string
         expected_total: number | null
+        expected_total_ngn: number | null
         amount: number
         payment_status: string
       }>()
@@ -58,6 +59,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Booking not found.' }, { status: 404 })
     }
 
+    // Which of the two NBAC accounts they used. Anything other than an
+    // explicit 'NGN' is treated as the dollar account: the price is quoted in
+    // USD and that is the account every delegate can reach, so it is the safe
+    // default when the client sends nothing.
+    const paidCurrency = bankAccount === 'NGN' ? 'NGN' : 'USD'
+
     // Idempotent by design: a delegate double-submitting, or returning to the
     // page later, must not create a second claim row for the same money.
     //
@@ -68,7 +75,7 @@ export async function POST(request: Request) {
     const claimedAt = new Date().toISOString()
     const { data: claimedRows, error: claimError } = await supabase
       .from('reservations')
-      .update({ payment_status: 'claimed', claimed_at: claimedAt })
+      .update({ payment_status: 'claimed', claimed_at: claimedAt, paid_currency: paidCurrency })
       .eq('id', reservation.id)
       .not('payment_status', 'in', '("claimed","verified","waived")')
       .select('id')
@@ -85,7 +92,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, alreadyRecorded: true })
     }
 
-    const expected = Number(reservation.expected_total ?? reservation.amount)
+    // The figure owed IN THE CURRENCY THEY PAID. Comparing a naira transfer
+    // against the dollar total would read every local payment as a wild
+    // overpayment.
+    const expected =
+      paidCurrency === 'NGN' && reservation.expected_total_ngn
+        ? Number(reservation.expected_total_ngn)
+        : Number(reservation.expected_total ?? reservation.amount)
 
     // Fall back to the expected figure when the delegate leaves it blank or
     // types something unparseable — never record NaN or 0 as an amount.
@@ -119,7 +132,7 @@ export async function POST(request: Request) {
     const { error: insertError } = await supabase.from('payments').insert({
       reservation_id: reservation.id,
       reservation_reference: reservation.reference,
-      channel: 'paystack_link',
+      channel: 'bank_transfer',
       provider_reference: trimmedProviderRef,
       payer_email:
         typeof payerEmail === 'string' && payerEmail.trim()
@@ -127,7 +140,8 @@ export async function POST(request: Request) {
           : reservation.email,
       payer_name: reservation.name,
       amount: claimedAmount,
-      currency: reservation.currency || 'USD',
+      currency: paidCurrency,
+      bank_account: paidCurrency,
       status: 'claimed',
       paid_at: new Date().toISOString(),
       note: typeof note === 'string' && note.trim() ? note.trim() : null,
@@ -140,7 +154,7 @@ export async function POST(request: Request) {
       // the status back so the delegate can submit again.
       const { error: releaseError } = await supabase
         .from('reservations')
-        .update({ payment_status: reservation.payment_status, claimed_at: null })
+        .update({ payment_status: reservation.payment_status, claimed_at: null, paid_currency: null })
         .eq('id', reservation.id)
         .eq('payment_status', 'claimed')
 
@@ -173,6 +187,7 @@ export async function POST(request: Request) {
       reference: reservation.reference,
       amountReported: claimedAmount,
       providerReference: trimmedProviderRef,
+      currency: paidCurrency,
     })
 
     const ackResult = await sendEmail({
