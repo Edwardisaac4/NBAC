@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       attendeeCount = 1,
       areasOfInterest = [],
       ticketPreference = "early_bird",
-      source = "AfBAA Event Stand",
+      source,
       paymentChoice = "pay_later",
       consent = true,
       signatureData,
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
               `Attendees: ${normalizedAttendees}`,
               `Ticket Preference: ${ticketPreference}`,
               `Areas of Interest: ${(Array.isArray(areasOfInterest) ? areasOfInterest : []).join(", ") || "None"}`,
-              `Source: ${source || "AfBAA Event Stand"}`,
+              `Source: ${source || "Not specified"}`,
               `Payment Choice: ${paymentChoice} (${discountPercent} discount code: ${discountCode})`,
               `Verification Date: ${verificationDate || new Date().toISOString().split("T")[0]}`,
             ].join("\n"),
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "We could not save your details. Please try again or speak to a member of our stand team.",
+            "We could not save your details. Please try again or contact the NBAC team.",
         },
         { status: 500 },
       );
@@ -159,9 +159,7 @@ export async function POST(request: NextRequest) {
     // after the campaign has closed is worse than sending none. Falls back to
     // the hardcoded figure if the lookup fails.
     let codeValueText = discountPercent;
-    let codeLabel = isPayNow
-      ? "AfBAA Event Full Payment Discount"
-      : "Early Bird Discount";
+    let codeLabel = isPayNow ? "Full Payment Discount" : "Early Bird Discount";
     let codeValidUntil: Date | null = null;
 
     try {
@@ -231,6 +229,10 @@ export async function POST(request: NextRequest) {
       // the same promise out of step. May be a fixed amount such as "$25.00",
       // so consumers must treat it as an opaque string rather than a number.
       discountPercent: codeValueText,
+      // Expiry from the same live row, so the success screen states the date
+      // the code actually stops working rather than a hardcoded campaign
+      // period. Null when the lookup failed or the code has no end date.
+      validUntil: codeValidUntil ? codeValidUntil.toISOString() : null,
       // Tells the success screen whether to promise an email has been sent.
       codeEmailed: codeEmailResult.success,
       // Codes are issued here but applied only when typed on the registration
