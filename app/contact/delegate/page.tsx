@@ -880,7 +880,7 @@ export default function DelegateRegistrationPage() {
                             ? quote.autoPromo.validUntil
                               ? `${quote.autoPromo.label} — ends ${new Date(quote.autoPromo.validUntil).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`
                               : quote.autoPromo.label
-                            : 'Have an AfBAA or early bird code? Enter it below.'}
+                            : 'Have a discount or early bird code? Enter it below.'}
                         </span>
                       </div>
 

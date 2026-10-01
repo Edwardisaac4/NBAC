@@ -49,7 +49,6 @@ const TICKET_PREFERENCES = [
 ] as const;
 
 const SOURCES = [
-  'AfBAA Event & Stand',
   'Direct Invitation / EAN Aviation',
   'Industry Colleague / Word of Mouth',
   'LinkedIn & Social Media',
@@ -75,7 +74,7 @@ export default function StandInterestPage() {
     attendeeCount: 1,
     areasOfInterest: [] as string[],
     ticketPreference: 'early_bird',
-    source: 'AfBAA Event & Stand',
+    source: '',
     consent: true,
   });
 
@@ -83,6 +82,8 @@ export default function StandInterestPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedChoice, setSubmittedChoice] = useState<'pay_now' | 'pay_later'>('pay_later');
   const [issuedCode, setIssuedCode] = useState('');
+  /** Expiry of the issued code, from the live discount_codes row. */
+  const [codeValidUntil, setCodeValidUntil] = useState<string | null>(null);
   /** Whether the API reported the code email actually went out. */
   const [codeEmailed, setCodeEmailed] = useState(false);
 
@@ -365,6 +366,7 @@ export default function StandInterestPage() {
       }
 
       setIssuedCode(data.discountCode || '');
+      setCodeValidUntil(data.validUntil || null);
       setCodeEmailed(Boolean(data.codeEmailed));
       setSubmittedChoice(paymentChoice);
       setIsSubmitted(true);
@@ -374,7 +376,7 @@ export default function StandInterestPage() {
         paymentChoice === 'pay_now' ? 'Registration Recorded!' : 'Interest Form Received!',
         {
           description: paymentChoice === 'pay_now'
-            ? '10% AfBAA event discount recorded.'
+            ? '10% full payment discount recorded.'
             : 'Your 5% discount code has been recorded against your registration.',
         }
       );
@@ -399,7 +401,7 @@ export default function StandInterestPage() {
       attendeeCount: 1,
       areasOfInterest: [],
       ticketPreference: 'early_bird',
-      source: 'AfBAA Event & Stand',
+      source: '',
       consent: true,
     });
     setHasSignature(false);
@@ -407,6 +409,7 @@ export default function StandInterestPage() {
     clearUploadedSignature();
     setSignatureMode('draw');
     setIssuedCode('');
+    setCodeValidUntil(null);
     setCodeEmailed(false);
   };
 
@@ -430,7 +433,7 @@ export default function StandInterestPage() {
           <div className="flex flex-col items-center space-y-3">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-nbac-gold/10 border border-nbac-gold/30 text-nbac-gold-light text-[11px] font-bold uppercase tracking-wider">
               <Sparkles size={13} />
-              <span>AfBAA Event Stand & Official Early Bird Portal</span>
+              <span>Official Early Bird Portal</span>
             </div>
 
             <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-nbac-text tracking-tight max-w-2xl leading-tight">
@@ -438,7 +441,7 @@ export default function StandInterestPage() {
             </h1>
 
             <p className="font-sans text-sm md:text-base font-light text-nbac-body max-w-2xl leading-relaxed">
-              Register your conference presence at our exhibition stand. Choose to pay in full now for an instant 10% event discount, or pay later to lock in a 5% early coupon.
+              Register your interest in NBAC 2027. Choose to pay in full now for an instant 10% discount, or pay later to lock in a 5% early bird coupon.
             </p>
           </div>
         </section>
@@ -481,8 +484,8 @@ export default function StandInterestPage() {
                   </h2>
                   <p className="font-sans text-sm text-nbac-body font-light leading-relaxed">
                     {submittedChoice === 'pay_now'
-                      ? 'Your early bird registration details have been securely logged. Your 10% AfBAA discount code is shown below — enter it on the registration form to claim it.'
-                      : 'We have recorded your details at our stand. Your exclusive 5% discount code is shown below — enter it on the registration form to claim it.'}
+                      ? 'Your early bird registration details have been securely logged and your 10% full payment discount code has been issued. Continue to registration to apply it.'
+                      : 'We have recorded your details and issued your exclusive 5% discount code. Continue to registration to apply it.'}
                   </p>
                 </div>
 
@@ -494,7 +497,7 @@ export default function StandInterestPage() {
                       Your Discount Code
                     </span>
                     <span className={cn("text-xs font-bold uppercase tracking-wider", submittedChoice === 'pay_now' ? "text-nbac-gold-light" : "text-nbac-emerald-light")}>
-                      Recorded at Stand
+                      Recorded
                     </span>
                   </div>
 
@@ -544,16 +547,23 @@ export default function StandInterestPage() {
                   <div className="flex items-center justify-between text-xs border-b border-nbac-border pb-3">
                     <span className="text-nbac-muted uppercase tracking-wider">Discount Privilege</span>
                     <span className={cn("font-bold text-sm", submittedChoice === 'pay_now' ? "text-nbac-gold-light" : "text-nbac-emerald-light")}>
-                      {submittedChoice === 'pay_now' ? '10% AfBAA Event Full Payment Discount' : '5% Early Bird Discount'}
+                      {submittedChoice === 'pay_now' ? '10% Full Payment Discount' : '5% Early Bird Discount'}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs border-b border-nbac-border pb-3">
-                    <span className="text-nbac-muted uppercase tracking-wider">Validity Period</span>
-                    <span className="text-nbac-text font-medium">
-                      {submittedChoice === 'pay_now' ? 'Active for AfBAA Event Period' : 'Valid for 30 days from event closing'}
-                    </span>
-                  </div>
+                  {/* Read from the live discount_codes row via the API, so the
+                      date shown is the one the code actually expires on.
+                      Lagos time, matching the email and how the campaign is
+                      communicated; the browser's own zone would show a
+                      31 Dec 23:59 WAT expiry as 1 January east of Lagos. */}
+                  {codeValidUntil && (
+                    <div className="flex items-center justify-between text-xs border-b border-nbac-border pb-3">
+                      <span className="text-nbac-muted uppercase tracking-wider">Validity Period</span>
+                      <span className="text-nbac-text font-medium">
+                        Valid until {new Date(codeValidUntil).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Africa/Lagos' })}
+                      </span>
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-nbac-muted uppercase tracking-wider">Pass Preference</span>
@@ -593,13 +603,13 @@ export default function StandInterestPage() {
                     ? <> We have also emailed it to <span className="text-nbac-text font-semibold">{formData.email}</span>, so you can register later from any device.</>
                     : ' Please keep a note of the code so you can register later from another device.'}                </p>
 
-                {/* Reset button for exhibition stand usage */}
+                {/* Reset button for registering several people on one device */}
                 <div className="pt-2">
                   <button
                     onClick={handleResetForNext}
                     className="bg-nbac-canvas border border-nbac-border hover:border-nbac-gold/50 text-nbac-body hover:text-nbac-text font-sans text-xs uppercase tracking-wider font-semibold px-8 py-3.5 rounded-full transition-all cursor-pointer"
                   >
-                    Register Another Attendee / Stand Visitor
+                    Register Another Attendee
                   </button>
                 </div>
               </motion.div>
@@ -614,7 +624,7 @@ export default function StandInterestPage() {
                         Select Registration Mode
                       </span>
                       <span className="text-[11px] font-sans text-nbac-gold-light flex items-center gap-1 font-medium">
-                        <Percent size={12} /> AfBAA Event Specials
+                        <Percent size={12} /> Early Bird Specials
                       </span>
                     </div>
 
@@ -640,7 +650,7 @@ export default function StandInterestPage() {
                           </span>
                         </div>
                         <p className="text-[11px] text-nbac-muted font-light leading-relaxed">
-                          Pay in full during the AfBAA event for an instant 10% discount on your pass.
+                          Pay in full now for an instant 10% discount on your pass.
                         </p>
                       </button>
 
@@ -665,7 +675,7 @@ export default function StandInterestPage() {
                           </span>
                         </div>
                         <p className="text-[11px] text-nbac-muted font-light leading-relaxed">
-                          Lock in a 5% discount code, valid for payment within 30 days of the event closing.
+                          Lock in a 5% discount code now and pay when you register.
                         </p>
                       </button>
                     </div>
@@ -943,6 +953,9 @@ export default function StandInterestPage() {
                         onChange={handleInputChange}
                         className="w-full bg-nbac-canvas/80 border border-nbac-border rounded-lg px-4 py-3 text-nbac-text font-sans text-sm focus:outline-none focus:border-nbac-gold transition-all cursor-pointer"
                       >
+                        <option value="" className="bg-nbac-panel text-nbac-text">
+                          Select an option
+                        </option>
                         {SOURCES.map(s => (
                           <option key={s} value={s} className="bg-nbac-panel text-nbac-text">
                             {s}
@@ -957,7 +970,7 @@ export default function StandInterestPage() {
                     <div className="flex items-center gap-2 border-b border-nbac-border pb-2">
                       <PenTool size={15} className="text-nbac-gold-light" />
                       <h3 className="font-sans text-xs font-bold uppercase tracking-wider text-nbac-text">
-                        6. Consent & On-Site Verification
+                        6. Consent & Verification
                       </h3>
                     </div>
 
@@ -1037,7 +1050,7 @@ export default function StandInterestPage() {
                             />
                             {!hasSignature && (
                               <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-nbac-muted/40 font-serif italic select-none">
-                                Sign here for on-site booth verification
+                                Sign here
                               </div>
                             )}
                           </div>
@@ -1129,7 +1142,7 @@ export default function StandInterestPage() {
                           <ShieldCheck size={16} />
                           <span>
                             {paymentChoice === 'pay_now'
-                              ? 'Submit Registration (10% AfBAA Event Discount)'
+                              ? 'Submit Registration (10% Full Payment Discount)'
                               : 'Submit Interest (Lock In 5% Discount Code)'}
                           </span>
                         </>
