@@ -117,8 +117,8 @@ export function ContactInfo() {
             <div className="space-y-3 font-sans text-sm font-light text-nbac-body">
               <div className="flex items-center gap-3">
                 <Mail size={16} className="text-nbac-emerald shrink-0" />
-                <a href="mailto:info@ean.aero" className="hover:text-nbac-emerald transition-colors">
-                  info@ean.aero
+                <a href="mailto:info@nbac.com.ng" className="hover:text-nbac-emerald transition-colors">
+                  info@nbac.com.ng
                 </a>
               </div>
               <div className="flex items-center gap-3">
