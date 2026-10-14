@@ -104,7 +104,7 @@ export default function PrivacyPolicyPage() {
                   If you have any questions or require the deletion or modification of your delegate registration records, please contact our logistics desk at:
                 </p>
                 <p className="bg-nbac-panel border border-nbac-border rounded-xl p-4 font-mono text-xs text-nbac-emerald inline-block">
-                  legal@nbac.ng
+                  info@nbac.com.ng
                 </p>
               </div>
 
