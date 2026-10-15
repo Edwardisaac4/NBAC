@@ -288,12 +288,14 @@ export function SponsorRegistrationFormUI({ selectedTier }: SponsorRegistrationF
                             {selectedTier.brandingPrivileges.map((p, i) => <li key={i}>{p}</li>)}
                           </ul>
                         </div>
+                        {selectedTier.speakingPrivileges.length > 0 && (
                         <div>
                           <span className="font-bold text-nbac-text block mb-1">Speaking & Content:</span>
                           <ul className="list-disc pl-4 space-y-1">
                             {selectedTier.speakingPrivileges.map((p, i) => <li key={i}>{p}</li>)}
                           </ul>
                         </div>
+                        )}
                         <div>
                           <span className="font-bold text-nbac-text block mb-1">Digital, Media & Access:</span>
                           <ul className="list-disc pl-4 space-y-1">

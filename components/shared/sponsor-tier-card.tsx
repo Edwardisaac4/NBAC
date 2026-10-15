@@ -255,7 +255,7 @@ export function SponsorTierCard({ tier, isSelected, onSelect }: SponsorTierCardP
               className="overflow-hidden border-t border-nbac-border/60 pt-4 mt-2"
               onClick={(e) => e.stopPropagation()} // Prevent card selection when interacting with details
             >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+              <div className={cn("grid grid-cols-1 gap-6 text-left", tier.speakingPrivileges.length > 0 ? "md:grid-cols-3" : "md:grid-cols-2")}>
                 {/* Branding & Presence */}
                 <div className="space-y-2.5">
                   <h5 className={cn("font-sans text-[10px] uppercase tracking-wider font-bold border-b border-nbac-border/40 pb-1 flex items-center gap-1.5", theme.text)}>
@@ -274,7 +274,8 @@ export function SponsorTierCard({ tier, isSelected, onSelect }: SponsorTierCardP
                   </ul>
                 </div>
 
-                {/* Speaking & Content / Collateral */}
+                {/* Speaking & Content / Collateral — omitted for tiers with none */}
+                {tier.speakingPrivileges.length > 0 && (
                 <div className="space-y-2.5">
                   <h5 className={cn("font-sans text-[10px] uppercase tracking-wider font-bold border-b border-nbac-border/40 pb-1 flex items-center gap-1.5", theme.text)}>
                     <span className={cn("h-1 w-1 rounded-full", theme.bulletBg)} />
@@ -291,6 +292,7 @@ export function SponsorTierCard({ tier, isSelected, onSelect }: SponsorTierCardP
                     ))}
                   </ul>
                 </div>
+                )}
 
                 {/* Digital, Media & Access */}
                 <div className="space-y-2.5">

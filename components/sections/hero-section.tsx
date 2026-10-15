@@ -470,7 +470,7 @@ export function HeroSection() {
         {/* Venue / Date Metadata */}
         <div className="hero-meta relative w-full h-14 sm:h-10 md:h-8 flex items-center justify-center select-none overflow-hidden">
           <p className="font-sans text-xs sm:text-sm md:text-lg text-white/90 tracking-wider font-medium max-w-2xl mx-auto text-center">
-            {CONFERENCE_META.date} • {CONFERENCE_META.venue}, {CONFERENCE_META.location}
+            {CONFERENCE_META.date}, {CONFERENCE_META.location}
           </p>
         </div>
 
