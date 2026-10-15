@@ -23,10 +23,9 @@ export default function Home() {
     "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
     "location": {
       "@type": "Place",
-      "name": "Lagos Marriott Hotel Ikeja",
+      "name": "Lagos, Nigeria",
       "address": {
         "@type": "PostalAddress",
-        "streetAddress": "122 Joel Ogunnaike Street, Ikeja GRA",
         "addressLocality": "Lagos",
         "addressRegion": "Lagos State",
         "addressCountry": "NG"

@@ -228,7 +228,7 @@ export function SponsorBenefitsModal({ tier, isOpen, onClose }: SponsorBenefitsM
               </div>
 
               {/* Benefits Columns */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left mb-8">
+              <div className={cn("grid grid-cols-1 gap-8 text-left mb-8", tier.speakingPrivileges.length > 0 ? "md:grid-cols-3" : "md:grid-cols-2")}>
                 {/* Column 1: Branding & Presence */}
                 <div className="space-y-3">
                   <h4 className={cn("font-sans text-xs uppercase tracking-wider font-bold border-b border-nbac-border/40 pb-2 flex items-center gap-1.5", theme.text)}>
@@ -247,7 +247,8 @@ export function SponsorBenefitsModal({ tier, isOpen, onClose }: SponsorBenefitsM
                   </ul>
                 </div>
 
-                {/* Column 2: Speaking & Content */}
+                {/* Column 2: Speaking & Content — omitted for tiers with none */}
+                {tier.speakingPrivileges.length > 0 && (
                 <div className="space-y-3">
                   <h4 className={cn("font-sans text-xs uppercase tracking-wider font-bold border-b border-nbac-border/40 pb-2 flex items-center gap-1.5", theme.text)}>
                     <span className={cn("h-1.5 w-1.5 rounded-full", theme.bulletBg)} />
@@ -264,6 +265,7 @@ export function SponsorBenefitsModal({ tier, isOpen, onClose }: SponsorBenefitsM
                     ))}
                   </ul>
                 </div>
+                )}
 
                 {/* Column 3: Digital, Media & Access */}
                 <div className="space-y-3">
