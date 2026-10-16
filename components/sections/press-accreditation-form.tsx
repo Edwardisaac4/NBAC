@@ -133,15 +133,6 @@ export function PressAccreditationForm({ showHeader = true }: { showHeader?: boo
             </p>
           </div>
 
-          <div className="bg-[#12181a] border border-nbac-gold/30 rounded-xl p-5 max-w-md mx-auto">
-            <span className="font-sans text-[10px] font-bold uppercase tracking-wider text-nbac-muted block mb-1">
-              Accreditation Reference
-            </span>
-            <span className="font-mono text-lg font-bold text-nbac-gold tracking-widest break-all">
-              {submitted.reference}
-            </span>
-          </div>
-
           <div className="bg-nbac-panel/40 border border-nbac-border/60 rounded-xl p-5 max-w-lg mx-auto text-left text-xs font-light text-nbac-body leading-relaxed space-y-2">
             <p className="font-bold text-nbac-text text-sm mb-1 flex items-center gap-1.5">
               <Newspaper className="w-4 h-4 text-nbac-gold" />
@@ -150,7 +141,7 @@ export function PressAccreditationForm({ showHeader = true }: { showHeader?: boo
             {submitted.emailed ? (
               <p>1. An acknowledgement of your registration has been emailed to you.</p>
             ) : (
-              <p>1. We could not email you an acknowledgement just now — please keep a note of your reference above.</p>
+              <p>1. We could not email you an acknowledgement just now, but your registration has been saved.</p>
             )}
             <p>2. Our media team is reviewing your request and the outlet you represent.</p>
             <p>3. Once all due procedures have been completed, your confirmation will be sent to your email.</p>
