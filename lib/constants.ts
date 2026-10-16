@@ -96,7 +96,8 @@ At EAN Aviation, Ann combines technical knowledge with a people-first approach t
   },
 ];
 
-export const ABOUT_COMMITTEE_MEMBERS: CommitteeMember[] = STEERING_COMMITTEE_MEMBERS;
+export const ABOUT_COMMITTEE_MEMBERS: CommitteeMember[] =
+  STEERING_COMMITTEE_MEMBERS;
 
 export const CONFERENCE_OBJECTIVES = [
   "Strengthen industry dialogue and collaboration between regulators, operators, financiers, OEMs, and service providers.",

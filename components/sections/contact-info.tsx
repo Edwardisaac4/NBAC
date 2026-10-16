@@ -1,7 +1,8 @@
 'use client'
 
+import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { MapPin, Plane, Mail, Phone, Globe, Clock, Navigation } from 'lucide-react'
+import { MapPin, Plane, Mail, Phone, Globe, Clock, Navigation, ArrowUpRight } from 'lucide-react'
 
 export function ContactInfo() {
   const cardHoverConfig = {
@@ -151,10 +152,14 @@ export function ContactInfo() {
                   <span className="w-1.5 h-1.5 rounded-full bg-nbac-emerald" />
                   <span>VVIP Delegate Liaison</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs font-light text-nbac-body">
+                <Link
+                  href="/contact/press"
+                  className="flex items-center gap-2 text-xs font-light text-nbac-body hover:text-nbac-emerald transition-colors group/press"
+                >
                   <span className="w-1.5 h-1.5 rounded-full bg-nbac-emerald" />
-                  <span>Media & Press Credentials</span>
-                </div>
+                  <span className="underline decoration-nbac-emerald/40 underline-offset-2">Media & Press Credentials</span>
+                  <ArrowUpRight size={12} className="text-nbac-emerald opacity-60 group-hover/press:opacity-100 transition-opacity" />
+                </Link>
                 <div className="flex items-center gap-2 text-xs font-light text-nbac-body">
                   <span className="w-1.5 h-1.5 rounded-full bg-nbac-emerald" />
                   <span>Flight Planning & Landing Permits</span>

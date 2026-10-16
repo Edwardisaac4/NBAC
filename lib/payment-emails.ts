@@ -84,7 +84,7 @@ function greetingName(name: string): string {
   return parts[0]
 }
 
-function shell(inner: string): string {
+function shell(inner: string, desk = 'delegate desk'): string {
   return `<!doctype html>
 <html><body style="margin:0;padding:0;background:${CANVAS};">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${CANVAS};padding:24px 12px;">
@@ -97,8 +97,8 @@ function shell(inner: string): string {
 ${inner}
 <tr><td style="padding:20px 28px;background:${CANVAS};border-top:1px solid ${BORDER};">
   <div style="color:${MUTED};font-size:11px;line-height:1.6;">
-    Organised by EAN Aviation Limited &middot; Marriott Hotel, Ikeja, Lagos<br>
-    Questions? Reply to this email and our delegate desk will pick it up.
+    Organised by EAN Aviation Limited &middot; Lagos<br>
+    Questions? Reply to this email and our ${desk} will pick it up.
   </div>
 </td></tr>
 </table>
@@ -384,6 +384,208 @@ export function discountCodeIssuedEmail(data: DiscountCodeEmailData) {
   return {
     subject: `Your NBAC 2027 discount code: ${code} (${valueText} off)`,
     html: shell(inner),
+    text,
+  }
+}
+
+export interface PressAccreditationEmailData {
+  name: string
+  reference: string
+  outlet: string
+  mediaTypeLabel: string
+}
+
+/**
+ * Sent to a journalist the moment their accreditation request is recorded.
+ *
+ * Deliberately says "under review", not "accredited": requests are vetted in
+ * /admin/press before anyone is cleared, and a confirmation that reads like a
+ * pass invites people to turn up at the media desk expecting one.
+ */
+export function pressAccreditationReceivedEmail(data: PressAccreditationEmailData) {
+  const { name, reference, outlet, mediaTypeLabel } = data
+  const firstName = greetingName(name)
+
+  const inner = `
+<tr><td style="padding:28px 28px 8px;">
+  <p style="margin:0 0 14px;color:${BODY};font-size:15px;line-height:1.6;">
+    Hello ${esc(firstName)},
+  </p>
+  <p style="margin:0 0 20px;color:${BODY};font-size:15px;line-height:1.6;">
+    Thank you for registering for media accreditation at NBAC 2027. Your request has been received
+    and is being reviewed. A confirmation will be sent to you once all due procedures have been completed.
+  </p>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid ${BORDER};border-radius:10px;padding:4px 16px;margin-bottom:22px;">
+    ${row('Reference', esc(reference), { strong: true, color: INK })}
+    ${row('Media outlet', esc(outlet))}
+    ${row('Media type', esc(mediaTypeLabel))}
+    ${row('Status', 'Under review', { color: GOLD, strong: true })}
+  </table>
+</td></tr>
+
+<tr><td style="padding:0 28px 28px;">
+  <p style="margin:0 0 8px;color:${INK};font-size:14px;font-weight:700;">What happens next</p>
+  <p style="margin:0 0 6px;color:${BODY};font-size:14px;line-height:1.65;">
+    1. Our media team reviews your request and the outlet you represent.
+  </p>
+  <p style="margin:0 0 14px;color:${BODY};font-size:14px;line-height:1.65;">
+    2. Once all due procedures have been completed, your confirmation will be sent to this email address.
+  </p>
+  <p style="margin:0;color:${MUTED};font-size:12px;line-height:1.6;">
+    <strong>This email is not a press pass.</strong> Please quote your reference in any correspondence.
+  </p>
+</td></tr>`
+
+  const text = [
+    `Hello ${firstName},`,
+    ``,
+    `Thank you for registering for media accreditation at NBAC 2027. Your request has been`,
+    `received and is being reviewed. A confirmation will be sent to you once all due`,
+    `procedures have been completed.`,
+    ``,
+    `Reference: ${reference}`,
+    `Media outlet: ${outlet}`,
+    `Media type: ${mediaTypeLabel}`,
+    `Status: Under review`,
+    ``,
+    `WHAT HAPPENS NEXT`,
+    `1. Our media team reviews your request and the outlet you represent.`,
+    `2. Once all due procedures have been completed, your confirmation will be sent to`,
+    `   this email address.`,
+    ``,
+    `This email is not a press pass. Please quote your reference in any correspondence.`,
+  ].join('\n')
+
+  return {
+    subject: `NBAC 2027 media accreditation request received [${reference}]`,
+    html: shell(inner, 'media desk'),
+    text,
+  }
+}
+
+export interface PressDecisionEmailData {
+  name: string
+  reference: string
+  outlet: string
+  mediaTypeLabel: string
+  /**
+   * Free text from the reviewing admin — badge collection details for an
+   * approval, a reason for a decline. Event logistics are deliberately not
+   * hardcoded here, so this is where they go when there are any to give.
+   */
+  note?: string | null
+}
+
+function noteBlock(note?: string | null): { html: string; text: string[] } {
+  const trimmed = note?.trim()
+  if (!trimmed) return { html: '', text: [] }
+  return {
+    html: `
+  <div style="border-left:3px solid ${GOLD};background:#fdf8ef;padding:12px 16px;margin:0 0 20px;border-radius:0 8px 8px 0;">
+    <div style="color:${MUTED};font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:6px;">Message from the media team</div>
+    <div style="color:${BODY};font-size:14px;line-height:1.65;white-space:pre-wrap;">${esc(trimmed)}</div>
+  </div>`,
+    text: [`MESSAGE FROM THE MEDIA TEAM`, trimmed, ``],
+  }
+}
+
+/** Sent when an admin approves a request in /admin/press. */
+export function pressAccreditationApprovedEmail(data: PressDecisionEmailData) {
+  const { name, reference, outlet, mediaTypeLabel, note } = data
+  const firstName = greetingName(name)
+  const message = noteBlock(note)
+
+  const inner = `
+<tr><td style="padding:28px 28px 8px;">
+  <p style="margin:0 0 14px;color:${BODY};font-size:15px;line-height:1.6;">
+    Hello ${esc(firstName)},
+  </p>
+  <p style="margin:0 0 20px;color:${BODY};font-size:15px;line-height:1.6;">
+    Good news &mdash; your media accreditation for NBAC 2027 has been <strong style="color:${INK};">approved</strong>.
+    We look forward to welcoming you to Lagos.
+  </p>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid ${BORDER};border-radius:10px;padding:4px 16px;margin-bottom:22px;">
+    ${row('Reference', esc(reference), { strong: true, color: INK })}
+    ${row('Media outlet', esc(outlet))}
+    ${row('Media type', esc(mediaTypeLabel))}
+    ${row('Status', 'Approved', { color: '#1f8a5b', strong: true })}
+  </table>
+  ${message.html}
+</td></tr>
+
+<tr><td style="padding:0 28px 28px;">
+  <p style="margin:0;color:${BODY};font-size:14px;line-height:1.65;">
+    Please keep this email and quote your reference when you arrive. If anything in your
+    details has changed, reply to this email before the event.
+  </p>
+</td></tr>`
+
+  const text = [
+    `Hello ${firstName},`,
+    ``,
+    `Good news - your media accreditation for NBAC 2027 has been approved.`,
+    `We look forward to welcoming you to Lagos.`,
+    ``,
+    `Reference: ${reference}`,
+    `Media outlet: ${outlet}`,
+    `Media type: ${mediaTypeLabel}`,
+    `Status: Approved`,
+    ``,
+    ...message.text,
+    `Please keep this email and quote your reference when you arrive. If anything in your`,
+    `details has changed, reply to this email before the event.`,
+  ].join('\n')
+
+  return {
+    subject: `Your NBAC 2027 media accreditation is approved [${reference}]`,
+    html: shell(inner, 'media desk'),
+    text,
+  }
+}
+
+/** Sent when an admin declines a request in /admin/press. */
+export function pressAccreditationDeclinedEmail(data: PressDecisionEmailData) {
+  const { name, reference, outlet, note } = data
+  const firstName = greetingName(name)
+  const message = noteBlock(note)
+
+  const inner = `
+<tr><td style="padding:28px 28px 28px;">
+  <p style="margin:0 0 14px;color:${BODY};font-size:15px;line-height:1.6;">
+    Hello ${esc(firstName)},
+  </p>
+  <p style="margin:0 0 14px;color:${BODY};font-size:15px;line-height:1.6;">
+    Thank you for requesting media accreditation for NBAC 2027 on behalf of ${esc(outlet)}
+    (reference ${esc(reference)}).
+  </p>
+  <p style="margin:0 0 20px;color:${BODY};font-size:15px;line-height:1.6;">
+    After review, we are unable to approve your request on this occasion.
+  </p>
+  ${message.html}
+  <p style="margin:0;color:${MUTED};font-size:13px;line-height:1.6;">
+    If you believe this decision was made in error, or you can share further details of your
+    credentials, please reply to this email.
+  </p>
+</td></tr>`
+
+  const text = [
+    `Hello ${firstName},`,
+    ``,
+    `Thank you for requesting media accreditation for NBAC 2027 on behalf of ${outlet}`,
+    `(reference ${reference}).`,
+    ``,
+    `After review, we are unable to approve your request on this occasion.`,
+    ``,
+    ...message.text,
+    `If you believe this decision was made in error, or you can share further details of your`,
+    `credentials, please reply to this email.`,
+  ].join('\n')
+
+  return {
+    subject: `Update on your NBAC 2027 media accreditation request [${reference}]`,
+    html: shell(inner, 'media desk'),
     text,
   }
 }
