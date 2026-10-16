@@ -1,14 +1,16 @@
 import { Resend } from "resend";
 
 /**
- * Resend sending helper for delegate-facing transactional email.
+ * Resend sending helper for all of the site's email.
  *
- * Split of responsibility with lib/email.ts (EmailJS):
- *   * Resend  — delegate-facing mail (payment instructions, claim
- *     acknowledgements, verified confirmations, passes). These need real HTML,
- *     attachments, and bounce visibility.
- *   * EmailJS — internal alerts to the EAN marketing inbox. Plain text is fine
- *     there and the existing four routes keep working untouched.
+ * Every form sends through here: the confirmation to the person who
+ * submitted, and the team alert to CONTACT_ALERT_EMAIL (see
+ * lib/form-emails.ts). Resend only sends — submissions arrive at the API
+ * routes, which save them and then ask Resend to deliver the emails. Its
+ * dashboard shows delivered/bounced for each one, which EmailJS never did.
+ *
+ * lib/email.ts (EmailJS) is no longer called by any route; it is kept only
+ * as a fallback while the switch beds in.
  *
  * All addresses come from the environment and are deliberately NOT defaulted
  * in source — this file is committed, and hardcoded mailboxes get harvested
@@ -34,6 +36,12 @@ export const REGISTRATION_REPLY_TO =
 /** Archive copy of every delegate email. Omitted entirely when unset. */
 export const ARCHIVE_BCC = process.env.PAYMENT_ARCHIVE_BCC?.trim() || "";
 
+/** The bare address inside RESEND_FROM, e.g. "registration@nbac.com.ng". */
+function senderAddress(): string {
+  const match = REGISTRATION_FROM.match(/<([^>]+)>/);
+  return (match ? match[1] : REGISTRATION_FROM).trim();
+}
+
 let client: Resend | null = null;
 
 function getClient(): Resend | null {
@@ -51,6 +59,12 @@ export interface SendEmailParams {
   /** Plain-text alternative. Materially helps deliverability — always pass one. */
   text: string;
   replyTo?: string;
+  /**
+   * Sender display name for this email, e.g. "NBAC 2027 Partnerships". The
+   * address is always the verified one in RESEND_FROM; only the name changes,
+   * so a contact-form reply does not arrive signed "Delegate Desk".
+   */
+  fromName?: string;
   /** Set false for internal mail that should not clutter the archive mailbox. */
   archive?: boolean;
   /**
@@ -92,7 +106,9 @@ export async function sendEmail(
   try {
     const { data, error } = await resend.emails.send(
       {
-        from: REGISTRATION_FROM,
+        from: params.fromName
+          ? `${params.fromName} <${senderAddress()}>`
+          : REGISTRATION_FROM,
         to: params.to,
         subject: params.subject,
         html: params.html,

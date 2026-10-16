@@ -21,7 +21,7 @@ import { formatUsd, formatNgn } from '@/lib/pricing'
  * Applied at each call site rather than inside row(), because row() also
  * receives markup we build ourselves.
  */
-function esc(value: string | number): string {
+export function esc(value: string | number): string {
   return String(value)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -30,12 +30,12 @@ function esc(value: string | number): string {
     .replace(/'/g, '&#39;')
 }
 
-const GOLD = '#c5a059'
-const INK = '#101415'
-const BODY = '#3f4a4c'
-const MUTED = '#7a8688'
-const BORDER = '#e2e5e6'
-const CANVAS = '#f6f7f7'
+export const GOLD = '#c5a059'
+export const INK = '#101415'
+export const BODY = '#3f4a4c'
+export const MUTED = '#7a8688'
+export const BORDER = '#e2e5e6'
+export const CANVAS = '#f6f7f7'
 
 export interface RegistrationEmailData {
   name: string
@@ -76,7 +76,7 @@ const HONORIFICS = new Set([
   'arc', 'architect', 'amb', 'ambassador', 'lady', 'madam',
 ])
 
-function greetingName(name: string): string {
+export function greetingName(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean)
   if (parts.length === 0) return name
   const head = parts[0].replace(/\.$/, '').toLowerCase()
@@ -84,7 +84,7 @@ function greetingName(name: string): string {
   return parts[0]
 }
 
-function shell(inner: string, desk = 'delegate desk'): string {
+export function shell(inner: string, desk = 'delegate desk'): string {
   return `<!doctype html>
 <html><body style="margin:0;padding:0;background:${CANVAS};">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${CANVAS};padding:24px 12px;">
@@ -106,7 +106,7 @@ ${inner}
 </body></html>`
 }
 
-function row(label: string, value: string, opts: { strong?: boolean; color?: string } = {}) {
+export function row(label: string, value: string, opts: { strong?: boolean; color?: string } = {}) {
   return `<tr>
     <td style="padding:7px 0;color:${MUTED};font-size:13px;">${label}</td>
     <td style="padding:7px 0;text-align:right;font-size:13px;color:${opts.color || BODY};${opts.strong ? 'font-weight:700;' : ''}">${value}</td>

@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { sendEmailJS } from '@/lib/email';
 import { sendEmail } from '@/lib/resend';
+import { SENDERS, sendTeamAlert } from '@/lib/form-emails';
 import { pressAccreditationReceivedEmail } from '@/lib/payment-emails';
 import { MEDIA_TYPES, mediaTypeLabel } from '@/lib/press';
-import { absoluteUrl } from '@/lib/site';
 import { isValidHttpUrl } from '@/lib/utils';
 import crypto from 'crypto';
 
@@ -190,33 +189,29 @@ export async function POST(request: Request) {
 
     const typeLabel = mediaTypeLabel(mediaType);
 
-    // Internal alert to the marketing inbox (CONTACT_ALERT_EMAIL) via EmailJS.
-    const adminEmailPromise = sendEmailJS({
+    // Team alert to CONTACT_ALERT_EMAIL via Resend.
+    const adminEmailPromise = sendTeamAlert({
+      subject: `New media accreditation — ${fullName}, ${outlet} [${reference}]`,
+      heading: 'New media accreditation request',
+      fields: [
+        ['Reference', reference],
+        ['Name', fullName],
+        ['Job title', jobTitle],
+        ['Email', email],
+        ['Phone', phone],
+        ['Media outlet', outlet],
+        ['Media type', typeLabel],
+        ['Country', country],
+        ['Outlet website', outletWebsite],
+      ],
+      notes: [
+        ['Coverage plan', coveragePlan],
+        ['Additional crew', additionalCrew],
+      ],
+      adminPath: '/admin/press',
+      replyTo: email,
+      tag: 'press_alert',
       logContext: 'press-admin',
-      templateParams: {
-        name: fullName,
-        title: `NEW MEDIA ACCREDITATION: ${outlet} [${reference}]`,
-        email,
-        message: [
-          `New media accreditation request received:`,
-          ``,
-          `Reference: ${reference}`,
-          `Name: ${fullName}`,
-          `Job Title: ${jobTitle}`,
-          `Email: ${email}`,
-          `Phone: ${phone}`,
-          `Media Outlet: ${outlet}`,
-          `Media Type: ${typeLabel}`,
-          `Country: ${country || 'N/A'}`,
-          `Outlet Website: ${outletWebsite || 'N/A'}`,
-          ``,
-          `COVERAGE PLAN:\n${coveragePlan || 'N/A'}`,
-          ``,
-          `ADDITIONAL CREW:\n${additionalCrew || 'None'}`,
-          ``,
-          `Review in admin: ${absoluteUrl('/admin/press')}`,
-        ].join('\n'),
-      },
     });
 
     // Journalist-facing confirmation via Resend.
@@ -231,6 +226,7 @@ export async function POST(request: Request) {
       subject: confirmation.subject,
       html: confirmation.html,
       text: confirmation.text,
+      fromName: SENDERS.media,
       idempotencyKey: `press-received-${reference}`,
       tags: [{ name: 'type', value: 'press_accreditation_received' }],
       logContext: 'press-client',
