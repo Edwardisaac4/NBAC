@@ -15,7 +15,8 @@ import {
   Award,
   Ticket,
   Handshake,
-  Sparkles
+  Sparkles,
+  Newspaper
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAdminRole } from '@/hooks/use-admin-role';
@@ -98,6 +99,12 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       label: 'AeroLab Intake',
       href: '/admin/aerolab',
       icon: Award,
+      roles: ['head_admin', 'editor']
+    },
+    {
+      label: 'Press Accreditation',
+      href: '/admin/press',
+      icon: Newspaper,
       roles: ['head_admin', 'editor']
     },
     {
