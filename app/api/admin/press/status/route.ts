@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { sendEmail } from '@/lib/resend';
+import { SENDERS } from '@/lib/form-emails';
 import {
   pressAccreditationApprovedEmail,
   pressAccreditationDeclinedEmail,
@@ -90,6 +91,7 @@ export async function POST(request: Request) {
         subject: email.subject,
         html: email.html,
         text: email.text,
+        fromName: SENDERS.media,
         // reviewed_at is unique per decision, so approve → reset → approve
         // still sends, while a retried request for the same decision does not.
         idempotencyKey: `press-${status}-${row.id}-${row.reviewed_at}`,

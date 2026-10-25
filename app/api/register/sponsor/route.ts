@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { sendEmailJS } from '@/lib/email';
+import { sendEmail } from '@/lib/resend';
+import { SENDERS, sendTeamAlert, sponsorApplicationReceivedEmail } from '@/lib/form-emails';
 
 export async function POST(request: Request) {
   try {
@@ -48,59 +49,50 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Send email alert via EmailJS
-    // 1. Send alert to admin (automatically defaults to CONTACT_ALERT_EMAIL)
-    const adminEmailResult = await sendEmailJS({
-      logContext: 'sponsor-admin',
-      templateParams: {
-        name: fullName,
-        title: `NEW SPONSOR APPLICATION — ${tier}`,
-        email,
-        message: [
-          `New sponsor application received:`,
-          ``,
-          `Company: ${companyName}`,
-          `Industry: ${industry || 'N/A'}`,
-          `Website: ${website || 'N/A'}`,
-          `Contact: ${fullName} (${designation || 'N/A'})`,
-          `Email: ${email}`,
-          `Phone: ${phone || 'N/A'}`,
-          `Sponsorship Tier: ${tier}`,
-          `Add-Ons: ${addOnsText}`,
-          `Track Count: ${trackCount || 1}`,
-          `Special Requirements: ${specialRequirements || 'None'}`,
-        ].join('\n'),
-      }
+    // --- EMAILS (Resend) ---
+    // There is no admin page for sponsor applications, so this alert to
+    // CONTACT_ALERT_EMAIL is how the team learns of each one.
+    const confirmation = sponsorApplicationReceivedEmail({
+      name: String(fullName),
+      company: String(companyName),
+      tierName: String(tier),
+      addOns: safeAddOns,
     });
+
+    const [adminEmailResult, clientEmailResult] = await Promise.all([
+      sendTeamAlert({
+        subject: `New sponsor application (${tier}) — ${companyName}`,
+        heading: 'New sponsorship application',
+        fields: [
+          ['Company', companyName],
+          ['Industry', industry],
+          ['Website', website],
+          ['Contact', designation ? `${fullName} (${designation})` : fullName],
+          ['Email', email],
+          ['Phone', phone],
+          ['Package', tier],
+          ['Add-ons', addOnsText],
+          ['Track count', trackCount || 1],
+        ],
+        notes: [['Special requirements', specialRequirements]],
+        replyTo: String(email),
+        tag: 'sponsor_alert',
+        logContext: 'sponsor-admin',
+      }),
+      sendEmail({
+        to: String(email),
+        subject: confirmation.subject,
+        html: confirmation.html,
+        text: confirmation.text,
+        fromName: SENDERS.sponsor,
+        tags: [{ name: 'type', value: 'sponsor_received' }],
+        logContext: 'sponsor-client',
+      }),
+    ]);
 
     if (!adminEmailResult.success) {
-      console.warn('[Sponsor API] Admin email notification failed:', adminEmailResult.error);
+      console.warn('[Sponsor API] Team alert failed:', adminEmailResult.error);
     }
-
-    // 2. Send confirmation copy to sponsor applicant's contact email
-    const clientEmailResult = await sendEmailJS({
-      logContext: 'sponsor-client',
-      templateParams: {
-        name: fullName,
-        title: `Sponsorship Application Received — ${tier}`,
-        email,
-        to_email: email,
-        message: [
-          `Thank you for applying to sponsor NBAC 2027. We have received your sponsor application:`,
-          ``,
-          `Company: ${companyName}`,
-          `Industry: ${industry || 'N/A'}`,
-          `Website: ${website || 'N/A'}`,
-          `Contact: ${fullName} (${designation || 'N/A'})`,
-          `Email: ${email}`,
-          `Phone: ${phone || 'N/A'}`,
-          `Sponsorship Tier: ${tier}`,
-          `Add-Ons: ${addOnsText}`,
-          `Track Count: ${trackCount || 1}`,
-          `Special Requirements: ${specialRequirements || 'None'}`,
-        ].join('\n'),
-      }
-    });
 
     if (!clientEmailResult.success) {
       console.warn('[Sponsor API] Client confirmation email failed:', clientEmailResult.error);

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { sendEmailJS } from '@/lib/email';
+import { sendEmail } from '@/lib/resend';
+import { SENDERS, aerolabApplicationReceivedEmail, sendTeamAlert } from '@/lib/form-emails';
 import { isValidHttpUrl } from '@/lib/utils';
 import crypto from 'crypto';
 
@@ -213,60 +214,53 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Could not generate a unique application reference.' }, { status: 500 });
     }
 
-    // 2. Concurrent Email Alerts via EmailJS with 5-second bounded timeout
-    const adminEmailPromise = sendEmailJS({
+    // 2. Concurrent emails via Resend with a 5-second bounded wait
+    const trackLabel = `Track ${trackNum} — ${trackTitle || 'Track Challenge'}`;
+
+    const adminEmailPromise = sendTeamAlert({
+      subject: `New AeroLab application (Track ${trackNum}) — ${teamName} [${reference}]`,
+      heading: 'New AeroLab Innovation Challenge application',
+      fields: [
+        ['Reference', reference],
+        ['Team', teamName],
+        ['Team leader', leaderName],
+        ['Email', leaderEmail],
+        ['Phone', leaderPhone],
+        ['Organization', organization],
+        ['Track', trackLabel],
+        ['Team size', `${parsedMemberCount} members`],
+        ['Repo / demo', repoOrPortfolioUrl],
+        ['Proposal', proposalTitle],
+      ],
+      notes: [
+        ['Team roster', memberRoster],
+        ['Concept note', conceptNote],
+      ],
+      adminPath: '/admin/aerolab',
+      replyTo: String(leaderEmail),
+      tag: 'aerolab_alert',
       logContext: 'aerolab-admin',
-      templateParams: {
-        name: leaderName,
-        title: `NEW AEROLAB APPLICATION: Track ${trackNum} [${reference}]`,
-        email: leaderEmail,
-        message: [
-          `New AeroLab Innovation Challenge application received:`,
-          ``,
-          `Reference ID: ${reference}`,
-          `Team Name: ${teamName}`,
-          `Team Leader: ${leaderName} (${leaderEmail})`,
-          `Phone: ${leaderPhone || 'N/A'}`,
-          `Organization/University: ${organization || 'N/A'}`,
-          `Track: Track ${trackNum} — ${trackTitle || 'Track Challenge'}`,
-          `Team Size: ${parsedMemberCount} Members`,
-          `Team Roster: ${memberRoster || 'N/A'}`,
-          ``,
-          `PROPOSAL TITLE: ${proposalTitle}`,
-          `CONCEPT NOTE:\n${conceptNote}`,
-          repoOrPortfolioUrl ? `REPO / PORTFOLIO LINK: ${repoOrPortfolioUrl}` : ''
-        ].filter(Boolean).join('\n'),
-      }
     }).then((res) => {
-      if (!res.success) console.warn('[AeroLab API] Admin email failed:', res.error);
+      if (!res.success) console.warn('[AeroLab API] Team alert failed:', res.error);
       return res;
     });
 
-    const clientEmailPromise = sendEmailJS({
+    const confirmation = aerolabApplicationReceivedEmail({
+      name: String(leaderName),
+      reference,
+      teamName: String(teamName),
+      trackLabel,
+      proposalTitle: String(proposalTitle),
+    });
+    const clientEmailPromise = sendEmail({
+      to: String(leaderEmail),
+      subject: confirmation.subject,
+      html: confirmation.html,
+      text: confirmation.text,
+      fromName: SENDERS.aerolab,
+      idempotencyKey: `aerolab-received-${reference}`,
+      tags: [{ name: 'type', value: 'aerolab_received' }],
       logContext: 'aerolab-client',
-      templateParams: {
-        name: leaderName,
-        title: `AeroLab 2027 Application Received [${reference}]`,
-        email: leaderEmail,
-        to_email: leaderEmail,
-        message: [
-          `Thank you for applying to the AeroLab Innovation Challenge at NBAC 2027!`,
-          ``,
-          `We have successfully received your team application:`,
-          `Reference ID: ${reference}`,
-          `Team Name: ${teamName}`,
-          `Track: Track ${trackNum} — ${trackTitle || 'Track Challenge'}`,
-          `Proposal Title: ${proposalTitle}`,
-          ``,
-          `NEXT STEPS:`,
-          `1. Your application is now queued for evaluation by the NBAC Technical Steering Committee.`,
-          `2. Admitted cohort teams (up to 30 teams across all tracks) will be announced and contacted via email with briefing packs and mentor pairings.`,
-          `3. Keep an eye on your inbox for further updates.`,
-          ``,
-          `Warm regards,`,
-          `The NBAC 2027 AeroLab Committee`
-        ].join('\n'),
-      }
     }).then((res) => {
       if (!res.success) console.warn('[AeroLab API] Client confirmation email failed:', res.error);
       return res;

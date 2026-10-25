@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { sendEmailJS } from '@/lib/email';
+import { sendEmail } from '@/lib/resend';
+import { SENDERS, contactReceivedEmail, sendTeamAlert } from '@/lib/form-emails';
 
 const ALLOWED_INQUIRY_TYPES = ['general', 'aerolabs', 'sponsorship', 'registration', 'aircraft_display', 'others'] as const;
+
+// Same wording as the topic dropdown in components/sections/contact-form-ui.tsx
+const INQUIRY_LABELS: Record<(typeof ALLOWED_INQUIRY_TYPES)[number], string> = {
+  general: 'General Inquiry',
+  aerolabs: 'AeroLabs',
+  sponsorship: 'Sponsorships',
+  registration: 'Event Registration',
+  aircraft_display: 'Aircraft Display',
+  others: 'Others',
+};
 
 // --- RATE LIMITING ---
 const ipRequestHistory = new Map<string, number[]>();
@@ -94,36 +105,46 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // --- ALERTS PIPELINE ---
-    // 1. Send alert to admin (automatically defaults to CONTACT_ALERT_EMAIL)
-    const adminEmailResult = await sendEmailJS({
-      logContext: 'contact-admin',
-      templateParams: {
-        name: fullName,
-        title: `NEW INQUIRY: ${inquiryType.toUpperCase().replace('_', ' ')}`,
-        email,
-        message: `Company: ${company || 'N/A'}\nPhone: ${phone || 'N/A'}\n\n${message}`,
-      }
-    });
+    // --- EMAILS (Resend) ---
+    // There is no admin page for contact messages, so this alert to
+    // CONTACT_ALERT_EMAIL is how the team learns of each one.
+    const topic = INQUIRY_LABELS[inquiryType as keyof typeof INQUIRY_LABELS];
+    const confirmation = contactReceivedEmail({ name: fullName, topic, message });
+
+    const [adminEmailResult, clientEmailResult] = await Promise.all([
+      sendTeamAlert({
+        subject: `New contact message (${topic}) — ${fullName}`,
+        heading: 'New contact form message',
+        fields: [
+          ['Name', fullName],
+          ['Email', email],
+          ['Phone', phone],
+          ['Company', company],
+          ['Topic', topic],
+        ],
+        notes: [['Message', message]],
+        replyTo: email,
+        tag: 'contact_alert',
+        logContext: 'contact-admin',
+      }),
+      sendEmail({
+        to: email,
+        subject: confirmation.subject,
+        html: confirmation.html,
+        text: confirmation.text,
+        fromName: SENDERS.contact,
+        // A follow-up reply belongs with the team handling the inquiry.
+        replyTo: process.env.CONTACT_ALERT_EMAIL?.trim() || undefined,
+        tags: [{ name: 'type', value: 'contact_received' }],
+        logContext: 'contact-client',
+      }),
+    ]);
 
     if (!adminEmailResult.success) {
-      console.warn('[Contact API] Admin email notification failed:', adminEmailResult.error);
+      console.warn('[Contact API] Team alert failed:', adminEmailResult.error);
     }
-
-    // 2. Send confirmation copy to submitter's contact email
-    const clientEmailResult = await sendEmailJS({
-      logContext: 'contact-client',
-      templateParams: {
-        name: fullName,
-        title: `Inquiry Received: ${inquiryType.toUpperCase().replace('_', ' ')}`,
-        email,
-        to_email: email,
-        message: `Thank you for contacting us. We have received your inquiry:\n\n${message}`,
-      }
-    });
-
     if (!clientEmailResult.success) {
-      console.warn('[Contact API] Client confirmation email failed:', clientEmailResult.error);
+      console.warn('[Contact API] Confirmation email failed:', clientEmailResult.error);
     }
 
     return NextResponse.json({ success: true }, { status: 200 });

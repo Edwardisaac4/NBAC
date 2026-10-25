@@ -16,7 +16,8 @@ import {
   Ticket,
   Handshake,
   Sparkles,
-  Newspaper
+  Newspaper,
+  Building2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAdminRole } from '@/hooks/use-admin-role';
@@ -117,6 +118,12 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       label: 'Sponsor Packages',
       href: '/admin/sponsors-manager',
       icon: Handshake,
+      roles: ['head_admin', 'editor']
+    },
+    {
+      label: 'Partners',
+      href: '/admin/partners',
+      icon: Building2,
       roles: ['head_admin', 'editor']
     },
     {

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { sendEmailJS } from '@/lib/email';
 import { sendEmail } from '@/lib/resend';
+import { sendTeamAlert } from '@/lib/form-emails';
 import { registrationReceivedEmail } from '@/lib/payment-emails';
 import { payUrl } from '@/lib/site';
 import {
@@ -205,38 +205,34 @@ export async function POST(request: Request) {
       );
     }
 
-    // ── Internal alert (EmailJS, unchanged transport) ───────────────────
-    const adminEmailResult = await sendEmailJS({
+    // ── Team alert (Resend) ─────────────────────────────────────────────
+    const adminEmailResult = await sendTeamAlert({
+      subject: `New delegate registration (${quote.tierName}) — ${name} [${reference}]`,
+      heading: 'New delegate registration',
+      fields: [
+        ['Reference', reference],
+        ['Name', name],
+        ['Email', email],
+        ['Company', company],
+        ['Phone', phone],
+        ['Pass tier', quote.tierName],
+        ['Delegates', normalizedDelegateCount],
+        ['Gross amount', `${formatUsd(quote.grossAmount)} ${resolvedCurrency}`],
+        [
+          'Discount',
+          quote.discountCode
+            ? `${quote.discountLabel} (${quote.discountCode}): -${formatUsd(quote.discountAmount)}`
+            : 'None',
+        ],
+        ['Amount due', `${formatUsd(quote.netAmount)} ${resolvedCurrency}`],
+        ['Price held until', deadline.toISOString().slice(0, 10)],
+        ['Payment page', delegatePayUrl],
+      ],
+      notes: [['Special requirements', specialRequirements]],
+      adminPath: '/admin/reservations',
+      replyTo: String(email),
+      tag: 'delegate_alert',
       logContext: 'delegate-admin',
-      templateParams: {
-        name,
-        title: `NEW TICKET REGISTRATION — ${quote.tierName}${
-          quote.discountCode ? ` [${quote.discountCode}]` : ''
-        }`,
-        email,
-        message: [
-          `New delegate registration received:`,
-          ``,
-          `Name: ${name}`,
-          `Email: ${email}`,
-          `Company: ${company || 'N/A'}`,
-          `Phone: ${phone || 'N/A'}`,
-          `Pass Tier: ${quote.tierName}`,
-          `Delegates: ${normalizedDelegateCount}`,
-          `Reference: ${reference}`,
-          `Gross Amount: ${formatUsd(quote.grossAmount)} ${resolvedCurrency}`,
-          ...(quote.discountCode
-            ? [
-                `Applied Discount: ${quote.discountLabel} (${quote.discountCode})`,
-                `Discount Value: -${formatUsd(quote.discountAmount)}`,
-              ]
-            : [`Applied Discount: none`]),
-          `Amount Due: ${formatUsd(quote.netAmount)} ${resolvedCurrency}`,
-          `Payment Page: ${delegatePayUrl}`,
-          `Price Held Until: ${deadline.toISOString().slice(0, 10)}`,
-          `Special Requirements: ${specialRequirements || 'None'}`,
-        ].join('\n'),
-      },
     });
 
     if (!adminEmailResult.success) {
