@@ -7,11 +7,18 @@ import { ExperienceSection } from "@/components/sections/experience-section";
 import { CommitteeSection } from "@/components/sections/committee-section";
 import { AudienceSection } from "@/components/sections/audience-section";
 import { SponsorsStrip } from "@/components/sections/sponsors-strip";
+import { PartnersWall } from "@/components/sections/partners-wall";
 import { Footer } from "@/components/layout/footer";
 import { SectionBlur } from "@/components/shared/section-blur";
 import { Preloader } from "@/components/shared/preloader";
+import { fetchPartnersServer } from "@/lib/supabase/partners-server";
 
-export default function Home() {
+// Partners are managed in /admin/partners; a change shows here within 5 minutes.
+export const revalidate = 300;
+
+export default async function Home() {
+  const partners = await fetchPartnersServer();
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Event",
@@ -77,6 +84,7 @@ export default function Home() {
         <SectionBlur>
           <ChairmansWelcome />
         </SectionBlur>
+        <PartnersWall partners={partners} />
         <SectionBlur intensity={4} minOpacity={0.75}>
           <SponsorsStrip />
         </SectionBlur>
