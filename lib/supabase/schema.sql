@@ -607,12 +607,12 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.press_accreditations TO authentic
 
 -- -------------------------------------------------------------
 -- TABLE: partners
--- Sponsor logos for the homepage partner wall (see migration 011)
+-- Sponsor logos for the homepage partner wall (see migrations 011, 012)
 -- -------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.partners (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     name text NOT NULL,
-    tier text NOT NULL CHECK (tier IN ('platinum', 'gold', 'silver', 'bronze')),
+    tier text NOT NULL CHECK (tier IN ('title', 'platinum', 'gold', 'silver', 'bronze')),
     logo_url text NOT NULL,
     storage_path text,
     website_url text,
