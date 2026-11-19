@@ -1,8 +1,11 @@
 import { PARTNER_TIERS, type Partner, type PartnerTier } from '@/lib/partners'
 import { isValidHttpUrl } from '@/lib/utils'
+import { PartnersCarousel } from './partners-carousel'
 
 /**
- * Homepage partner wall: one panel per sponsorship tier, Title Partner first.
+ * Homepage partner wall: one panel per sponsorship tier, shown one at a time
+ * in a slider (see PartnersCarousel). It starts on the lowest tier and climbs,
+ * so the top tier showing is the one that stays longest.
  *
  * Each tier's panel carries its metal colour (border, glow, label), and logo
  * size is the tier — the single Title Partner tile is the largest, Platinum
@@ -50,10 +53,19 @@ const SIZE: Record<PartnerTier, { tile: string; panel: string }> = {
   bronze: { tile: 'w-[calc(50%-0.5rem)] sm:w-52 h-24 md:h-28', panel: 'max-w-5xl' },
 }
 
+// How long each tier's panel stays in the slider, in seconds.
+const SECONDS: Record<PartnerTier, number> = {
+  bronze: 3,
+  silver: 5,
+  gold: 8,
+  platinum: 15,
+  title: 20,
+}
+
 export function PartnersWall({ partners }: { partners: Partner[] }) {
   if (partners.length === 0) return null
 
-  const tiers = PARTNER_TIERS.map((tier) => ({
+  const tiers = [...PARTNER_TIERS].reverse().map((tier) => ({
     ...tier,
     partners: partners.filter((p) => p.tier === tier.id),
   })).filter((tier) => tier.partners.length > 0)
@@ -70,11 +82,11 @@ export function PartnersWall({ partners }: { partners: Partner[] }) {
           </h2>
         </div>
 
-        <div className="space-y-6 md:space-y-8">
+        <PartnersCarousel seconds={tiers.map((tier) => SECONDS[tier.id])}>
           {tiers.map((tier) => (
             <div
               key={tier.id}
-              className={`mx-auto rounded-2xl border bg-linear-to-b to-transparent px-4 py-6 sm:px-8 md:py-8 ${SIZE[tier.id].panel} ${THEME[tier.id].panel}`}
+              className={`mx-auto flex w-full flex-col justify-center rounded-2xl border bg-linear-to-b to-transparent px-4 py-6 sm:px-8 md:py-8 ${SIZE[tier.id].panel} ${THEME[tier.id].panel}`}
             >
               <div className="flex flex-col items-center gap-2 mb-6">
                 <span
@@ -121,7 +133,7 @@ export function PartnersWall({ partners }: { partners: Partner[] }) {
               </ul>
             </div>
           ))}
-        </div>
+        </PartnersCarousel>
       </div>
     </section>
   )

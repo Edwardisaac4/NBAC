@@ -82,6 +82,19 @@ export function HeroSection() {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0)
   const [particles] = useState<ReturnType<typeof generateParticles>>(() => generateParticles())
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null)
+  // Only the first slide loads with the page; the rest wait until the page has
+  // finished loading, so on phones they don't compete with it for bandwidth.
+  const [loadAllSlides, setLoadAllSlides] = useState(false)
+
+  useEffect(() => {
+    const loadSlides = () => setLoadAllSlides(true)
+    if (document.readyState === 'complete') {
+      loadSlides()
+      return
+    }
+    window.addEventListener('load', loadSlides, { once: true })
+    return () => window.removeEventListener('load', loadSlides)
+  }, [])
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart({ x: e.touches[0].clientX, y: e.touches[0].clientY })
@@ -385,7 +398,7 @@ export function HeroSection() {
       {/* ── Background Image Layer ─────────────────────── */}
       <div className="absolute inset-0 z-0">
         <div ref={bgRef} className="absolute inset-0 w-full h-full opacity-100 scale-100 sm:scale-105 md:scale-110" style={{ willChange: 'transform' }}>
-          {bgImages.map((src, index) => (
+          {bgImages.map((src, index) => (index === 0 || loadAllSlides) && (
             <div
               key={src}
               className="hero-bg-slide absolute inset-0 w-full h-full transition-opacity duration-[2000ms] ease-in-out pointer-events-none"
@@ -397,7 +410,8 @@ export function HeroSection() {
                 src={src}
                 alt="Nigerian Business Aviation Conference Hero Background"
                 fill
-                priority={index === 0}
+                preload={index === 0}
+                fetchPriority={index === 0 ? 'high' : undefined}
                 sizes="100vw"
                 quality={85}
                 className="object-cover object-[50%_30%] sm:object-center transition-all duration-1000"

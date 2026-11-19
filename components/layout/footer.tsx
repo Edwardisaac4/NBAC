@@ -103,7 +103,6 @@ export function Footer() {
                 fill
                 className="object-cover scale-[1.05]"
                 sizes="44px"
-                priority
               />
             </div>
             <div className="flex flex-col leading-[1.05] select-none">
@@ -202,7 +201,6 @@ export function Footer() {
               fill
               className="object-contain dark:brightness-0 dark:invert opacity-80 hover:opacity-100 transition-opacity"
               sizes="120px"
-              priority
             />
           </div>
         </div>
