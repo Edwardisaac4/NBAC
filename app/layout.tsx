@@ -68,9 +68,6 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="preload" as="image" href="/images/hero_jet.jpg" fetchPriority="high" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

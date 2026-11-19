@@ -2,7 +2,13 @@
 
 import Image from 'next/image'
 
-export default function Loading() {
+/**
+ * Full-screen loading screen for routes rendered on demand (payment links,
+ * admin). Deliberately not used as the root loading.tsx: a root loading
+ * boundary makes every prerendered page ship this screen first, with the real
+ * page hidden until a script swaps it in, which delays first paint site-wide.
+ */
+export function LoadingScreen() {
   return (
     <div className="fixed inset-0 z-9999 bg-nbac-canvas flex flex-col items-center justify-center transition-colors duration-300">
       <div className="flex flex-col items-center space-y-4">
